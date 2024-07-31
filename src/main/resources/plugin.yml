@@ -1,5 +1,6 @@
-main: dev.tbm00.spigot.blankplugin.BlankPlugin
+name: ExplosiveCrossbow
+version: ${project.version}
+description: This plugin adds an explosive crossbow to the game
 author: tbm00
-name: BlankPlugin
-version: 0.0-SNAPSHOT-1
+main: dev.tbm00.spigot.explosivecrossbow.ExplosiveCrossbow
 api-version: 1.17

@@ -1,4 +1,4 @@
-package dev.tbm00.spigot.blankplugin.listener;
+package dev.tbm00.spigot.explosivecrossbow.listener;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;

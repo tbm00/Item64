@@ -1,4 +1,4 @@
-package dev.tbm00.spigot.blankplugin.command;
+package dev.tbm00.spigot.explosivecrossbow.command;
 
 import java.util.List;
 import java.util.ArrayList;
