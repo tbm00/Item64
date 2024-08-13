@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>dev.tbm00</groupId>
-    <artifactId>ExplosiveCrossbow</artifactId>
-    <version>1.0.0-beta</version>
+    <artifactId>Item64</artifactId>
+    <version>0.0.0-beta</version>
     <packaging>jar</packaging>
 
-    <name>ExplosiveCrossbow</name>
+    <name>Item64</name>
 
-    <description>This adds an explosive crossbow to the game</description>
+    <description>This plugin adds some custom items</description>
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -58,10 +58,6 @@
         <repository>
             <id>spigotmc-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
     </repositories>
 

@@ -1,6 +1,13 @@
-name: ExplosiveCrossbow
+name: Item64
 version: ${project.version}
-description: This plugin adds an explosive crossbow to the game
+description: ${project.description}
 author: tbm00
-main: dev.tbm00.spigot.explosivecrossbow.ExplosiveCrossbow
+main: dev.tbm00.spigot.item64.Item64
 api-version: 1.17
+commands:
+  itm:
+    description: Base command for Item64
+permissions:
+  item64.help:
+    description: Ability to display the command list
+    default: op

@@ -1,2 +1,58 @@
-lang:
-  prefix: "Blank"
+itemEntries:
+  enabled: true
+  '1':
+    enabled: true
+    givePerm: "item64.give.xbow"
+    usePerm: "item64.use.xbow"
+    type: "EXPLOSIVE_ARROW"
+    key: "XBOW1"
+    name: "&6Explosive Bow"
+    item: "BOW"
+    glowing: true
+    lore:
+      - "&0--------------------"
+  '2':
+    enabled: true
+    givePerm: "item64.give.xcrossbow"
+    usePerm: "item64.use.xcrossbow"
+    type: "EXPLOSIVE_FIREWORK"
+    key: "XCROSSBOW1"
+    name: "&6Explosive Crossbow"
+    item: "CROSSBOW"
+    glowing: true
+    lore:
+      - "&0--------------------"
+  '3':
+    enabled: true
+    givePerm: "item64.give.lightrod"
+    usePerm: "item64.use.lightrod"
+    type: "LIGHTNING"
+    key: "LIGHTROD1"
+    name: "&6Lightning Rod"
+    item: "LIGHTNING_ROD"
+    glowing: true
+    lore:
+      - "&0--------------------"
+  '4':
+    enabled: true
+    givePerm: "item64.give.firestick"
+    usePerm: "item64.use.firestick"
+    type: "FIREBALL"
+    key: "FIRESTICK1"
+    name: "&6Fire Stick"
+    item: "REDSTONE_TORCH"
+    glowing: true
+    lore:
+      - "&0--------------------"
+  '5':
+    enabled: true
+    givePerm: "item64.give.endergun"
+    usePerm: "item64.use.endergun"
+    type: "PEARL"
+    key: "FIRESTICK1"
+    name: "&6Ender Gun"
+    item: "ECHO_SHARD"
+    glowing: true
+    lore:
+      - "&0--------------------"
+  # Add more entries as needed
