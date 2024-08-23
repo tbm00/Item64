@@ -109,6 +109,8 @@ Desktop.ini
 ## Misc.
 #############
 
+offline/
+
 # Compiled class file
 *.class
 

@@ -9,39 +9,70 @@ import org.bukkit.plugin.java.JavaPlugin;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ItemManager {
-    private final List<ItemEntry> itemEntries;
     private final Boolean enabled;
+    private final List<ItemEntry> itemEntries;
+    private final List<Long> cooldowns;
+    private final List<Integer> hungers;
 
     public ItemManager(JavaPlugin javaPlugin) {
-        this.itemEntries = new ArrayList<>();
+        itemEntries = new ArrayList<>();
+        cooldowns = new ArrayList<>();
+        hungers = new ArrayList<>();
+        for (int i=0; i<4; ++i) {
+            cooldowns.add(0L);
+            hungers.add(0);
+        }
 
-        // Load Item Commands from config.yml
-        ConfigurationSection itemCmdSection = javaPlugin.getConfig().getConfigurationSection("itemCommandEntries");
-        if (itemCmdSection != null && itemCmdSection.getBoolean("enabled")) {
-            this.enabled = true;
-            for (String key : itemCmdSection.getKeys(false)) {
-                ConfigurationSection itemEntry = itemCmdSection.getConfigurationSection(key);
+        ConfigurationSection entriesSection = javaPlugin.getConfig().getConfigurationSection("itemEntries");
+        if (entriesSection != null && entriesSection.getBoolean("enabled")) {
+            enabled = true;
+            for (String key : entriesSection.getKeys(false)) {
+                ConfigurationSection itemEntry = entriesSection.getConfigurationSection(key);
                 
                 if (itemEntry != null && itemEntry.getBoolean("enabled")) {
                     String givePerm = itemEntry.getString("givePerm");
                     String usePerm = itemEntry.getString("usePerm");
                     String type = itemEntry.getString("type");
                     String KEY = itemEntry.getString("key");
+                    int cooldown = itemEntry.getInt("cooldown");
+                    int hunger = itemEntry.getInt("hunger");
                     String name = itemEntry.getString("name");
                     String item = itemEntry.getString("item");
+                    String ammoItem = itemEntry.getString("ammoItem");
                     Boolean glowing = itemEntry.getBoolean("glowing");
                     List<String> lore = itemEntry.getStringList("lore");
+
+                    switch (type) {
+                        case "EXPLOSIVE_ARROW" -> {
+                            cooldowns.set(0, Long.valueOf(cooldown));
+                            hungers.set(0, hunger);
+                            ammoItem = "ARROW";
+                        }
+                        case "LIGHTNING" -> {
+                            cooldowns.set(1, Long.valueOf(cooldown));
+                            hungers.set(1, hunger);
+                        }
+                        case "FLAME" -> {
+                            cooldowns.set(2, Long.valueOf(cooldown));
+                            hungers.set(2, hunger);
+                        }
+                        case "RANDOM_POTION" -> {
+                            cooldowns.set(3, Long.valueOf(cooldown));
+                            hungers.set(3, hunger);
+                        }
+                        default -> {}
+                    }
                     
                     if (usePerm != null && givePerm != null && type != null && key != null ) {
-                        ItemEntry entry = new ItemEntry(javaPlugin, givePerm, usePerm, type, KEY, name, item, glowing, lore);
-                        this.itemEntries.add(entry);
-                        System.out.println("Loaded itemEntry: " + KEY + " " + type + " " + item + " " + usePerm );
+                        ItemEntry entry = new ItemEntry(javaPlugin, givePerm, usePerm, type, KEY, cooldown, hunger, name, item, ammoItem, glowing, lore);
+                        itemEntries.add(entry);
+                        javaPlugin.getLogger().info("Loaded itemEntry: " + KEY + " " + type + " " + item + " " + usePerm );
                     } else {
-                        System.out.println("Error: Poorly defined itemEntry: " + KEY + " " + type + " " + item + " " + usePerm );
+                        javaPlugin.getLogger().warning("Error: Poorly defined itemEntry: " + KEY + " " + type + " " + item + " " + usePerm );
                     }
                 }
             }
-        } else this.enabled = false;
+        } else enabled = false;
     }
 
     public Boolean isEnabled() {
@@ -50,5 +81,20 @@ public class ItemManager {
 
     public List<ItemEntry> getItemEntries() {
         return itemEntries;
+    }
+
+    public ItemEntry getItemEntry(String type) {
+        for(ItemEntry entry : itemEntries) {
+            if (entry.getType().equals(type)) return entry;
+        }
+        return null;
+    }
+
+    public List<Long> getCooldowns() {
+        return cooldowns;
+    }
+
+    public List<Integer> getHungers() {
+        return hungers;
     }
 }

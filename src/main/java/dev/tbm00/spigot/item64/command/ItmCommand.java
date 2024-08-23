@@ -3,7 +3,9 @@ package dev.tbm00.spigot.item64.command;
 import java.util.ArrayList;
 import java.util.List;
 
-//import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -17,14 +19,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import dev.tbm00.spigot.item64.ItemManager;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-
 public class ItmCommand implements TabExecutor {
     private final JavaPlugin javaPlugin;
     private final ItemManager itemManager;
     private final List<ItemEntry> itemEntries;
+
 
     public ItmCommand(JavaPlugin javaPlugin, ItemManager itemManager) {
         this.javaPlugin = javaPlugin;
@@ -44,12 +43,13 @@ public class ItmCommand implements TabExecutor {
         String argument = null;
         if (args.length == 2) argument = args[1];
 
+        // Run HELP cmd
         if (sender.hasPermission("item64.help") && subCommand.equals("help")) {
             showHelp(sender);
             return true;
         }
 
-        // Run a give Item Command
+        // Run GIVE cmd
         if (itemManager.isEnabled() && subCommand.equals("give") && argument != null) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage(ChatColor.RED + "This command can only be run by a player!");
@@ -58,16 +58,18 @@ public class ItmCommand implements TabExecutor {
             for (ItemEntry entry : itemEntries) {
                 if (argument.equals(entry.getKeyString())) {
                     Player player = (Player) sender;
-                    if (player.hasPermission(entry.getGivePerm()) == true) {
-                        // Create the item
+                    if (sender.hasPermission(entry.getGivePerm())) {
                         ItemStack item = new ItemStack(Material.valueOf(entry.getItem()));
                         ItemMeta meta = item.getItemMeta();
                         if (meta != null) {
                             meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
+                            meta.getLore(); 
                             meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
                             if (entry.getGlowing()) {
-                                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                                meta.addEnchant(org.bukkit.enchantments.Enchantment.ARROW_DAMAGE, 1, true);
+                                if (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
+                                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                                }
+                                meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true);
                             }
                             meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
                             item.setItemMeta(meta);

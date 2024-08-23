@@ -11,20 +11,26 @@ public class ItemEntry {
     private String type;
     private NamespacedKey key;
     private String keyString;
+    private int cooldown;
+    private int hunger;
     private String name;
     private String item;
+    private String ammoItem;
     private Boolean glowing;
     private List<String> lore;
 
-    public ItemEntry(JavaPlugin javaPlugin, String givePerm, String usePerm, String type,
-                        String KEY, String name, String item, Boolean glowing, List<String> lore) {
+    public ItemEntry(JavaPlugin javaPlugin, String givePerm, String usePerm, String type, String KEY,
+                        int cooldown, int hunger, String name, String item, String ammoItem, Boolean glowing, List<String> lore) {
         this.givePerm = givePerm;
         this.usePerm = usePerm;
         this.type = type;
         this.key = new NamespacedKey(javaPlugin, KEY);
         this.keyString = KEY;
+        this.cooldown = cooldown;
+        this.hunger = hunger;
         this.name = name;
         this.item = item;
+        this.ammoItem = ammoItem;
         this.glowing = glowing;
         this.lore = lore;
     }
@@ -45,7 +51,6 @@ public class ItemEntry {
         this.usePerm = usePerm;
     }
 
-
     public String getType() {
         return type;
     }
@@ -62,6 +67,22 @@ public class ItemEntry {
         return keyString;
     }
 
+    public int getCooldown() {
+        return cooldown;
+    }
+
+    public void setCooldown(int cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    public int getHunger() {
+        return hunger;
+    }
+
+    public void setHunger(int hunger) {
+        this.hunger = hunger;
+    }
+
     public String getName() {
         return name;
     }
@@ -76,6 +97,14 @@ public class ItemEntry {
 
     public void setItem(String item) {
         this.item = item;
+    }
+
+    public String getAmmoItem() {
+        return ammoItem;
+    }
+
+    public void setAmmoItem(String ammoItem) {
+        this.ammoItem = ammoItem;
     }
 
     public Boolean getGlowing() {
