@@ -10,6 +10,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Egg;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Entity;
@@ -42,6 +43,7 @@ public class ItemUse implements Listener {
     private final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
     private final ArrayList<Entity> explosiveArrows = new ArrayList<>();
     private final ArrayList<Entity> lightningPearls = new ArrayList<>();
+    private final ArrayList<Entity> magicEggs = new ArrayList<>();
 
     public ItemUse(JavaPlugin javaPlugin, ItemManager itemManager, GDHook gdHook, DeluxeCombatAPI dcHook) {
         this.javaPlugin = javaPlugin;
@@ -58,54 +60,70 @@ public class ItemUse implements Listener {
 
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
+        if (item==null || player==null) return;
+
         ItemEntry entry = getItemEntry(item);
         if (entry == null) return;
 
+        if (!player.hasPermission(entry.getUsePerm())) return;
+
         String entryType = entry.getType();
-        if (entryType.equals("EXPLOSIVE_ARROW")) return;
 
-        if (player.hasPermission(entry.getUsePerm())) {
-            switch (entryType) {
-                /* case "EXPLOSIVE_ARROW":
-                    // has custom listeners: onBowShoot & onProjectileHit
-                    // activeCooldowns index: 0
-                    break; */
-                case "LIGHTNING_PEARL": {
-                    // activeCooldowns index: 1
-                    if (!activeCooldowns.containsKey(player.getUniqueId())) activeCooldowns.put(player.getUniqueId(), itemManager.getCooldowns());
-                    List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
-                    if (player.getFoodLevel() >= entry.getHunger()) {
-                        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(1)) >= entry.getCooldown()) {
-                            if (removeAmmoItem(player, entryType)) {
-                                //player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning..."));
-                                EnderPearl pearl = player.launchProjectile(EnderPearl.class);
-                                pearl.setMetadata("lightning", new FixedMetadataValue(javaPlugin, "pearl"));
-                                lightningPearls.add(pearl);
+        switch (entryType) {
+            /* case "EXPLOSIVE_ARROW":
+                // has custom listeners: onBowShoot & onProjectileHit
+                // activeCooldowns index: 0
+                break; */
+            case "LIGHTNING_PEARL": {
+                // activeCooldowns index: 1
+                if (!activeCooldowns.containsKey(player.getUniqueId())) activeCooldowns.put(player.getUniqueId(), itemManager.getCooldowns());
+                List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
+                if (player.getFoodLevel() >= entry.getHunger()) {
+                    if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(1)) >= entry.getCooldown()) {
+                        if (removeAmmoItem(player, entryType)) {
+                            //player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning..."));
+                            EnderPearl pearl = player.launchProjectile(EnderPearl.class);
+                            pearl.setMetadata("lightning", new FixedMetadataValue(javaPlugin, "pearl"));
+                            lightningPearls.add(pearl);
 
-                                adjustCooldowns(player, itemManager.getHungers(), 1);
-                            }
-                        } else {
-                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked: active cooldown!"));
+                            adjustCooldowns(player, itemManager.getHungers(), 1);
                         }
                     } else {
-                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked: you're too hungry!"));
+                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked: active cooldown!"));
                     }
-                    break;
+                } else {
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked: you're too hungry!"));
                 }
-                case "FLAME": {
-                    // activeCooldowns index: 2
-                    break;
+                break;
+            }
+            case "FLAME": {
+                // activeCooldowns index: 2
+                break;
+            }
+            case "RANDOM_POTION": {
+                // activeCooldowns index: 3
+                if (!activeCooldowns.containsKey(player.getUniqueId())) activeCooldowns.put(player.getUniqueId(), itemManager.getCooldowns());
+                List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
+                if (player.getFoodLevel() >= entry.getHunger()) {
+                    if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(3)) >= entry.getCooldown()) {
+                        if (removeAmmoItem(player, entryType)) {
+                            //player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Using magic..."));
+                            Egg egg = player.launchProjectile(Egg.class);
+                            egg.setMetadata("magic", new FixedMetadataValue(javaPlugin, "egg"));
+                            magicEggs.add(egg);
+
+                            adjustCooldowns(player, itemManager.getHungers(), 3);
+                        }
+                    } else {
+                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked: active cooldown!"));
+                    }
+                } else {
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked: you're too hungry!"));
                 }
-                case "RANDOM_POTION": {
-                    // activeCooldowns index: 3
-                    break;
-                }
-                default:
-                    break;
-                }
-        } else {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "You lack the ability to use this item!"));
-            event.setCancelled(true);
+                break;
+            }
+            default:
+                break;
         }
     }
 
@@ -161,7 +179,7 @@ public class ItemUse implements Listener {
 
             if (!passPvpCheck) {
                 arrow.remove();
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- togglepvp protection!"));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- pvp protection!"));
             } else if (!passClaimBuilderCheck) {
                 //arrow.getWorld().createExplosion(location, 1.5F, true, false);
                 arrow.remove();
@@ -191,13 +209,39 @@ public class ItemUse implements Listener {
             if (!passPvpCheck) {
                 event.setCancelled(true);
                 pearl.remove();
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- togglepvp protection!"));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- pvp protection!"));
             } else {
                 event.setCancelled(true);
                 location.getWorld().strikeLightning(location);
                 pearl.remove();
             }
-        } 
+        } else if (event.getEntity() instanceof Egg) {
+            Egg egg = (Egg) event.getEntity();
+            if (!magicEggs.contains(egg)) return;
+            magicEggs.remove(egg);
+            
+            Location location = egg.getLocation();
+            Player player = (Player) egg.getShooter();
+            boolean passPvpCheck = true;
+            
+            /*//javaPlugin.getLogger().info("if... " + gdHook);
+            if (gdHook != null) {
+                if (!passClaimCheck(location, player)) passClaimCheck = false;
+            }*/
+            if (dcHook != null) {
+                if (!passPvpCheck(location, player, 4)) passPvpCheck = false;
+            }
+
+            if (!passPvpCheck) {
+                event.setCancelled(true);
+                egg.remove();
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- pvp protection!"));
+            } else {
+                event.setCancelled(true);
+                // do something
+                egg.remove();
+            }
+        }
     }
 
     private ItemEntry getItemEntry(ItemStack item) {
