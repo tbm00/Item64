@@ -3,6 +3,7 @@ package dev.tbm00.spigot.item64.command;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -110,7 +111,7 @@ public class ItmCommand implements TabExecutor {
             list.clear();
             int i = 0;
             for (ItemEntry n : itemEntries) {
-                if (n!=null && sender.hasPermission(n.getGivePerm())) {
+                if (n!=null && sender.hasPermission(n.getGivePerm()) && "give".startsWith(args[0])) {
                     i = i+1;
                 }
             }
@@ -124,6 +125,13 @@ public class ItmCommand implements TabExecutor {
                     if (n!=null && sender.hasPermission(n.getGivePerm()) && n.getKeyString().startsWith(args[1])) {
                         list.add(n.getKeyString());
                     }
+                }
+            }
+        }
+        if (args.length == 3) {
+            if (args[0].toString().equals("give")) {
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    list.add(p.getName());
                 }
             }
         }
