@@ -19,8 +19,8 @@ Created by tbm00 for play.mc64.wtf.
 ## Commands & Permissions
 #### Commands
 - `/itm help` Display this command list
-- `/itm give <itemKey>` Spawn in a custom in your inventory \<item\>
-- `/itm give <itemKey> <player>` Spawn in a custom in player's inventory \<item\>
+- `/itm give <itemKey>` Spawn in a custom \<item\> in your inventory
+- `/itm give <itemKey> <player>` Spawn in a custom \<item\> in player's inventory
 #### Permissions
 Each item has configurable permissions (in `config.yml`) that must be fulfiled for a player to use or spawn the item. The only hardcoded permission node is item64.help.
 - `item64.help` Ability to display the command list *(Default: OP)*
