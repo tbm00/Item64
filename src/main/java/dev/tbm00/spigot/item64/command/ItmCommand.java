@@ -99,8 +99,7 @@ public class ItmCommand implements TabExecutor {
     private void showHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.DARK_RED + "--- " + ChatColor.RED + "Item64 Admin Commands" + ChatColor.DARK_RED + " ---\n"
             + ChatColor.WHITE + "/itm help" + ChatColor.GRAY + " Display this command list\n"
-            + ChatColor.WHITE + "/itm give <itemKey>" + ChatColor.GRAY + " Spawn in a custom <item> in your inventory\n"
-            + ChatColor.WHITE + "/itm give <itemKey> <player>" + ChatColor.GRAY + " Spawn in a custom <item> in player's inventory\n"
+            + ChatColor.WHITE + "/itm give <itemKey> [player]" + ChatColor.GRAY + " Spawn a custom item\n"
             );
     }
 
