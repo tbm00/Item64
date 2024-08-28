@@ -1,10 +1,10 @@
 hooks:
   GriefDefender:
-    enabled: true
+    enabled: false
     ignoredClaims: []
       # - "9ae58371-3857-4ec8-9d19-f6d24c2f57c7"
   DeluxeCombat:
-    enabled: true
+    enabled: false
 itemEntries:
   enabled: true
   '1':
@@ -13,53 +13,39 @@ itemEntries:
     key: "EXPLOSIVEBOW"
     givePerm: "item64.give"
     usePerm: "item64.use"
-    cooldown: 0
-    hunger: 3
+    cooldown: 8
+    hunger: 4
     name: "&6Explosive Bow"
     item: "BOW"
-    ammoItem: "ARROW" # Don't change
+    ammoItem: "TNT"
     glowing: true
     lore:
-      - "&0--------------------"
+      - "&8&oRequires TNT and Arrows"
   '2':
     enabled: true
     type: "LIGHTNING_PEARL" # Don't change
     key: "LIGHTNINGGUN"
     givePerm: "item64.give"
     usePerm: "item64.use"
-    cooldown: 3
-    hunger: 0
+    cooldown: 8
+    hunger: 4
     name: "&6Lightning Gun"
     item: "ECHO_SHARD"
     ammoItem: "ENDER_PEARL"
     glowing: true
     lore:
-      - "&0--------------------"
+      - "&8&oRequires Ender Pearl"
   '3':
-    enabled: true
-    type: "FLAME" # Don't change
-    key: "FLAMETHROWER"
-    givePerm: "item64.give"
-    usePerm: "item64.use"
-    cooldown: 3
-    hunger: 4
-    name: "&6Flamethrower"
-    item: "REDSTONE_TORCH"
-    ammoItem: "MAGMA_CREAM"
-    glowing: true
-    lore:
-      - "&0--------------------"
-  '4':
     enabled: true
     type: "RANDOM_POTION" # Don't change
     key: "MAGICWAND"
     givePerm: "item64.give"
     usePerm: "item64.use"
-    cooldown: 3
+    cooldown: 8
     hunger: 4
     name: "&6Magic Wand"
-    item: "BLAZE_ROD"
-    ammoItem: "GLASS_BOTTLE"
+    item: "BRUSH"
+    ammoItem: "POTION"
     glowing: true
     lore:
-      - "&0--------------------"
+      - "&8&oRequires Potion or Water Bottle"

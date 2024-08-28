@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -37,11 +38,11 @@ public class ItmCommand implements TabExecutor {
             return true;
         }
 
-        if (args.length != 1 && args.length != 2) return false;
+        if (args.length < 1 || args.length > 3) return false;
 
-        String subCommand = args[0].toLowerCase();
-        String argument = null;
-        if (args.length == 2) argument = args[1];
+        String subCommand = args[0].toLowerCase(), argument = null, argument2 = null;
+        if (args.length >= 2) argument = args[1];
+        if (args.length >= 3) argument2 = args[2];
 
         // Run HELP cmd
         if (sender.hasPermission("item64.help") && subCommand.equals("help")) {
@@ -51,32 +52,60 @@ public class ItmCommand implements TabExecutor {
 
         // Run GIVE cmd
         if (itemManager.isEnabled() && subCommand.equals("give") && argument != null) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "This command can only be run by a player!");
-                return false;
-            }
-            for (ItemEntry entry : itemEntries) {
-                if (argument.equals(entry.getKeyString())) {
-                    Player player = (Player) sender;
-                    if (sender.hasPermission(entry.getGivePerm())) {
-                        ItemStack item = new ItemStack(Material.valueOf(entry.getItem()));
-                        ItemMeta meta = item.getItemMeta();
-                        if (meta != null) {
-                            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
-                            meta.getLore(); 
-                            meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
-                            if (entry.getGlowing()) {
-                                if (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
-                                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            if (argument2 == null) {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage(ChatColor.RED + "This command can only be run by a player!");
+                    return false;
+                }
+                for (ItemEntry entry : itemEntries) {
+                    if (argument.equals(entry.getKeyString())) {
+                        Player player = (Player) sender;
+                        if (sender.hasPermission(entry.getGivePerm())) {
+                            ItemStack item = new ItemStack(Material.valueOf(entry.getItem()));
+                            ItemMeta meta = item.getItemMeta();
+                            if (meta != null) {
+                                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
+                                meta.getLore(); 
+                                meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
+                                if (entry.getGlowing()) {
+                                    if (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
+                                        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                                    }
+                                    meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true);
                                 }
-                                meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true);
+                                meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
+                                item.setItemMeta(meta);
                             }
-                            meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
-                            item.setItemMeta(meta);
+                            player.getInventory().addItem(item);
+                            player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());
+                            return true;
                         }
-                        player.getInventory().addItem(item);
-                        player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());
-                        return true;
+                    }
+                }
+            } else { 
+                for (ItemEntry entry : itemEntries) {
+                    if (argument.equals(entry.getKeyString())) {
+                        Player player = javaPlugin.getServer().getPlayer(argument2);
+                        if (sender.hasPermission(entry.getGivePerm()) || sender instanceof ConsoleCommandSender) {
+                            ItemStack item = new ItemStack(Material.valueOf(entry.getItem()));
+                            ItemMeta meta = item.getItemMeta();
+                            if (meta != null) {
+                                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
+                                meta.getLore(); 
+                                meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
+                                if (entry.getGlowing()) {
+                                    if (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
+                                        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                                    }
+                                    meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true);
+                                }
+                                meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
+                                item.setItemMeta(meta);
+                            }
+                            player.getInventory().addItem(item);
+                            player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());
+                            return true;
+                        }
                     }
                 }
             }
@@ -88,7 +117,8 @@ public class ItmCommand implements TabExecutor {
     private void showHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.DARK_RED + "--- " + ChatColor.RED + "Item64 Admin Commands" + ChatColor.DARK_RED + " ---\n"
             + ChatColor.WHITE + "/itm help" + ChatColor.GRAY + " Display this command list\n"
-            + ChatColor.WHITE + "/itm give <itemKey>" + ChatColor.GRAY + " Spawn in a custom <item>\n"
+            + ChatColor.WHITE + "/itm give <itemKey>" + ChatColor.GRAY + " Spawn in a custom <item> in your inventory\n"
+            + ChatColor.WHITE + "/itm give <itemKey> <player>" + ChatColor.GRAY + " Spawn in a custom <item> in player's inventory\n"
             );
     }
 
@@ -99,7 +129,7 @@ public class ItmCommand implements TabExecutor {
             list.clear();
             int i = 0;
             for (ItemEntry n : itemEntries) {
-                if (n!=null && sender.hasPermission(n.getGivePerm()) && n.getKeyString().startsWith(args[0])) {
+                if (n!=null && sender.hasPermission(n.getGivePerm())) {
                     i = i+1;
                 }
             }

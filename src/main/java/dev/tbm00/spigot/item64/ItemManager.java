@@ -18,7 +18,7 @@ public class ItemManager {
         itemEntries = new ArrayList<>();
         cooldowns = new ArrayList<>();
         hungers = new ArrayList<>();
-        for (int i=0; i<4; ++i) {
+        for (int i=0; i<3; ++i) {
             cooldowns.add(0L);
             hungers.add(0);
         }
@@ -46,19 +46,14 @@ public class ItemManager {
                         case "EXPLOSIVE_ARROW" -> {
                             cooldowns.set(0, Long.valueOf(cooldown));
                             hungers.set(0, hunger);
-                            ammoItem = "ARROW";
                         }
                         case "LIGHTNING" -> {
                             cooldowns.set(1, Long.valueOf(cooldown));
                             hungers.set(1, hunger);
                         }
-                        case "FLAME" -> {
+                        case "RANDOM_POTION" -> {
                             cooldowns.set(2, Long.valueOf(cooldown));
                             hungers.set(2, hunger);
-                        }
-                        case "RANDOM_POTION" -> {
-                            cooldowns.set(3, Long.valueOf(cooldown));
-                            hungers.set(3, hunger);
                         }
                         default -> {}
                     }

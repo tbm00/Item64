@@ -41,6 +41,15 @@ public class GDHook {
 		if (claim.getUserTrusts(TrustTypes.MANAGER).contains(player.getUniqueId())
 		|| claim.getUserTrusts(TrustTypes.BUILDER).contains(player.getUniqueId()))
 			return true;
-		return player.getUniqueId().toString().equals(claim.getOwnerUniqueId().toString());	
+		return player.getUniqueId().toString().equals(claim.getOwnerUniqueId().toString());
+	}
+
+	public boolean hasPvPEnabled(String regionID) {
+		if (regionID == null || regionID.isEmpty()) return true;
+		if (ignoredClaims.contains(regionID)) return true;
+		final Core gd = GriefDefender.getCore();
+		final Claim claim = gd.getClaim(UUID.fromString(regionID));
+		if (claim == null) return true;
+		return claim.isPvpAllowed();	
 	}
 }
