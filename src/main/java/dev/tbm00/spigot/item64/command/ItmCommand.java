@@ -52,65 +52,46 @@ public class ItmCommand implements TabExecutor {
 
         // Run GIVE cmd
         if (itemManager.isEnabled() && subCommand.equals("give") && argument != null) {
+            Player player;
             if (argument2 == null) {
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "This command can only be run by a player!");
                     return false;
                 }
-                for (ItemEntry entry : itemEntries) {
-                    if (argument.equals(entry.getKeyString())) {
-                        Player player = (Player) sender;
-                        if (sender.hasPermission(entry.getGivePerm())) {
-                            ItemStack item = new ItemStack(Material.valueOf(entry.getItem()));
-                            ItemMeta meta = item.getItemMeta();
-                            if (meta != null) {
-                                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
-                                meta.getLore(); 
-                                meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
-                                if (entry.getGlowing()) {
-                                    if (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
-                                        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                                    }
-                                    meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true);
-                                }
-                                meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
-                                item.setItemMeta(meta);
-                            }
-                            player.getInventory().addItem(item);
-                            player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());
-                            return true;
-                        }
-                    }
+                player = (Player) sender;
+            } else {
+                player = javaPlugin.getServer().getPlayer(argument2);
+                if (player == null) {
+                    sender.sendMessage(ChatColor.RED + "Could not find target player!");
+                    return false;
                 }
-            } else { 
-                for (ItemEntry entry : itemEntries) {
-                    if (argument.equals(entry.getKeyString())) {
-                        Player player = javaPlugin.getServer().getPlayer(argument2);
-                        if (sender.hasPermission(entry.getGivePerm()) || sender instanceof ConsoleCommandSender) {
-                            ItemStack item = new ItemStack(Material.valueOf(entry.getItem()));
-                            ItemMeta meta = item.getItemMeta();
-                            if (meta != null) {
-                                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
-                                meta.getLore(); 
-                                meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
-                                if (entry.getGlowing()) {
-                                    if (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
-                                        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                                    }
-                                    meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true);
+            }
+            for (ItemEntry entry : itemEntries) {
+                if (argument.equals(entry.getKeyString())) {
+                    if (sender.hasPermission(entry.getGivePerm()) || sender instanceof ConsoleCommandSender) {
+                        ItemStack item = new ItemStack(Material.valueOf(entry.getItem()));
+                        ItemMeta meta = item.getItemMeta();
+                        if (meta != null) {
+                            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
+                            meta.getLore(); 
+                            meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
+                            if (entry.getGlowing()) {
+                                if (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
+                                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                                 }
-                                meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
-                                item.setItemMeta(meta);
+                                meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true);
                             }
-                            player.getInventory().addItem(item);
-                            player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());
-                            return true;
+                            meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
+                            item.setItemMeta(meta);
                         }
+                        player.getInventory().addItem(item);
+                        player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());
+                        javaPlugin.getLogger().info(player.getDisplayName() + " has been given the " + entry.getKeyString() );
+                        return true;
                     }
                 }
             }
         }
-
         return false;
     }
 
