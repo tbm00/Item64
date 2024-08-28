@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Collection;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.event.block.Action;
@@ -223,7 +224,7 @@ public class ItemUse implements Listener {
             boolean passDCPvpCheck = true, passGDPvpCheck = true, passGDBuilderCheck = true;
 
             if (dcHook != null) {
-                if (!passDCPvpCheck(location, player, 5)) passDCPvpCheck = false;
+                if (!passDCPvpCheck(location, player, 5.0)) passDCPvpCheck = false;
             }
             if (gdHook != null) {
                 if (!passGDPvpCheck(location)) passGDPvpCheck = false;
@@ -256,7 +257,7 @@ public class ItemUse implements Listener {
                 if (!passGDPvpCheck(location)) passGDPvpCheck = false;
             }
             if (dcHook != null) {
-                if (!passDCPvpCheck(location, player, 4)) passDCPvpCheck = false;
+                if (!passDCPvpCheck(location, player, 4.0)) passDCPvpCheck = false;
             }
 
             if (!passDCPvpCheck) {
@@ -270,6 +271,7 @@ public class ItemUse implements Listener {
             } else {
                 event.setCancelled(true);
                 location.getWorld().strikeLightning(location);
+                //location.getWorld().getNearbyEntities();
                 pearl.remove();
             }
         }
@@ -289,7 +291,7 @@ public class ItemUse implements Listener {
             if (!passGDPvpCheck(location)) passGDPvpCheck = false;
         }
         if (dcHook != null) {
-            if (!passDCPvpCheck(location, player, 4)) passDCPvpCheck = false;
+            if (!passDCPvpCheck(location, player, 4.0)) passDCPvpCheck = false;
         }
 
         if (!passDCPvpCheck) {
@@ -374,44 +376,22 @@ public class ItemUse implements Listener {
     }
 
     private boolean passGDBuilderCheck(Location location, Player player, int radius) {
-        int negRadius = -1*radius;
-        Location newLocation = location.clone();
-        String newRegionID = gdHook.getRegionID(newLocation);
-        if (!gdHook.hasBuilderTrust(player, newRegionID)) return false;
+        String[] ids = new String[9];
+        Location loc = location.clone();
+    
+        ids[0] = gdHook.getRegionID(loc);
+        ids[1] = gdHook.getRegionID(loc.add(radius, radius, radius));
+        ids[2] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
+        ids[3] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
+        ids[4] = gdHook.getRegionID(loc.add(0, 0, (2*radius)));
+        ids[5] = gdHook.getRegionID(loc.add(0, (-2*radius), 0));
+        ids[6] = gdHook.getRegionID(loc.add((2*radius), 0, 0));
+        ids[7] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
+        ids[8] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
 
-        newLocation.add(radius, radius, radius);
-        newRegionID = gdHook.getRegionID(newLocation);
-        if (!gdHook.hasBuilderTrust(player, newRegionID)) return false;
-
-        newLocation.add(0, 0, (2*negRadius));
-        newRegionID = gdHook.getRegionID(newLocation);
-        if (!gdHook.hasBuilderTrust(player, newRegionID)) return false;
-
-        newLocation.add((2*negRadius), 0, 0);
-        newRegionID = gdHook.getRegionID(newLocation);
-        if (!gdHook.hasBuilderTrust(player, newRegionID)) return false;
-
-        newLocation.add(0, 0, (2*radius));
-        newRegionID = gdHook.getRegionID(newLocation);
-        if (!gdHook.hasBuilderTrust(player, newRegionID)) return false;
-
-        newLocation.add(0, (2*negRadius), 0);
-        newRegionID = gdHook.getRegionID(newLocation);
-        if (!gdHook.hasBuilderTrust(player, newRegionID)) return false;
-
-        newLocation.add((2*radius), 0, 0);
-        newRegionID = gdHook.getRegionID(newLocation);
-        if (!gdHook.hasBuilderTrust(player, newRegionID)) return false;
-
-        newLocation.add(0, 0, (2*negRadius));
-        newRegionID = gdHook.getRegionID(newLocation);
-        if (!gdHook.hasBuilderTrust(player, newRegionID)) return false;
-
-        newLocation.add((2*negRadius), 0, 0);
-        newRegionID = gdHook.getRegionID(newLocation);
-        if (!gdHook.hasBuilderTrust(player, newRegionID)) return false;
-
-        return true;
+        for (String id : ids) {
+            if (!gdHook.hasBuilderTrust(player, id)) return false;
+        } return true;
     }
 
     private boolean passGDPvpCheck(Location location) {
@@ -419,19 +399,13 @@ public class ItemUse implements Listener {
         return gdHook.hasPvPEnabled(regionID);
     }
 
-    private boolean passDCPvpCheck(Location location, Player player, int radius) {
+    private boolean passDCPvpCheck(Location location, Player player, double radius) {
         //if (dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player)) return false;
-        int chunkRadius = radius < 16 ? 1 : (radius - (radius % 16)) / 16;
-        
-        for (int chX = 0 - chunkRadius; chX <= chunkRadius; chX++) {
-            for (int chZ = 0 - chunkRadius; chZ <= chunkRadius; chZ++) {
-                int x = (int) location.getX(), y = (int) location.getY(), z = (int) location.getZ();
-                for (Entity entity : new Location(location.getWorld(), x + (chX * 16), y, z + (chZ * 16)).getChunk().getEntities()) {
-                    if (entity.getLocation().distance(location) <= radius && entity instanceof Player) {
-                        Player p = (Player) entity;
-                        if (dcHook.hasProtection(p) || !dcHook.hasPvPEnabled(p)) return false;
-                    }
-                }
+        Collection<Entity> nearbyEntities = player.getWorld().getNearbyEntities(location, radius, radius, radius);
+        for (Entity e : nearbyEntities) {
+            if (e instanceof Player) {
+                Player p = (Player) e;
+                if (dcHook.hasProtection(p) || !dcHook.hasPvPEnabled(p)) return false;
             }
         }
         return true;
