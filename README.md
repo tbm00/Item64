@@ -42,11 +42,13 @@ itemEntries:
     key: "EXPLOSIVEBOW"
     givePerm: "item64.give"
     usePerm: "item64.use"
-    cooldown: 8
-    hunger: 4
-    name: "&6Explosive Bow"
-    item: "BOW"
+    cooldown: 4
+    hunger: 6
+    shotRandomness: 0.2
+    extraDamage: 0.0
     ammoItem: "TNT"
+    item: "BOW"
+    name: "&6Explosive Bow"
     glowing: true
     lore:
       - "&8&oRequires TNT and Arrows"
@@ -56,11 +58,13 @@ itemEntries:
     key: "LIGHTNINGGUN"
     givePerm: "item64.give"
     usePerm: "item64.use"
-    cooldown: 8
+    cooldown: 4
     hunger: 4
-    name: "&6Lightning Gun"
-    item: "ECHO_SHARD"
+    shotRandomness: 0.2
+    extraDamage: 7.0
     ammoItem: "ENDER_PEARL"
+    item: "ECHO_SHARD"
+    name: "&6Lightning Gun"
     glowing: true
     lore:
       - "&8&oRequires Ender Pearl"
@@ -70,11 +74,13 @@ itemEntries:
     key: "MAGICWAND"
     givePerm: "item64.give"
     usePerm: "item64.use"
-    cooldown: 8
+    cooldown: 4
     hunger: 4
-    name: "&6Magic Wand"
-    item: "BRUSH"
+    shotRandomness: 0.1
+    extraDamage: 3.0
     ammoItem: "POTION"
+    item: "BRUSH"
+    name: "&6Magic Wand"
     glowing: true
     lore:
       - "&8&oRequires Potion or Water Bottle"

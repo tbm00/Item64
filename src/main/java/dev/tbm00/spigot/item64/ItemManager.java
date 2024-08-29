@@ -36,9 +36,11 @@ public class ItemManager {
                     String KEY = itemEntry.getString("key");
                     int cooldown = itemEntry.getInt("cooldown");
                     int hunger = itemEntry.getInt("hunger");
-                    String name = itemEntry.getString("name");
-                    String item = itemEntry.getString("item");
+                    double random = itemEntry.getDouble("shotRandomness");
+                    double damage = itemEntry.getDouble("extraDamage");
                     String ammoItem = itemEntry.getString("ammoItem");
+                    String item = itemEntry.getString("item");
+                    String name = itemEntry.getString("name");
                     Boolean glowing = itemEntry.getBoolean("glowing");
                     List<String> lore = itemEntry.getStringList("lore");
 
@@ -59,7 +61,7 @@ public class ItemManager {
                     }
                     
                     if (usePerm != null && givePerm != null && type != null && key != null ) {
-                        ItemEntry entry = new ItemEntry(javaPlugin, givePerm, usePerm, type, KEY, cooldown, hunger, name, item, ammoItem, glowing, lore);
+                        ItemEntry entry = new ItemEntry(javaPlugin, givePerm, usePerm, type, KEY, cooldown, hunger, random, damage, ammoItem, item, name, glowing, lore);
                         itemEntries.add(entry);
                         javaPlugin.getLogger().info("Loaded itemEntry: " + KEY + " " + type + " " + item + " " + usePerm );
                     } else {

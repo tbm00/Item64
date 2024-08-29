@@ -13,14 +13,17 @@ public class ItemEntry {
     private String keyString;
     private int cooldown;
     private int hunger;
-    private String name;
-    private String item;
+    private double random;
+    private double damage;
     private String ammoItem;
+    private String item;
+    private String name;
     private Boolean glowing;
     private List<String> lore;
-
+    
     public ItemEntry(JavaPlugin javaPlugin, String givePerm, String usePerm, String type, String KEY,
-                        int cooldown, int hunger, String name, String item, String ammoItem, Boolean glowing, List<String> lore) {
+                        int cooldown, int hunger, double random, double damage, String ammoItem,
+                        String item, String name, Boolean glowing, List<String> lore) {
         this.givePerm = givePerm;
         this.usePerm = usePerm;
         this.type = type;
@@ -28,9 +31,11 @@ public class ItemEntry {
         this.keyString = KEY;
         this.cooldown = cooldown;
         this.hunger = hunger;
-        this.name = name;
-        this.item = item;
+        this.random = random;
+        this.damage = damage;
         this.ammoItem = ammoItem;
+        this.item = item;
+        this.name = name;
         this.glowing = glowing;
         this.lore = lore;
     }
@@ -83,12 +88,28 @@ public class ItemEntry {
         this.hunger = hunger;
     }
 
-    public String getName() {
-        return name;
+    public double getRandom() {
+        return random;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setRandom(int random) {
+        this.random = random;
+    }
+
+    public double getDamage() {
+        return damage;
+    }
+
+    public void setDamage(int damage) {
+        this.damage = damage;
+    }
+
+    public String getAmmoItem() {
+        return ammoItem;
+    }
+
+    public void setAmmoItem(String ammoItem) {
+        this.ammoItem = ammoItem;
     }
 
     public String getItem() {
@@ -99,12 +120,12 @@ public class ItemEntry {
         this.item = item;
     }
 
-    public String getAmmoItem() {
-        return ammoItem;
+    public String getName() {
+        return name;
     }
 
-    public void setAmmoItem(String ammoItem) {
-        this.ammoItem = ammoItem;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Boolean getGlowing() {
