@@ -415,6 +415,7 @@ public class ItemUse implements Listener {
     }
 
     private boolean passGDPvpCheck(Location location) {
+        if (gdHook==null) return true;
         String regionID = gdHook.getRegionID(location);
         return gdHook.hasPvPEnabled(regionID);
     }

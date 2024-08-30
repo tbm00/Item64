@@ -11,3 +11,21 @@ permissions:
   item64.help:
     description: Ability to display the command list
     default: op
+  item64.give.explosive_arrow:
+    description: Ability to give explosive arrow item
+    default: op
+  item64.give.lightning_pearl:
+    description: Ability to give lightning pearl item
+    default: op
+  item64.give.random_potion:
+    description: Ability to give random poiton item
+    default: op
+  item64.use.explosive_arrow:
+    description: Ability to use explosive arrow item
+    default: true
+  item64.use.lightning_pearl:
+    description: Ability to use lightning pearl item
+    default: true
+  item64.use.random_potion:
+    description: Ability to use random poiton item
+    default: true

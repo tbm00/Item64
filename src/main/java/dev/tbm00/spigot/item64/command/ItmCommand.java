@@ -11,6 +11,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -74,14 +75,23 @@ public class ItmCommand implements TabExecutor {
                         ItemMeta meta = item.getItemMeta();
                         if (meta != null) {
                             meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
-                            meta.getLore(); 
-                            meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
-                            if (entry.getGlowing()) {
-                                if (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
-                                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                                }
-                                meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true);
+                            if (!entry.getLore().isEmpty()) {
+                                meta.getLore(); 
+                                meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
                             }
+                            
+                            if (entry.getHideEnchants()) {
+                                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                            }
+
+                            if (!entry.getEnchants().isEmpty()) {
+                                for(String line : entry.getEnchants()) {
+                                    String name = line.split(":")[0];
+                                    Integer level = Integer.valueOf(line.split(":")[1]);
+                                    meta.addEnchant(Enchantment.getByKey(NamespacedKey.minecraft(name.toLowerCase())), level, true);
+                                }
+                            }
+
                             meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
                             item.setItemMeta(meta);
                         }

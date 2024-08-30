@@ -21,9 +21,13 @@ Created by tbm00 for play.mc64.wtf.
 - `/itm help` Display this command list
 - `/itm give <itemKey> [player]` Spawn a custom item
 #### Permissions
-Each item has configurable permissions (in `config.yml`) that must be fulfiled for a player to use or spawn the item. The only hardcoded permission node is item64.help.
 - `item64.help` Ability to display the command list *(Default: OP)*
-
+- `item64.give.explosive_arrow` Ability to give explosive arrow item *(Default: OP)*
+- `item64.give.lightning_pearl` Ability to give lightning pearl item *(Default: OP)*
+- `item64.give.random_potion` Ability to give random potion pearl item *(Default: OP)*
+- `item64.use.explosive_arrow` Ability to use explosive arrow item *(Default: everyone)*
+- `item64.use.lightning_pearl` Ability to use lightning pearl item *(Default: everyone)*
+- `item64.use.random_potion` Ability to use random potion item *(Default: everyone)*
 
 ## Config
 ```
@@ -40,24 +44,22 @@ itemEntries:
     enabled: true
     type: "EXPLOSIVE_ARROW" # Don't change
     key: "EXPLOSIVEBOW"
-    givePerm: "item64.give"
-    usePerm: "item64.use"
     cooldown: 4
     hunger: 6
     shotRandomness: 0.2
     extraDamage: 0.0
     ammoItem: "TNT"
-    item: "BOW"
+    item: "BOW" # Don't change
     name: "&6Explosive Bow"
-    glowing: true
     lore:
       - "&8&oRequires TNT and Arrows"
+    hideEnchants: false
+    enchantments:
+      - "MENDING:1"
   '2':
     enabled: true
     type: "LIGHTNING_PEARL" # Don't change
     key: "LIGHTNINGGUN"
-    givePerm: "item64.give"
-    usePerm: "item64.use"
     cooldown: 4
     hunger: 4
     shotRandomness: 0.2
@@ -65,15 +67,15 @@ itemEntries:
     ammoItem: "ENDER_PEARL"
     item: "ECHO_SHARD"
     name: "&6Lightning Gun"
-    glowing: true
     lore:
       - "&8&oRequires Ender Pearl"
+    hideEnchants: true
+    enchantments:
+      - "MENDING:1"
   '3':
     enabled: true
     type: "RANDOM_POTION" # Don't change
     key: "MAGICWAND"
-    givePerm: "item64.give"
-    usePerm: "item64.use"
     cooldown: 4
     hunger: 4
     shotRandomness: 0.1
@@ -81,7 +83,9 @@ itemEntries:
     ammoItem: "POTION"
     item: "BRUSH"
     name: "&6Magic Wand"
-    glowing: true
     lore:
       - "&8&oRequires Potion or Water Bottle"
+    hideEnchants: true
+    enchantments:
+      - "MENDING:1"
 ```

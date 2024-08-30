@@ -18,12 +18,13 @@ public class ItemEntry {
     private String ammoItem;
     private String item;
     private String name;
-    private Boolean glowing;
+    private Boolean hideEnchants;
+    private List<String> enchants;
     private List<String> lore;
     
     public ItemEntry(JavaPlugin javaPlugin, String givePerm, String usePerm, String type, String KEY,
-                        int cooldown, int hunger, double random, double damage, String ammoItem,
-                        String item, String name, Boolean glowing, List<String> lore) {
+                        int cooldown, int hunger, double random, double damage, String ammoItem, String item,
+                        String name, List<String> lore, Boolean hideEnchants, List<String> enchants) {
         this.givePerm = givePerm;
         this.usePerm = usePerm;
         this.type = type;
@@ -36,8 +37,9 @@ public class ItemEntry {
         this.ammoItem = ammoItem;
         this.item = item;
         this.name = name;
-        this.glowing = glowing;
         this.lore = lore;
+        this.hideEnchants = hideEnchants;
+        this.enchants = enchants;
     }
 
     public String getGivePerm() {
@@ -128,19 +130,27 @@ public class ItemEntry {
         this.name = name;
     }
 
-    public Boolean getGlowing() {
-        return glowing;
-    }
-
-    public void setGlowing(Boolean glowing) {
-        this.glowing = glowing;
-    }
-
     public List<String> getLore() {
         return lore;
     }
 
     public void setLore(List<String> lore) {
         this.lore = lore;
+    }
+
+    public Boolean getHideEnchants() {
+        return hideEnchants;
+    }
+
+    public void setHideEnchants(Boolean hideEnchants) {
+        this.hideEnchants = hideEnchants;
+    }
+
+    public List<String> getEnchants() {
+        return enchants;
+    }
+
+    public void setEnchants(List<String> enchants) {
+        this.enchants = enchants;
     }
 }
