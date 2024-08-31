@@ -1,14 +1,13 @@
 package dev.tbm00.spigot.item64.listener;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.Collection;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.bukkit.event.block.Action;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,10 +19,11 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -348,7 +348,7 @@ public class ItemUse implements Listener {
         if (event.getEntity() instanceof Arrow) {
             handleArrowHit((Arrow) event.getEntity());
         } else if (event.getEntity() instanceof EnderPearl) {
-            handlePearlHit((EnderPearl) event.getEntity());
+            handlePearlHit(event, (EnderPearl) event.getEntity());
         }
     }
 
@@ -373,14 +373,14 @@ public class ItemUse implements Listener {
                 arrow.remove();
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
             } else if (!passGDBuilderCheck) {
+                damagePlayers(player, location, 1.7, 0.7, itemManager.getItemEntry("EXPLOSIVE_ARROW").getDamage());
                 arrow.getWorld().createExplosion(location, 2.0F, true, false, player);
                 arrow.remove();
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion nerfed -- claim block protection!"));
-                damagePlayers(player, location, 1.7, 0.7, itemManager.getItemEntry("EXPLOSIVE_ARROW").getDamage());
             } else {
+                damagePlayers(player, location, 1.7, 0.7, itemManager.getItemEntry("EXPLOSIVE_ARROW").getDamage());
                 arrow.getWorld().createExplosion(location, 2.0F, true, true, player);
                 arrow.remove();
-                damagePlayers(player, location, 1.7, 0.7, itemManager.getItemEntry("EXPLOSIVE_ARROW").getDamage());
             } return;
         } else if (extraArrows.remove(arrow)) {
             Location location = arrow.getLocation();
@@ -401,27 +401,40 @@ public class ItemUse implements Listener {
                 arrow.remove();
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Extra damage blocked -- claim pvp protection!"));
             } else {
-                arrow.remove();
                 damagePlayers(player, location, 0.7, 0.9, itemManager.getItemEntry("EXTRA_ARROW").getDamage());
+                arrow.remove();
             } return;
         }
     }
 
-    private void handlePearlHit(EnderPearl pearl) {
+    private void handlePearlHit(ProjectileHitEvent event, EnderPearl pearl) {
         if (!lightningPearls.remove(pearl)) return;
 
         Location location = pearl.getLocation();
         Player player = (Player) pearl.getShooter();
-
-        if (!passDCPvpCheck(player, location, 4.0) || !passGDPvpCheck(location)) {
-            pearl.remove();
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- protection active!"));
-            return;
+        boolean passDCPvpCheck = true, passGDPvpCheck = true;
+        
+        if (gdHook != null) {
+            if (!passGDPvpCheck(location)) passGDPvpCheck = false;
+        }
+        if (dcHook != null) {
+            if (!passDCPvpCheck(player, location, 4.0)) passDCPvpCheck = false;
         }
 
-        location.getWorld().strikeLightning(location);
-        damagePlayers(player, location, 1.2, 2.0, itemManager.getItemEntry("LIGHTNING_PEARL").getDamage());
-        pearl.remove();
+        if (!passDCPvpCheck) {
+            event.setCancelled(true);
+            pearl.remove();
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- pvp protection!"));
+        } else if (!passGDPvpCheck) {
+            event.setCancelled(true);
+            pearl.remove();
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- claim pvp protection!"));
+        } else {
+            event.setCancelled(true);
+            damagePlayers(player, location, 1.2, 2.0, itemManager.getItemEntry("LIGHTNING_PEARL").getDamage());
+            location.getWorld().strikeLightning(location);
+            pearl.remove();
+        }
     }
 
     @EventHandler
