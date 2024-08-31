@@ -25,7 +25,7 @@ itemEntries:
     hideEnchants: false
     enchantments:
       - "QUICK_CHARGE:4"
-      - "DURABILITY:4"
+      - "UNBREAKING:4"
       - "MENDING:1"
   '2':
     enabled: true
@@ -72,7 +72,7 @@ itemEntries:
     usePerm: "item64.use.lightning_gun"
     cooldown: 4
     hunger: 4
-    shotRandomness: 0.15
+    shotRandomness: 0.2
     extraDamage: 7.0
     ammoItem: "ENDER_PEARL"
     item: "ECHO_SHARD"

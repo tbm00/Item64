@@ -70,10 +70,10 @@ itemEntries:
   '1':
     enabled: true
     type: "EXPLOSIVE_ARROW"
-    key: "EXPLOSIVE_BOW"
-    givePerm: "item64.give.explosive_bow"
-    usePerm: "item64.use.explosive_bow"
-    cooldown: 4
+    key: "EXPLOSIVE_CROSSBOW"
+    givePerm: "item64.give.explosive_crossbow"
+    usePerm: "item64.use.explosive_crossbow"
+    cooldown: 1
     hunger: 6
     shotRandomness: 0.2
     extraDamage: 0.0
@@ -84,6 +84,8 @@ itemEntries:
       - "&8&oRequires TNT and Arrows"
     hideEnchants: false
     enchantments:
+      - "QUICK_CHARGE:4"
+      - "UNBREAKING:4"
       - "MENDING:1"
   '2':
     enabled: true
@@ -93,7 +95,7 @@ itemEntries:
     usePerm: "item64.use.broken_bow"
     cooldown: 0
     hunger: 0
-    shotRandomness: 5.0
+    shotRandomness: 3.5
     extraDamage: 0.0
     ammoItem: ""
     item: "BOW"
@@ -101,7 +103,7 @@ itemEntries:
     lore: []
     hideEnchants: false
     enchantments:
-      - "POWER:8"
+      - "POWER:7"
   '3':
     enabled: true
     type: "EXTRA_ARROW"
@@ -158,4 +160,5 @@ itemEntries:
     hideEnchants: true
     enchantments:
       - "MENDING:1"
+  # Add more entries as needed
 ```
