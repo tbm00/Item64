@@ -20,6 +20,9 @@ permissions:
   item64.give.random_potion:
     description: Ability to give random poiton item
     default: op
+  item64.give.broken_arrow:
+    description: Ability to give broken arrow item
+    default: op
   item64.use.explosive_arrow:
     description: Ability to use explosive arrow item
     default: true
@@ -28,4 +31,7 @@ permissions:
     default: true
   item64.use.random_potion:
     description: Ability to use random poiton item
+    default: true
+  item64.use.broken_arrow:
+    description: Ability to use broken arrow item
     default: true

@@ -49,7 +49,7 @@ itemEntries:
     shotRandomness: 0.2
     extraDamage: 0.0
     ammoItem: "TNT"
-    item: "BOW" # Don't change
+    item: "BOW"
     name: "&6Explosive Bow"
     lore:
       - "&8&oRequires TNT and Arrows"
@@ -88,4 +88,19 @@ itemEntries:
     hideEnchants: true
     enchantments:
       - "MENDING:1"
+  '4':
+    enabled: true
+    type: "BROKEN_ARROW" # Don't change
+    key: "BROKENBOW"
+    cooldown: 0
+    hunger: 0
+    shotRandomness: 5.0
+    extraDamage: 0.0
+    ammoItem: ""
+    item: "BOW"
+    name: "&cBroken Bow"
+    lore: []
+    hideEnchants: false
+    enchantments:
+      - "POWER:8"
 ```

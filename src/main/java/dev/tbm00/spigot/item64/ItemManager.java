@@ -63,6 +63,12 @@ public class ItemManager {
                             cooldowns.set(2, Long.valueOf(cooldown));
                             hungers.set(2, hunger);
                         }
+                        case "BROKEN_ARROW" -> {
+                            givePerm = "item64.give.broken_arrow";
+                            usePerm = "item64.use.broken_arrow";
+                            cooldowns.set(2, Long.valueOf(cooldown));
+                            hungers.set(2, hunger);
+                        }
                         default -> {
                             givePerm = null;
                             usePerm = null;

@@ -175,6 +175,10 @@ public class ItemUse implements Listener {
                 event.setCancelled(true);
                 break;
             }
+            /* case "EXPLOSIVE_ARROW":
+                // has custom listener: onBowShoot
+                // NO activeCooldowns index
+                break; */
             default:
                 break;
         }
@@ -188,7 +192,7 @@ public class ItemUse implements Listener {
             ItemStack item = player.getInventory().getItemInMainHand();
             ItemEntry entry = getItemEntry(item);
             
-            if (entry != null && entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW") ) {
+            if (entry != null && entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
                 double random = entry.getRandom();
                 if (random > 0) randomizeVelocity(arrow, random);
                 if (player.hasPermission(entry.getUsePerm())) {
@@ -213,6 +217,9 @@ public class ItemUse implements Listener {
                         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
                     }
                 }
+            } else if (entry != null && entry.getType().equalsIgnoreCase("BROKEN_ARROW")) {
+                double random = entry.getRandom();
+                if (random > 0) randomizeVelocity(arrow, random);
             }
         }
     }
