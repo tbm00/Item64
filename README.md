@@ -4,10 +4,11 @@ A spigot plugin that adds some custom items.
 Created by tbm00 for play.mc64.wtf.
 
 ## Features
-- **Explosive Bow** Shoots explosive arrows.
+- **Explosive Bows & Crossbows** Shoots explosive arrows.
 - **Lightning Gun** Shoots ender pearls that summon lightning.
-- **Magic Wand** Casts random potion effects. Left click for an offensive effect, right click for a postive effect.
+- **Magic Wand** Shoots random potion effects. Left click for an offensive potion, right click for a postive potion.
 - **Survival-Friendly** Configurable ammo, hunger-costs, and cooldown timers.
+- **Highly Configurable** Add, customize, and use more or less custom items than default.
 - **Respect Claims & PVP** Hooks into GriefDefender and DeluxeCombat.
 
 ## Dependencies
@@ -17,19 +18,45 @@ Created by tbm00 for play.mc64.wtf.
 - **DeluxeCombat**: OPTIONAL
 
 ## Commands & Permissions
-#### Commands
+### Commands
 - `/itm help` Display this command list
 - `/itm give <itemKey> [player]` Spawn a custom item
-#### Permissions
+### Permissions
+Each item has configurable permissions (in `config.yml`) that must be fulfiled for a player to use or spawn the item. The only hardcoded permission node is item64.help.
 - `item64.help` Ability to display the command list *(Default: OP)*
-- `item64.give.explosive_arrow` Ability to give explosive arrow item *(Default: OP)*
-- `item64.give.lightning_pearl` Ability to give lightning pearl item *(Default: OP)*
-- `item64.give.random_potion` Ability to give random potion pearl item *(Default: OP)*
-- `item64.use.explosive_arrow` Ability to use explosive arrow item *(Default: everyone)*
-- `item64.use.lightning_pearl` Ability to use lightning pearl item *(Default: everyone)*
-- `item64.use.random_potion` Ability to use random potion item *(Default: everyone)*
 
-## Config
+## Configuration Notes
+- You can make more custom item entries, or remove entries. However, each entry much have one defined types (EXPLOSIVE_ARROW, EXTRA_ARROW, LIGHTNING_PEARL, or RANDOM_POTION).
+- Cooldown is seconds. Hunger is 0-20.
+- ShotRandomness will make the projectile's path more random. Lowwer values will be less noticable.
+- ExtraDamage is only applied to players. Using org.bukkit.entity.Damageable.damage(double, Entity).
+- If ammoItem is not empty (""), the plugin will require and remove 1 of that item from the player on use.
+
+### Custom Item Types
+
+**`EXPLOSIVE_ARROW`** 
+- Summons an explosion on arrow impact.
+- Explosion does a lot of damage + arrow damage if direct player. So, extraDamage is set to 0 by default.
+- Applicable to bows and crossbows.
+
+**`EXTRA_ARROW`** 
+- Simpler arrow, nothing special on arrow impact.
+- Does arrow damage + whatever extraDamage is.
+- Applicable to bows and crossbows.
+
+**`LIGHTNING_PEARL`** 
+- Shoots a ender pearl that summons a lightning strike on impact.
+- Lightning does't do much damage. So, extraDamage is set to 7 by default.
+- Applicable to most items.
+
+**`RANDOM_POTION`** 
+- Shoots a random splash potion.
+- Most potions don't do any damage. ExtraDamage is only applied to negative potion effects.
+- Positive potion effects are casted from right clicks: `INCREASE_DAMAGE` `(STRENGTH)`, `HEAL` `(INSTANT_HEALTH)`, `JUMP` `(JUMP_BOOST)`, `SPEED`, `REGENERATION`, `FIRE_RESISTANCE`, `NIGHT_VISION`, `INVISIBILITY`, `ABSORPTION`, `SATURATION`, `SLOW_FALLING`
+- Negative potion effects are casted from right clicks: `SLOW` `(SLOWNESS)`, `HARM` `(INSTANT_DAMAGE)`, `CONFUSION` `(NAUSEA)`, `BLINDNESS`, `HUNGER`, `WEAKNESS`, `POISON`, `LEVITATION`, `GLOWING`
+- Applicable to most items.
+
+## Default Config
 ```
 hooks:
   GriefDefender:
@@ -42,15 +69,17 @@ itemEntries:
   enabled: true
   '1':
     enabled: true
-    type: "EXPLOSIVE_ARROW" # Don't change
-    key: "EXPLOSIVEBOW"
+    type: "EXPLOSIVE_ARROW"
+    key: "EXPLOSIVE_BOW"
+    givePerm: "item64.give.explosive_bow"
+    usePerm: "item64.use.explosive_bow"
     cooldown: 4
     hunger: 6
     shotRandomness: 0.2
     extraDamage: 0.0
     ammoItem: "TNT"
-    item: "BOW"
-    name: "&6Explosive Bow"
+    item: "CROSSBOW"
+    name: "&6Explosive Crossbow"
     lore:
       - "&8&oRequires TNT and Arrows"
     hideEnchants: false
@@ -58,8 +87,47 @@ itemEntries:
       - "MENDING:1"
   '2':
     enabled: true
-    type: "LIGHTNING_PEARL" # Don't change
-    key: "LIGHTNINGGUN"
+    type: "EXTRA_ARROW"
+    key: "BROKEN_BOW"
+    givePerm: "item64.give.broken_bow"
+    usePerm: "item64.use.broken_bow"
+    cooldown: 0
+    hunger: 0
+    shotRandomness: 5.0
+    extraDamage: 0.0
+    ammoItem: ""
+    item: "BOW"
+    name: "&cBroken Bow"
+    lore: []
+    hideEnchants: false
+    enchantments:
+      - "POWER:8"
+  '3':
+    enabled: true
+    type: "EXTRA_ARROW"
+    key: "OP_BOW"
+    givePerm: "item64.give.op_bow"
+    usePerm: "item64.use.op_bow"
+    cooldown: 0
+    hunger: 0
+    shotRandomness: 0.0
+    extraDamage: 10.0
+    ammoItem: "BEDROCK"
+    item: "BOW"
+    name: "&0OP Bow"
+    lore:
+      - "&8&oRequires Bedrock and Arrows"
+    hideEnchants: false
+    enchantments:
+      - "POWER:10"
+      - "INFINITY:1"
+      - "MENDING:1"
+  '4':
+    enabled: true
+    type: "LIGHTNING_PEARL"
+    key: "LIGHTNING_GUN"
+    givePerm: "item64.give.lightning_gun"
+    usePerm: "item64.use.lightning_gun"
     cooldown: 4
     hunger: 4
     shotRandomness: 0.2
@@ -72,10 +140,12 @@ itemEntries:
     hideEnchants: true
     enchantments:
       - "MENDING:1"
-  '3':
+  '5':
     enabled: true
-    type: "RANDOM_POTION" # Don't change
-    key: "MAGICWAND"
+    type: "RANDOM_POTION"
+    key: "MAGIC_WAND"
+    givePerm: "item64.give.magic_wand"
+    usePerm: "item64.use.magic_wand"
     cooldown: 4
     hunger: 4
     shotRandomness: 0.1
@@ -88,19 +158,4 @@ itemEntries:
     hideEnchants: true
     enchantments:
       - "MENDING:1"
-  '4':
-    enabled: true
-    type: "BROKEN_ARROW" # Don't change
-    key: "BROKENBOW"
-    cooldown: 0
-    hunger: 0
-    shotRandomness: 5.0
-    extraDamage: 0.0
-    ammoItem: ""
-    item: "BOW"
-    name: "&cBroken Bow"
-    lore: []
-    hideEnchants: false
-    enchantments:
-      - "POWER:8"
 ```

@@ -9,27 +9,70 @@ itemEntries:
   enabled: true
   '1':
     enabled: true
-    type: "EXPLOSIVE_ARROW" # Don't change
-    key: "EXPLOSIVEBOW"
-    cooldown: 4
+    type: "EXPLOSIVE_ARROW"
+    key: "EXPLOSIVE_CROSSBOW"
+    givePerm: "item64.give.explosive_crossbow"
+    usePerm: "item64.use.explosive_crossbow"
+    cooldown: 1
     hunger: 6
     shotRandomness: 0.2
     extraDamage: 0.0
     ammoItem: "TNT"
-    item: "BOW"
-    name: "&6Explosive Bow"
+    item: "CROSSBOW"
+    name: "&6Explosive Crossbow"
     lore:
       - "&8&oRequires TNT and Arrows"
     hideEnchants: false
     enchantments:
+      - "QUICK_CHARGE:4"
+      - "DURABILITY:4"
       - "MENDING:1"
   '2':
     enabled: true
-    type: "LIGHTNING_PEARL" # Don't change
-    key: "LIGHTNINGGUN"
+    type: "EXTRA_ARROW"
+    key: "BROKEN_BOW"
+    givePerm: "item64.give.broken_bow"
+    usePerm: "item64.use.broken_bow"
+    cooldown: 0
+    hunger: 0
+    shotRandomness: 3.5
+    extraDamage: 0.0
+    ammoItem: ""
+    item: "BOW"
+    name: "&cBroken Bow"
+    lore: []
+    hideEnchants: false
+    enchantments:
+      - "POWER:7"
+  '3':
+    enabled: true
+    type: "EXTRA_ARROW"
+    key: "OP_BOW"
+    givePerm: "item64.give.op_bow"
+    usePerm: "item64.use.op_bow"
+    cooldown: 0
+    hunger: 0
+    shotRandomness: 0.0
+    extraDamage: 10.0
+    ammoItem: "BEDROCK"
+    item: "BOW"
+    name: "&0OP Bow"
+    lore:
+      - "&8&oRequires Bedrock and Arrows"
+    hideEnchants: false
+    enchantments:
+      - "POWER:10"
+      - "INFINITY:1"
+      - "MENDING:1"
+  '4':
+    enabled: true
+    type: "LIGHTNING_PEARL"
+    key: "LIGHTNING_GUN"
+    givePerm: "item64.give.lightning_gun"
+    usePerm: "item64.use.lightning_gun"
     cooldown: 4
     hunger: 4
-    shotRandomness: 0.2
+    shotRandomness: 0.15
     extraDamage: 7.0
     ammoItem: "ENDER_PEARL"
     item: "ECHO_SHARD"
@@ -39,10 +82,12 @@ itemEntries:
     hideEnchants: true
     enchantments:
       - "MENDING:1"
-  '3':
+  '5':
     enabled: true
-    type: "RANDOM_POTION" # Don't change
-    key: "MAGICWAND"
+    type: "RANDOM_POTION"
+    key: "MAGIC_WAND"
+    givePerm: "item64.give.magic_wand"
+    usePerm: "item64.use.magic_wand"
     cooldown: 4
     hunger: 4
     shotRandomness: 0.1
@@ -55,18 +100,4 @@ itemEntries:
     hideEnchants: true
     enchantments:
       - "MENDING:1"
-  '4':
-    enabled: true
-    type: "BROKEN_ARROW" # Don't change
-    key: "BROKENBOW"
-    cooldown: 0
-    hunger: 0
-    shotRandomness: 5.0
-    extraDamage: 0.0
-    ammoItem: ""
-    item: "BOW"
-    name: "&cBroken Bow"
-    lore: []
-    hideEnchants: false
-    enchantments:
-      - "POWER:8"
+  # Add more entries as needed

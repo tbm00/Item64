@@ -18,7 +18,7 @@ public class ItemManager {
         itemEntries = new ArrayList<>();
         cooldowns = new ArrayList<>();
         hungers = new ArrayList<>();
-        for (int i=0; i<3; ++i) {
+        for (int i=0; i<4; ++i) {
             cooldowns.add(0L);
             hungers.add(0);
         }
@@ -30,9 +30,10 @@ public class ItemManager {
                 ConfigurationSection itemEntry = entriesSection.getConfigurationSection(key);
                 
                 if (itemEntry != null && itemEntry.getBoolean("enabled")) {
-                    String givePerm, usePerm;
-                    String type = itemEntry.getString("type"),
-                            KEY = itemEntry.getString("key");
+                    String type = itemEntry.getString("type");
+                    String KEY = itemEntry.getString("key"),
+                            givePerm = itemEntry.getString("givePerm"),
+                            usePerm = itemEntry.getString("usePerm");
                     int cooldown = itemEntry.getInt("cooldown"),
                             hunger = itemEntry.getInt("hunger");
                     double random = itemEntry.getDouble("shotRandomness"),
@@ -46,33 +47,19 @@ public class ItemManager {
 
                     switch (type) {
                         case "EXPLOSIVE_ARROW" -> {
-                            givePerm = "item64.give.explosive_arrow";
-                            usePerm = "item64.use.explosive_arrow";
                             cooldowns.set(0, Long.valueOf(cooldown));
                             hungers.set(0, hunger);
                         }
                         case "LIGHTNING_PEARL" -> {
-                            givePerm = "item64.give.lightning_pearl";
-                            usePerm = "item64.use.lightning_pearl";
                             cooldowns.set(1, Long.valueOf(cooldown));
                             hungers.set(1, hunger);
                         }
                         case "RANDOM_POTION" -> {
-                            givePerm = "item64.give.random_potion";
-                            usePerm = "item64.use.random_potion";
                             cooldowns.set(2, Long.valueOf(cooldown));
                             hungers.set(2, hunger);
                         }
-                        case "BROKEN_ARROW" -> {
-                            givePerm = "item64.give.broken_arrow";
-                            usePerm = "item64.use.broken_arrow";
-                            cooldowns.set(2, Long.valueOf(cooldown));
-                            hungers.set(2, hunger);
-                        }
-                        default -> {
-                            givePerm = null;
-                            usePerm = null;
-                        }
+                        case "BROKEN_ARROW" -> {}
+                        default -> {}
                     }
                     
                     if (usePerm != null && givePerm != null && type != null && key != null ) {

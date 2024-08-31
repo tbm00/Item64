@@ -97,7 +97,7 @@ public class ItmCommand implements TabExecutor {
                         }
                         player.getInventory().addItem(item);
                         player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());
-                        javaPlugin.getLogger().info(player.getDisplayName() + " has been given the " + entry.getKeyString() );
+                        javaPlugin.getLogger().info(player.getDisplayName() + " has been given the " + entry.getKeyString());
                         return true;
                     }
                 }

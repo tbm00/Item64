@@ -53,6 +53,7 @@ public class ItemUse implements Listener {
     private final List<ItemEntry> itemCmdEntries;
     private final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
     private final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
+    private final ArrayList<Projectile> extraArrows = new ArrayList<>();
     private final ArrayList<Projectile> lightningPearls = new ArrayList<>();
     private final ArrayList<Projectile> magicPotions = new ArrayList<>();
     private static final PotionEffectType[] positiveEFFECTS = {
@@ -67,10 +68,6 @@ public class ItemUse implements Listener {
         PotionEffectType.ABSORPTION,
         PotionEffectType.SATURATION,
         PotionEffectType.SLOW_FALLING,
-        //PotionEffectType.FAST_DIGGING, //HASTE
-        //PotionEffectType.LUCK,
-        //PotionEffectType.WATER_BREATHING,
-        //PotionEffectType.DOLPHINS_GRACE
     };
     private static final PotionEffectType[] negativeEFFECTS = {
         PotionEffectType.SLOW, //SLOWNESS
@@ -82,10 +79,6 @@ public class ItemUse implements Listener {
         PotionEffectType.POISON,
         PotionEffectType.LEVITATION,
         PotionEffectType.GLOWING
-        //PotionEffectType.SLOW_DIGGING, //MINING FATIGUE
-        //PotionEffectType.UNLUCK, //BAD_LUCK
-        //DARKNESS
-        //INFESTED
     };
 
     public ItemUse(JavaPlugin javaPlugin, ItemManager itemManager, GDHook gdHook, DeluxeCombatAPI dcHook) {
@@ -95,6 +88,15 @@ public class ItemUse implements Listener {
         this.dcHook = dcHook;
         this.enabled = itemManager.isEnabled();
         this.itemCmdEntries = itemManager.getItemEntries();
+    }
+
+    private ItemEntry getItemEntry(ItemStack item) {
+        if (item == null) return null;
+        if (!item.hasItemMeta() || item.getType() == Material.AIR) return null;
+        for (ItemEntry entry : itemCmdEntries) {
+            if (item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING)) return entry;
+        }
+        return null;
     }
 
     @EventHandler
@@ -118,13 +120,17 @@ public class ItemUse implements Listener {
                 // has custom listeners: onBowShoot & onProjectileHit
                 // activeCooldowns index: 0
                 break; */
-            case "LIGHTNING_PEARL": {
+            /* case "EXPLOSIVE_ARROW":
+                // has custom listener: onBowShoot
                 // activeCooldowns index: 1
+                break; */
+            case "LIGHTNING_PEARL": {
+                // activeCooldowns index: 2
                 if (!activeCooldowns.containsKey(player.getUniqueId())) activeCooldowns.put(player.getUniqueId(), itemManager.getCooldowns());
                 List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
                 if (passGDPvpCheck(player.getLocation())) {
                     if (player.getFoodLevel() >= entry.getHunger()) {
-                        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(1)) >= entry.getCooldown()) {
+                        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(2)) >= entry.getCooldown()) {
                             if (removeAmmoItem(player, entryType)) {
                                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
                                 EnderPearl pearl = player.launchProjectile(EnderPearl.class);
@@ -133,7 +139,7 @@ public class ItemUse implements Listener {
                                 double random = entry.getRandom();
                                 if (random > 0) randomizeVelocity(pearl, random);
 
-                                adjustCooldowns(player, itemManager.getHungers(), 1);
+                                adjustCooldowns(player, itemManager.getHungers(), 2);
                             }
                         } else {
                             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- active cooldown!"));
@@ -148,12 +154,12 @@ public class ItemUse implements Listener {
                 break;
             }
             case "RANDOM_POTION": {
-                // activeCooldowns index: 2
+                // activeCooldowns index: 3
                 if (!activeCooldowns.containsKey(player.getUniqueId())) activeCooldowns.put(player.getUniqueId(), itemManager.getCooldowns());
                 List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
                 if (passGDPvpCheck(player.getLocation())) {
                     if (player.getFoodLevel() >= entry.getHunger()) {
-                        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(2)) >= entry.getCooldown()) {
+                        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(3)) >= entry.getCooldown()) {
                             if (removeAmmoItem(player, entryType)) {
                                 //player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Using magic..."));
                                 Action action = event.getAction();
@@ -161,7 +167,7 @@ public class ItemUse implements Listener {
                                 if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) rightClick = false;
                                 shootPotion(player, rightClick);
 
-                                adjustCooldowns(player, itemManager.getHungers(), 2);
+                                adjustCooldowns(player, itemManager.getHungers(), 3);
                             }
                         } else {
                             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- active cooldown!"));
@@ -175,10 +181,6 @@ public class ItemUse implements Listener {
                 event.setCancelled(true);
                 break;
             }
-            /* case "EXPLOSIVE_ARROW":
-                // has custom listener: onBowShoot
-                // NO activeCooldowns index
-                break; */
             default:
                 break;
         }
@@ -217,47 +219,216 @@ public class ItemUse implements Listener {
                         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
                     }
                 }
-            } else if (entry != null && entry.getType().equalsIgnoreCase("BROKEN_ARROW")) {
+            } else if (entry != null && entry.getType().equalsIgnoreCase("EXTRA_ARROW")) {
                 double random = entry.getRandom();
                 if (random > 0) randomizeVelocity(arrow, random);
+                if (player.hasPermission(entry.getUsePerm()) && entry.getDamage() > 0) {
+                    if (!activeCooldowns.containsKey(player.getUniqueId())) activeCooldowns.put(player.getUniqueId(), itemManager.getCooldowns());
+                    List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
+                    
+                    if (passGDPvpCheck(player.getLocation())) {
+                        if (player.getFoodLevel() >= entry.getHunger()) {
+                            if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(1)) >= entry.getCooldown()) {
+                                if (removeAmmoItem(player, entry.getType())) {
+                                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting stronger arrow..."));
+                                    explosiveArrows.add(arrow);
+                                    adjustCooldowns(player, itemManager.getHungers(), 1);
+                                }
+                            } else {
+                                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Extra damage blocked -- active cooldown!"));
+                            }
+                        } else {
+                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Extra damage blocked -- you're too hungry!"));
+                        }
+                    } else {
+                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Extra damage blocked -- claim pvp protection!"));
+                    }
+                }
             }
         }
+    }
+
+    private void shootPotion(Player player, boolean rightClick) {
+        ItemStack potion = new ItemStack(Material.SPLASH_POTION);
+        PotionMeta potionMeta = (PotionMeta) potion.getItemMeta();
+        if (rightClick) {
+            int index = ThreadLocalRandom.current().nextInt(0, 11);
+            potionMeta.addCustomEffect(new PotionEffect(positiveEFFECTS[index], 600, 1), true);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Casting " + positiveEFFECTS[index].getName().toLowerCase() + "..."));
+        } else {
+            int index = ThreadLocalRandom.current().nextInt(0, 9);
+            potionMeta.addCustomEffect(new PotionEffect(negativeEFFECTS[index], 600, 1), true);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Casting " + negativeEFFECTS[index].getName().toLowerCase() + "..."));
+        }
+        potion.setItemMeta((ItemMeta)potionMeta);
+        player.getWorld().spawn(player.getLocation().add(0, 1.5, 0), ThrownPotion.class, thrownPotion -> {
+            thrownPotion.setItem(potion);
+            thrownPotion.setBounce(false);
+
+            Vector direction = player.getLocation().getDirection();
+            direction.multiply(1.4);
+            thrownPotion.setVelocity(direction);
+            ItemEntry entry = itemManager.getItemEntry("RANDOM_POTION");
+
+            double random = entry.getRandom();
+            if (random > 0) randomizeVelocity(thrownPotion, random);
+            
+            if (!rightClick) {
+                thrownPotion.setVisualFire(true);
+                if (entry.getDamage()>=0) {
+                    thrownPotion.setMetadata("randomPotionLeft", new FixedMetadataValue(javaPlugin, "true"));
+                }
+            }
+
+            thrownPotion.setShooter((ProjectileSource)player);
+            magicPotions.add(thrownPotion);
+        });
+    }
+
+    private void adjustCooldowns(Player player, List<Integer> hungers, int index) {
+        List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
+        player.setFoodLevel(Math.max(player.getFoodLevel() - hungers.get(index), 0));
+        playerCooldowns.set(index, System.currentTimeMillis() / 1000);
+        activeCooldowns.put(player.getUniqueId(), playerCooldowns);
+    }
+
+    private boolean removeAmmoItem(Player player, String type) {
+        ItemEntry entry = itemManager.getItemEntry(type);
+        String ammoItemName = entry.getAmmoItem();
+        if (ammoItemName.equals("none")) return true;
+        Material ammoMaterial = Material.getMaterial(ammoItemName.toUpperCase());
+    
+        if (ammoMaterial != null) {
+            ItemStack[] inventoryContents = player.getInventory().getContents();
+            for (int i = 0; i < inventoryContents.length; i++) {
+                ItemStack itemStack = inventoryContents[i];
+                if (itemStack != null && itemStack.getType() == ammoMaterial) {
+                    itemStack.setAmount(Math.max((itemStack.getAmount() - 1), 0));
+                    if (itemStack.getAmount() <= 0) {
+                        player.getInventory().setItem(i, null);
+                    } return true;
+                }
+            }
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + ammoItemName.toLowerCase()));
+            return false;
+        } else {
+            javaPlugin.getLogger().warning("Error: Poorly defined itemEntry:  " + type + " " + ammoItemName);
+            return false;
+        }
+    }
+
+    private void randomizeVelocity(Projectile projectile, double random) {
+        Vector velocity = projectile.getVelocity();
+        
+        double randomX = ThreadLocalRandom.current().nextDouble(-random, random),
+                randomY = ThreadLocalRandom.current().nextDouble(-random/2, random/2),
+                randomZ = ThreadLocalRandom.current().nextDouble(-random, random);
+        
+        velocity.setX(velocity.getX() + randomX);
+        velocity.setY(velocity.getY() + randomY);
+        velocity.setZ(velocity.getZ() + randomZ);
+
+        projectile.setVelocity(velocity);
+    }
+
+    private boolean passGDPvpCheck(Location location) {
+        if (gdHook==null) return true;
+        String regionID = gdHook.getRegionID(location);
+        return gdHook.hasPvPEnabled(regionID);
+    }
+
+    private boolean passDCPvpCheck(Player sender, Location location, double radius) {
+        Collection<Entity> nearbyEntities = sender.getWorld().getNearbyEntities(location, radius, radius, radius);
+        for (Entity entity : nearbyEntities) {
+            if (entity instanceof Player) {
+                Player player = (Player) entity;
+                if (dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player)) return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean passGDBuilderCheck(Player sender, Location location, int radius) {
+        String[] ids = new String[9];
+        Location loc = location.clone();
+    
+        ids[0] = gdHook.getRegionID(loc);
+        ids[1] = gdHook.getRegionID(loc.add(radius, radius, radius));
+        ids[2] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
+        ids[3] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
+        ids[4] = gdHook.getRegionID(loc.add(0, 0, (2*radius)));
+        ids[5] = gdHook.getRegionID(loc.add(0, (-2*radius), 0));
+        ids[6] = gdHook.getRegionID(loc.add((2*radius), 0, 0));
+        ids[7] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
+        ids[8] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
+
+        for (String id : ids) {
+            if (!gdHook.hasBuilderTrust(sender, id)) return false;
+        } return true;
     }
 
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent event) {
         if (event.getEntity() instanceof Arrow) {
             Arrow arrow = (Arrow) event.getEntity();
-            if (!explosiveArrows.contains(arrow)) return;
-            explosiveArrows.remove(arrow);
+            if (explosiveArrows.contains(arrow)) {
+                explosiveArrows.remove(arrow);
 
-            Location location = arrow.getLocation();
-            Player player = (Player) arrow.getShooter();
-            boolean passDCPvpCheck = true, passGDPvpCheck = true, passGDBuilderCheck = true;
+                Location location = arrow.getLocation();
+                Player player = (Player) arrow.getShooter();
+                boolean passDCPvpCheck = true, passGDPvpCheck = true, passGDBuilderCheck = true;
 
-            if (dcHook != null) {
-                if (!passDCPvpCheck(player, location, 5.0)) passDCPvpCheck = false;
-            }
-            if (gdHook != null) {
-                if (!passGDPvpCheck(location)) passGDPvpCheck = false;
-                else if (!passGDBuilderCheck(player, location, 5)) passGDBuilderCheck = false;
-            }
+                if (dcHook != null) {
+                    if (!passDCPvpCheck(player, location, 5.0)) passDCPvpCheck = false;
+                }
+                if (gdHook != null) {
+                    if (!passGDPvpCheck(location)) passGDPvpCheck = false;
+                    else if (!passGDBuilderCheck(player, location, 5)) passGDBuilderCheck = false;
+                }
 
-            if (!passDCPvpCheck) {
-                arrow.remove();
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- pvp protection!"));
-            } else if (!passGDPvpCheck) {
-                arrow.remove();
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
-            } else if (!passGDBuilderCheck) {
-                arrow.getWorld().createExplosion(location, 2.0F, true, false, player);
-                arrow.remove();
-                damagePlayers(player, location, 1.7, 0.7, itemManager.getItemEntry("EXPLOSIVE_ARROW").getDamage());
-            } else {
-                arrow.getWorld().createExplosion(location, 2.0F, true, true, player);
-                arrow.remove();
-                damagePlayers(player, location, 1.7, 0.7, itemManager.getItemEntry("EXPLOSIVE_ARROW").getDamage());
-            }
+                if (!passDCPvpCheck) {
+                    arrow.remove();
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- pvp protection!"));
+                } else if (!passGDPvpCheck) {
+                    arrow.remove();
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
+                } else if (!passGDBuilderCheck) {
+                    arrow.getWorld().createExplosion(location, 2.0F, true, false, player);
+                    arrow.remove();
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion nerfed -- claim block protection!"));
+                    damagePlayers(player, location, 1.7, 0.7, itemManager.getItemEntry("EXPLOSIVE_ARROW").getDamage());
+                } else {
+                    arrow.getWorld().createExplosion(location, 2.0F, true, true, player);
+                    arrow.remove();
+                    damagePlayers(player, location, 1.7, 0.7, itemManager.getItemEntry("EXPLOSIVE_ARROW").getDamage());
+                }
+                return;
+            } else if (extraArrows.contains(arrow)) {
+                extraArrows.remove(arrow);
+
+                Location location = arrow.getLocation();
+                Player player = (Player) arrow.getShooter();
+                boolean passDCPvpCheck = true, passGDPvpCheck = true;
+
+                if (dcHook != null) {
+                    if (!passDCPvpCheck(player, location, 5.0)) passDCPvpCheck = false;
+                }
+                if (gdHook != null) {
+                    if (!passGDPvpCheck(location)) passGDPvpCheck = false; 
+                }
+
+                if (!passDCPvpCheck) {
+                    arrow.remove();
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Extra damage blocked -- pvp protection!"));
+                } else if (!passGDPvpCheck) {
+                    arrow.remove();
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Extra damage blocked -- claim pvp protection!"));
+                } else {
+                    arrow.remove();
+                    damagePlayers(player, location, 0.7, 0.9, itemManager.getItemEntry("EXTRA_ARROW").getDamage());
+                }
+                return;
+            } 
         } else if (event.getEntity() instanceof EnderPearl) {
             EnderPearl pearl = (EnderPearl) event.getEntity();
             if (!lightningPearls.contains(pearl)) return;
@@ -324,120 +495,6 @@ public class ItemUse implements Listener {
         }
     }
 
-    private void shootPotion(Player player, boolean rightClick) {
-        ItemStack potion = new ItemStack(Material.SPLASH_POTION);
-        PotionMeta potionMeta = (PotionMeta) potion.getItemMeta();
-        if (rightClick) {
-            int index = ThreadLocalRandom.current().nextInt(0, 11);
-            potionMeta.addCustomEffect(new PotionEffect(positiveEFFECTS[index], 600, 1), true);
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Casting " + positiveEFFECTS[index].getName().toLowerCase() + "..."));
-        } else {
-            int index = ThreadLocalRandom.current().nextInt(0, 9);
-            potionMeta.addCustomEffect(new PotionEffect(negativeEFFECTS[index], 600, 1), true);
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Casting " + negativeEFFECTS[index].getName().toLowerCase() + "..."));
-        }
-        potion.setItemMeta((ItemMeta)potionMeta);
-        player.getWorld().spawn(player.getLocation().add(0, 1.5, 0), ThrownPotion.class, thrownPotion -> {
-            thrownPotion.setItem(potion);
-            thrownPotion.setBounce(false);
-
-            Vector direction = player.getLocation().getDirection();
-            direction.multiply(1.4);
-            thrownPotion.setVelocity(direction);
-            ItemEntry entry = itemManager.getItemEntry("RANDOM_POTION");
-
-            double random = entry.getRandom();
-            if (random > 0) randomizeVelocity(thrownPotion, random);
-            
-            if (!rightClick) {
-                thrownPotion.setVisualFire(true);
-                if (entry.getDamage()>=0) {
-                    thrownPotion.setMetadata("randomPotionLeft", new FixedMetadataValue(javaPlugin, "true"));
-                }
-            }
-
-            thrownPotion.setShooter((ProjectileSource)player);
-            magicPotions.add(thrownPotion);
-        });
-    }
-
-    private ItemEntry getItemEntry(ItemStack item) {
-        if (item == null) return null;
-        if (!item.hasItemMeta() || item.getType() == Material.AIR) return null;
-        for (ItemEntry entry : itemCmdEntries) {
-            if (item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING)) return entry;
-        }
-        return null;
-    }
-
-    private void adjustCooldowns(Player player, List<Integer> hungers, int index) {
-        List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
-        player.setFoodLevel(Math.max(player.getFoodLevel() - hungers.get(index), 0));
-        playerCooldowns.set(index, System.currentTimeMillis() / 1000);
-        activeCooldowns.put(player.getUniqueId(), playerCooldowns);
-    }
-
-    private boolean removeAmmoItem(Player player, String type) {
-        ItemEntry entry = itemManager.getItemEntry(type);
-        String ammoItemName = entry.getAmmoItem();
-        if (ammoItemName.equals("none")) return true;
-        Material ammoMaterial = Material.getMaterial(ammoItemName.toUpperCase());
-    
-        if (ammoMaterial != null) {
-            ItemStack[] inventoryContents = player.getInventory().getContents();
-            for (int i = 0; i < inventoryContents.length; i++) {
-                ItemStack itemStack = inventoryContents[i];
-                if (itemStack != null && itemStack.getType() == ammoMaterial) {
-                    itemStack.setAmount(Math.max((itemStack.getAmount() - 1), 0));
-                    if (itemStack.getAmount() <= 0) {
-                        player.getInventory().setItem(i, null);
-                    } return true;
-                }
-            }
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + ammoItemName.toLowerCase()));
-            return false;
-        } else {
-            javaPlugin.getLogger().warning("Error: Poorly defined itemEntry:  " + type + " " + ammoItemName);
-            return false;
-        }
-    }
-
-    private boolean passGDBuilderCheck(Player sender, Location location, int radius) {
-        String[] ids = new String[9];
-        Location loc = location.clone();
-    
-        ids[0] = gdHook.getRegionID(loc);
-        ids[1] = gdHook.getRegionID(loc.add(radius, radius, radius));
-        ids[2] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
-        ids[3] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
-        ids[4] = gdHook.getRegionID(loc.add(0, 0, (2*radius)));
-        ids[5] = gdHook.getRegionID(loc.add(0, (-2*radius), 0));
-        ids[6] = gdHook.getRegionID(loc.add((2*radius), 0, 0));
-        ids[7] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
-        ids[8] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
-
-        for (String id : ids) {
-            if (!gdHook.hasBuilderTrust(sender, id)) return false;
-        } return true;
-    }
-
-    private boolean passGDPvpCheck(Location location) {
-        if (gdHook==null) return true;
-        String regionID = gdHook.getRegionID(location);
-        return gdHook.hasPvPEnabled(regionID);
-    }
-
-    private boolean passDCPvpCheck(Player sender, Location location, double radius) {
-        Collection<Entity> nearbyEntities = sender.getWorld().getNearbyEntities(location, radius, radius, radius);
-        for (Entity entity : nearbyEntities) {
-            if (entity instanceof Player) {
-                Player player = (Player) entity;
-                if (dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player)) return false;
-            }
-        }
-        return true;
-    }
-
     private boolean damagePlayers(Player sender, Location location, double hRadius, double vRadius, double damage) {
         Collection<Entity> nearbyEntities = sender.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
         int count = 0;
@@ -452,19 +509,5 @@ public class ItemUse implements Listener {
         }
         if (count>0) return true;
         return false;
-    }
-
-    private void randomizeVelocity(Projectile projectile, double random) {
-        Vector velocity = projectile.getVelocity();
-        
-        double randomX = ThreadLocalRandom.current().nextDouble(-random, random),
-                randomY = ThreadLocalRandom.current().nextDouble(-random/2, random/2),
-                randomZ = ThreadLocalRandom.current().nextDouble(-random, random);
-        
-        velocity.setX(velocity.getX() + randomX);
-        velocity.setY(velocity.getY() + randomY);
-        velocity.setZ(velocity.getZ() + randomZ);
-
-        projectile.setVelocity(velocity);
     }
 }
