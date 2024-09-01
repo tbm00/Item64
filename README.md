@@ -4,6 +4,7 @@ A spigot plugin that adds some custom items.
 Created by tbm00 for play.mc64.wtf.
 
 ## Features
+- **Flamethrower** Shoots flames.
 - **Explosive Bows & Crossbows** Shoots explosive arrows.
 - **Lightning Gun** Shoots ender pearls that summon lightning.
 - **Magic Wand** Shoots random potion effects. Left click for an offensive potion, right click for a postive potion.
@@ -26,13 +27,19 @@ Each item has configurable permissions (in `config.yml`) that must be fulfiled f
 - `item64.help` Ability to display the command list *(Default: OP)*
 
 ## Configuration Notes
-- You can make more custom item entries, or remove entries. However, each entry much have one defined types (EXPLOSIVE_ARROW, EXTRA_ARROW, LIGHTNING_PEARL, or RANDOM_POTION).
+- You can make more custom item entries, or remove entries. However, each entry much have one defined types (FLAME_PARTICLE, EXPLOSIVE_ARROW, EXTRA_ARROW, LIGHTNING_PEARL, or RANDOM_POTION).
 - Cooldown is seconds. Hunger is 0-20.
 - ShotRandomness will make the projectile's path more random. Lowwer values will be less noticable.
 - ExtraDamage is only applied to players. Using org.bukkit.entity.Damageable.damage(double, Entity).
 - If ammoItem is not empty (""), the plugin will require and remove 1 of that item from the player on use.
 
 ### Custom Item Types
+
+**`FLAME_PARTICLE`** 
+- Shoots flame particles that make fires.
+- Particles don't do any damage. So, extraDamage is enabled by default.
+- Cooldown works differently-- it is the max amount of seconds a player can repetitively use the item.
+- Applicable to most items.
 
 **`EXPLOSIVE_ARROW`** 
 - Summons an explosion on arrow impact.
@@ -69,6 +76,24 @@ itemEntries:
   enabled: true
   '1':
     enabled: true
+    type: "FLAME_PARTICLE"
+    key: "FLAMETHROWER"
+    givePerm: "item64.give.flamethrower"
+    usePerm: "item64.use.flamethrower"
+    cooldown: 0
+    hunger: 1
+    shotRandomness: 0.25
+    extraDamage: 2.0
+    ammoItem: "COAL"
+    item: "REDSTONE_TORCH"
+    name: "&6Flamethrower"
+    lore:
+      - "&8&oRequires Coal"
+    hideEnchants: true
+    enchantments:
+      - "MENDING:1"
+  '2':
+    enabled: true
     type: "EXPLOSIVE_ARROW"
     key: "EXPLOSIVE_CROSSBOW"
     givePerm: "item64.give.explosive_crossbow"
@@ -85,9 +110,8 @@ itemEntries:
     hideEnchants: false
     enchantments:
       - "QUICK_CHARGE:4"
-      - "UNBREAKING:4"
       - "MENDING:1"
-  '2':
+  '3':
     enabled: true
     type: "EXTRA_ARROW"
     key: "BROKEN_BOW"
@@ -104,26 +128,6 @@ itemEntries:
     hideEnchants: false
     enchantments:
       - "POWER:7"
-  '3':
-    enabled: true
-    type: "EXTRA_ARROW"
-    key: "OP_BOW"
-    givePerm: "item64.give.op_bow"
-    usePerm: "item64.use.op_bow"
-    cooldown: 0
-    hunger: 0
-    shotRandomness: 0.0
-    extraDamage: 10.0
-    ammoItem: "BEDROCK"
-    item: "BOW"
-    name: "&0OP Bow"
-    lore:
-      - "&8&oRequires Bedrock and Arrows"
-    hideEnchants: false
-    enchantments:
-      - "POWER:10"
-      - "INFINITY:1"
-      - "MENDING:1"
   '4':
     enabled: true
     type: "LIGHTNING_PEARL"
@@ -151,7 +155,7 @@ itemEntries:
     cooldown: 4
     hunger: 4
     shotRandomness: 0.1
-    extraDamage: 3.0
+    extraDamage: 2.0
     ammoItem: "POTION"
     item: "BRUSH"
     name: "&6Magic Wand"

@@ -9,6 +9,24 @@ itemEntries:
   enabled: true
   '1':
     enabled: true
+    type: "FLAME_PARTICLE"
+    key: "FLAMETHROWER"
+    givePerm: "item64.give.flamethrower"
+    usePerm: "item64.use.flamethrower"
+    cooldown: 0
+    hunger: 1
+    shotRandomness: 0.25
+    extraDamage: 2.0
+    ammoItem: "COAL"
+    item: "REDSTONE_TORCH"
+    name: "&6Flamethrower"
+    lore:
+      - "&8&oRequires Coal"
+    hideEnchants: true
+    enchantments:
+      - "MENDING:1"
+  '2':
+    enabled: true
     type: "EXPLOSIVE_ARROW"
     key: "EXPLOSIVE_CROSSBOW"
     givePerm: "item64.give.explosive_crossbow"
@@ -25,9 +43,8 @@ itemEntries:
     hideEnchants: false
     enchantments:
       - "QUICK_CHARGE:4"
-      - "UNBREAKING:4"
       - "MENDING:1"
-  '2':
+  '3':
     enabled: true
     type: "EXTRA_ARROW"
     key: "BROKEN_BOW"
@@ -44,26 +61,6 @@ itemEntries:
     hideEnchants: false
     enchantments:
       - "POWER:7"
-  '3':
-    enabled: true
-    type: "EXTRA_ARROW"
-    key: "OP_BOW"
-    givePerm: "item64.give.op_bow"
-    usePerm: "item64.use.op_bow"
-    cooldown: 0
-    hunger: 0
-    shotRandomness: 0.0
-    extraDamage: 10.0
-    ammoItem: "BEDROCK"
-    item: "BOW"
-    name: "&0OP Bow"
-    lore:
-      - "&8&oRequires Bedrock and Arrows"
-    hideEnchants: false
-    enchantments:
-      - "POWER:10"
-      - "INFINITY:1"
-      - "MENDING:1"
   '4':
     enabled: true
     type: "LIGHTNING_PEARL"
@@ -91,7 +88,7 @@ itemEntries:
     cooldown: 4
     hunger: 4
     shotRandomness: 0.1
-    extraDamage: 3.0
+    extraDamage: 2.0
     ammoItem: "POTION"
     item: "BRUSH"
     name: "&6Magic Wand"

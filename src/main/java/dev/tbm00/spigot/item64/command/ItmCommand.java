@@ -27,7 +27,6 @@ public class ItmCommand implements TabExecutor {
     private final ItemManager itemManager;
     private final List<ItemEntry> itemEntries;
 
-
     public ItmCommand(JavaPlugin javaPlugin, ItemManager itemManager) {
         this.javaPlugin = javaPlugin;
         this.itemManager = itemManager;

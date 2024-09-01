@@ -18,9 +18,9 @@ public class ItemEntry {
     private String ammoItem;
     private String item;
     private String name;
+    private List<String> lore;
     private Boolean hideEnchants;
     private List<String> enchants;
-    private List<String> lore;
     
     public ItemEntry(JavaPlugin javaPlugin, String givePerm, String usePerm, String type, String KEY,
                         int cooldown, int hunger, double random, double damage, String ammoItem, String item,
