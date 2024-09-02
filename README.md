@@ -9,7 +9,7 @@ Created by tbm00 for play.mc64.wtf.
 
 ## Features
 - **Flamethrower** Shoots flames.
-- **Explosive Bows & Crossbow** Shoots explosive arrows.
+- **Explosive Bow & Crossbow** Shoots explosive arrows.
 - **Lightning Gun** Shoots ender pearls that summon lightning.
 - **Magic Wand** Shoots random potion effects. Left click for an offensive potion, right click for a positive potion.
 - **Survival-Friendly** Configurable ammo, hunger-costs, money-costs, and cooldown timers.
@@ -22,7 +22,6 @@ Created by tbm00 for play.mc64.wtf.
 - **Vault**: OPTIONAL
 - **DeluxeCombat**: OPTIONAL
 - **GriefDefender**: OPTIONAL
-
 
 ## Commands & Permissions
 ### Commands
@@ -41,30 +40,30 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 - Cooldown is seconds until next use.
 - If ammoItem is not disabled (`""`), the plugin will require and remove 1 of that item from the player on use.
 - ExtraDamage is only applied to players (using `org.bukkit.entity.Damageable.damage(double, Entity)`).
-- If enabled, the DeluxeCombat hook will check if all surrounding players have pvp enabled (and no newbie protection) before permitting any damage.
-- If enabled, the GriefDefender hook will check if pvp is enabled in the claim in which the projectile lands, and the claim in which the shooter is in before permitting any damage. It will also require the shooter to have builder trust in the affected claim for arrow explosions to do block damage.
+- If enabled, the DeluxeCombat hook will check if all surrounding players have PVP enabled (and no newbie protection) before permitting any damage.
+- If enabled, the GriefDefender hook will check if PVP is enabled in the claim where the projectile lands, and in the claim where the shooter is located, before permitting any damage. It will also require the shooter to have builder trust in the affected claim for arrow explosions to do block damage.
 
 ### Custom Item Types
 
 **`FLAME_PARTICLE`** 
 - Shoots flame particles that make fires.
-- Particles don't do any damage. So, extraDamage is enabled by default.
-- Cooldown works differently-- it is the max amount of seconds a player can repetitively use the item.
+- Particles don't deal any damage, so extraDamage is enabled by default.
+- Cooldown works differently; it is the maximum number of seconds a player can repetitively use the item.
 - Applicable to most items.
 
 **`EXPLOSIVE_ARROW`** 
 - Summons an explosion on arrow impact.
-- Explosion does a lot of damage + arrow damage if direct player. So, extraDamage is disabled by default.
+- Explosion deals a lot of damage + arrow damage if direct hit, so extraDamage is disabled by default.
 - Applicable to bows and crossbows.
 
 **`LIGHTNING_PEARL`** 
 - Shoots an ender pearl that summons a lightning strike on impact.
-- Lightning doesn't do much damage. So, extraDamage is set to high by default.
+- Lightning doesn't deal much damage, so extraDamage is set high by default.
 - Applicable to most items.
 
 **`RANDOM_POTION`** 
 - Shoots a random splash potion.
-- Most potions don't do any damage. ExtraDamage is only applied to negative potion effects.
+- Most potions don't deal direct damage, so extraDamage is used to apply damage on nearby players when negative (left-click) random potions break.
 - Positive potion effects are shot from right clicks: 
     - `INCREASE_DAMAGE (STRENGTH)`, `HEAL (INSTANT_HEALTH)`, `JUMP (JUMP_BOOST)`, `SPEED`, `REGENERATION`, `FIRE_RESISTANCE`, `NIGHT_VISION`, `INVISIBILITY`, `ABSORPTION`, `SATURATION`, `SLOW_FALLING`
 - Negative potion effects are shot from left clicks:
@@ -74,9 +73,9 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 **`CONSUME_COMMAND`** 
 - Runs commands on item consumption.
 - ExtraDamage & shotRandomness are not applicable.
-- Has no DeluxeCombat or GriefDefender protections.
+- Has no DeluxeCombat or GriefDefender checks.
 - Requires extra configuration options consoleCommands & removeConsumedItem. 
-    - ConsoleCommands get ran after the player consumes the item (`<player>` is replaced with the consumer's username).
+    - ConsoleCommands are run after the player consumes the item (`<player>` is replaced with the consumer's username).
     - RemoveConsumedItem removes the custom item that is consumed (not the ammoItem) if `true`.
 - Applicable to most food, potions, milk, etc.
 
