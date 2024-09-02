@@ -11,8 +11,10 @@ public class ItemEntry {
     private String type;
     private NamespacedKey key;
     private String keyString;
+    private double money;
     private int cooldown;
     private int hunger;
+    private boolean removeItem;
     private double random;
     private double damage;
     private String ammoItem;
@@ -21,17 +23,19 @@ public class ItemEntry {
     private List<String> lore;
     private Boolean hideEnchants;
     private List<String> enchants;
+    private List<String> commands;
     
-    public ItemEntry(JavaPlugin javaPlugin, String givePerm, String usePerm, String type, String KEY,
-                        int cooldown, int hunger, double random, double damage, String ammoItem, String item,
-                        String name, List<String> lore, Boolean hideEnchants, List<String> enchants) {
+    public ItemEntry(JavaPlugin javaPlugin, String givePerm, String usePerm, String type, String KEY, double money, 
+                        int hunger, int cooldown, double random, double damage, String ammoItem, String item, String name, 
+                        List<String> lore, Boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands) {
         this.givePerm = givePerm;
         this.usePerm = usePerm;
         this.type = type;
         this.key = new NamespacedKey(javaPlugin, KEY);
         this.keyString = KEY;
-        this.cooldown = cooldown;
+        this.money = money;
         this.hunger = hunger;
+        this.cooldown = cooldown;
         this.random = random;
         this.damage = damage;
         this.ammoItem = ammoItem;
@@ -40,6 +44,8 @@ public class ItemEntry {
         this.lore = lore;
         this.hideEnchants = hideEnchants;
         this.enchants = enchants;
+        this.removeItem = removeItem;
+        this.commands = commands;
     }
 
     public String getGivePerm() {
@@ -74,12 +80,12 @@ public class ItemEntry {
         return keyString;
     }
 
-    public int getCooldown() {
-        return cooldown;
+    public double getMoney() {
+        return money;
     }
 
-    public void setCooldown(int cooldown) {
-        this.cooldown = cooldown;
+    public void setMoney(int money) {
+        this.money = money;
     }
 
     public int getHunger() {
@@ -88,6 +94,14 @@ public class ItemEntry {
 
     public void setHunger(int hunger) {
         this.hunger = hunger;
+    }
+
+    public int getCooldown() {
+        return cooldown;
+    }
+
+    public void setCooldown(int cooldown) {
+        this.cooldown = cooldown;
     }
 
     public double getRandom() {
@@ -152,5 +166,21 @@ public class ItemEntry {
 
     public void setEnchants(List<String> enchants) {
         this.enchants = enchants;
+    }
+
+    public boolean getRemoveItem() {
+        return removeItem;
+    }
+
+    public void setRemoveItem(boolean removeItem) {
+        this.removeItem = removeItem;
+    }
+
+    public List<String> getCommands() {
+        return commands;
+    }
+
+    public void setCommands(List<String> commands) {
+        this.commands = commands;
     }
 }

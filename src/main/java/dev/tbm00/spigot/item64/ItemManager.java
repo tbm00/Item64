@@ -34,8 +34,9 @@ public class ItemManager {
                     String KEY = itemEntry.getString("key"),
                             givePerm = itemEntry.getString("givePerm"),
                             usePerm = itemEntry.getString("usePerm");
-                    int cooldown = itemEntry.getInt("cooldown"),
-                            hunger = itemEntry.getInt("hunger");
+                    double money = itemEntry.getDouble("moneyCost");
+                    int hunger = itemEntry.getInt("hungerCost"),
+                        cooldown = itemEntry.getInt("cooldown");
                     double random = itemEntry.getDouble("shotRandomness"),
                             damage = itemEntry.getDouble("extraDamage");
                     String ammoItem = itemEntry.getString("ammoItem"),
@@ -44,25 +45,29 @@ public class ItemManager {
                     List<String> lore = itemEntry.getStringList("lore");
                     Boolean hideEnchants = itemEntry.getBoolean("hideEnchants");
                     List<String> enchants = itemEntry.getStringList("enchantments");
-
+                    boolean removeItem = false;
+                    List<String> commands = null;
+                    
                     switch (type) {
                         case "EXPLOSIVE_ARROW" -> {
                             cooldowns.set(0, Long.valueOf(cooldown));
                             hungers.set(0, hunger);
                         }
-                        case "EXTRA_ARROW" -> {
+                        case "LIGHTNING_PEARL" -> {
                             cooldowns.set(1, Long.valueOf(cooldown));
                             hungers.set(1, hunger);
                         }
-                        case "LIGHTNING_PEARL" -> {
+                        case "RANDOM_POTION" -> {
                             cooldowns.set(2, Long.valueOf(cooldown));
                             hungers.set(2, hunger);
                         }
-                        case "RANDOM_POTION" -> {
+                        case "FLAME_PARTICLE" -> {
                             cooldowns.set(3, Long.valueOf(cooldown));
                             hungers.set(3, hunger);
                         }
-                        case "FLAME_PARTICLE" -> {
+                        case "CONSUME_COMMANDS" -> {
+                            removeItem = itemEntry.getBoolean("removeConsumedItem");
+                            commands = itemEntry.getStringList("consoleCommands");
                             cooldowns.set(4, Long.valueOf(cooldown));
                             hungers.set(4, hunger);
                         }
@@ -70,7 +75,7 @@ public class ItemManager {
                     }
                     
                     if (usePerm != null && givePerm != null && type != null && key != null ) {
-                        ItemEntry entry = new ItemEntry(javaPlugin, givePerm, usePerm, type, KEY, cooldown, hunger, random, damage, ammoItem, item, name, lore, hideEnchants, enchants);
+                        ItemEntry entry = new ItemEntry(javaPlugin, givePerm, usePerm, type, KEY, money, hunger, cooldown, random, damage, ammoItem, item, name, lore, hideEnchants, enchants, removeItem, commands);
                         itemEntries.add(entry);
                         javaPlugin.getLogger().info("Loaded itemEntry: " + KEY + " " + type + " " + item + " " + usePerm );
                     } else {
@@ -89,7 +94,7 @@ public class ItemManager {
         return itemEntries;
     }
 
-    public ItemEntry getItemEntry(String type) {
+    public ItemEntry getItemEntryByType(String type) {
         for(ItemEntry entry : itemEntries) {
             if (entry.getType().equals(type)) return entry;
         }

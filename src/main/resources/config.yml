@@ -1,4 +1,6 @@
 hooks:
+  Vault:
+    enabled: false
   GriefDefender:
     enabled: false
     ignoredClaims: []
@@ -9,12 +11,13 @@ itemEntries:
   enabled: true
   '1':
     enabled: true
-    type: "FLAME_PARTICLE"
+    type: "FLAME_PARTICLE" # Don't change
     key: "FLAMETHROWER"
     givePerm: "item64.give.flamethrower"
     usePerm: "item64.use.flamethrower"
+    moneyCost: 0.00
+    hungerCost: 1
     cooldown: 0
-    hunger: 1
     shotRandomness: 0.25
     extraDamage: 2.0
     ammoItem: "COAL"
@@ -27,12 +30,13 @@ itemEntries:
       - "MENDING:1"
   '2':
     enabled: true
-    type: "EXPLOSIVE_ARROW"
+    type: "EXPLOSIVE_ARROW" # Don't change
     key: "EXPLOSIVE_CROSSBOW"
     givePerm: "item64.give.explosive_crossbow"
     usePerm: "item64.use.explosive_crossbow"
+    moneyCost: 0.00
+    hungerCost: 6
     cooldown: 1
-    hunger: 6
     shotRandomness: 0.2
     extraDamage: 0.0
     ammoItem: "TNT"
@@ -46,29 +50,13 @@ itemEntries:
       - "MENDING:1"
   '3':
     enabled: true
-    type: "EXTRA_ARROW"
-    key: "BROKEN_BOW"
-    givePerm: "item64.give.broken_bow"
-    usePerm: "item64.use.broken_bow"
-    cooldown: 0
-    hunger: 0
-    shotRandomness: 3.5
-    extraDamage: 0.0
-    ammoItem: ""
-    item: "BOW"
-    name: "&cBroken Bow"
-    lore: []
-    hideEnchants: false
-    enchantments:
-      - "POWER:7"
-  '4':
-    enabled: true
-    type: "LIGHTNING_PEARL"
+    type: "LIGHTNING_PEARL" # Don't change
     key: "LIGHTNING_GUN"
     givePerm: "item64.give.lightning_gun"
     usePerm: "item64.use.lightning_gun"
+    moneyCost: 0.00
+    hungerCost: 4
     cooldown: 4
-    hunger: 4
     shotRandomness: 0.2
     extraDamage: 7.0
     ammoItem: "ENDER_PEARL"
@@ -79,14 +67,15 @@ itemEntries:
     hideEnchants: true
     enchantments:
       - "MENDING:1"
-  '5':
+  '4':
     enabled: true
-    type: "RANDOM_POTION"
+    type: "RANDOM_POTION" # Don't change
     key: "MAGIC_WAND"
     givePerm: "item64.give.magic_wand"
     usePerm: "item64.use.magic_wand"
+    moneyCost: 0.00
+    hungerCost: 4
     cooldown: 4
-    hunger: 4
     shotRandomness: 0.1
     extraDamage: 2.0
     ammoItem: "POTION"
@@ -97,4 +86,23 @@ itemEntries:
     hideEnchants: true
     enchantments:
       - "MENDING:1"
-  # Add more entries as needed
+  '5':
+    enabled: true
+    type: "CONSUME_COMMANDS" # Don't change
+    key: "HEALING_HONEY"
+    givePerm: "item64.give.healing_honey"
+    usePerm: "item64.use.healing_honey"
+    moneyCost: 16000.00
+    hungerCost: 0
+    cooldown: 90
+    ammoItem: ""
+    item: "HONEY_BOTTLE"
+    name: "&6Healing Honey"
+    lore:
+      - "&eCost $16,000 per use!"
+    hideEnchants: true
+    enchantments:
+      - "UNBREAKING:1"
+    removeConsumedItem: false
+    consoleCommands:
+      - "itm heal <player>"

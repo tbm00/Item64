@@ -11,3 +11,6 @@ permissions:
   item64.help:
     description: Ability to display the command list
     default: op
+  item64.heal:
+    description: Ability to heal a player
+    default: op
