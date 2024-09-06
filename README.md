@@ -12,8 +12,8 @@ Created by tbm00 for play.mc64.wtf.
 - **Explosive Bow & Crossbow** Shoots explosive arrows.
 - **Lightning Gun** Shoots ender pearls that summon lightning.
 - **Magic Wand** Shoots random potion effects. Left click for an offensive potion, right click for a positive potion.
-- **Survival-Friendly** Configurable ammo, hunger-costs, money-costs, and cooldown timers.
-- **Highly Configurable** Customize many aspects of each custom item.
+- **Survival-Friendly** Configurable ammo, hunger costs, money costs, and cooldown timers.
+- **Highly Configurable** Customize many aspects of each new item.
 - **Respect Claims & PVP** Hooks into GriefDefender and DeluxeCombat.
 
 ## Dependencies
@@ -22,6 +22,7 @@ Created by tbm00 for play.mc64.wtf.
 - **Vault**: OPTIONAL
 - **DeluxeCombat**: OPTIONAL
 - **GriefDefender**: OPTIONAL
+
 
 ## Commands & Permissions
 ### Commands
@@ -48,7 +49,7 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 **`FLAME_PARTICLE`** 
 - Shoots flame particles that make fires.
 - Particles don't deal any damage, so extraDamage is enabled by default.
-- Cooldown works differently; it is the maximum number of seconds a player can repetitively use the item.
+- Cooldown works differently; it's the maximum number of seconds a player can repetitively use the item.
 - Applicable to most items.
 
 **`EXPLOSIVE_ARROW`** 
@@ -63,7 +64,7 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 
 **`RANDOM_POTION`** 
 - Shoots a random splash potion.
-- Most potions don't deal direct damage, so extraDamage is used to apply damage on nearby players when negative (left-click) random potions break.
+- Most potions don't deal direct damage, so extraDamage is applied to negative (left-clicked) potion effects.
 - Positive potion effects are shot from right clicks: 
     - `INCREASE_DAMAGE (STRENGTH)`, `HEAL (INSTANT_HEALTH)`, `JUMP (JUMP_BOOST)`, `SPEED`, `REGENERATION`, `FIRE_RESISTANCE`, `NIGHT_VISION`, `INVISIBILITY`, `ABSORPTION`, `SATURATION`, `SLOW_FALLING`
 - Negative potion effects are shot from left clicks:
@@ -75,7 +76,7 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 - ExtraDamage & shotRandomness are not applicable.
 - Has no DeluxeCombat or GriefDefender checks.
 - Requires extra configuration options consoleCommands & removeConsumedItem. 
-    - ConsoleCommands are run after the player consumes the item (`<player>` is replaced with the consumer's username).
+    - ConsoleCommands are run when a player consumes the item (`<player>` is replaced with the consumer's username).
     - RemoveConsumedItem removes the custom item that is consumed (not the ammoItem) if `true`.
 - Applicable to most food, potions, milk, etc.
 
@@ -175,18 +176,18 @@ itemEntries:
     key: "HEALING_HONEY"
     givePerm: "item64.give.healing_honey"
     usePerm: "item64.use.healing_honey"
-    moneyCost: 16000.00
+    moneyCost: 0.0
     hungerCost: 0
-    cooldown: 90
+    cooldown: 60
     ammoItem: ""
     item: "HONEY_BOTTLE"
     name: "&6Healing Honey"
-    lore:
-      - "&eCost $16,000 per use!"
+    lore: []
+    #  - "&eCost $16,000 per use!"
     hideEnchants: true
     enchantments:
       - "UNBREAKING:1"
-    removeConsumedItem: false
+    removeConsumedItem: true
     consoleCommands:
       - "itm heal <player>"
 ```

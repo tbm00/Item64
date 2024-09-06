@@ -102,7 +102,8 @@ public class ItemUse implements Listener {
 
     private ItemEntry getItemEntryByItem(ItemStack item) {
         if (item == null) return null;
-        if (!item.hasItemMeta() || item.getType() == Material.AIR) return null;
+        if (!item.hasItemMeta() || item.getType() == Material.AIR) 
+            return null;
         return itemCmdEntries.stream()
             .filter(entry -> item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING))
             .findFirst()
@@ -118,7 +119,8 @@ public class ItemUse implements Listener {
         if (item==null || shooter==null) return;
 
         ItemEntry entry = getItemEntryByItem(item);
-        if (entry == null || !shooter.hasPermission(entry.getUsePerm())) return;
+        if (entry == null || !shooter.hasPermission(entry.getUsePerm()))
+            return;
 
         switch (entry.getType()) {
             /* case "EXPLOSIVE_ARROW":
@@ -304,10 +306,10 @@ public class ItemUse implements Listener {
         // Set cooldowns, etc.
         adjustCooldowns(shooter, itemManager.getHungers(), 2); // remove hunger & set cooldown
         if (ecoHook != null)
-            if (cost>0 && !removeMoney(shooter, cost)) { // remove money
+            if (cost>0 && !removeMoney(shooter, cost)) // remove money
                 javaPlugin.getLogger().warning("Error: failed to remove money for " + shooter.getName() + "'s " + entry.getKeyString() + " usage!");
-            }
-        if (hasAmmoItem==2) removeItem(shooter, entry.getAmmoItem()); // remove ammo item
+        if (hasAmmoItem==2)
+            removeItem(shooter, entry.getAmmoItem()); // remove ammo item
     }
 
     private void triggerFlameParticle(PlayerInteractEvent event, Player shooter, ItemEntry entry) {
@@ -514,37 +516,33 @@ public class ItemUse implements Listener {
             javaPlugin.getLogger().warning("Error: Poorly defined item " + itemName);
             return 1;
         }
-        for (ItemStack itemStack : player.getInventory().getContents()) {
-            if (itemStack != null && itemStack.getType() == itemMaterial && itemStack.getAmount() > 0) {
+        for (ItemStack itemStack : player.getInventory().getContents())
+            if (itemStack != null && itemStack.getType() == itemMaterial && itemStack.getAmount() > 0)
                 return 2;
-            }
-        }
         return 0;
     }
 
     // doesn't require checks as hasItem should always get called before
     private boolean removeItem(Player player, String itemName) {
         Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
-        for (ItemStack itemStack : player.getInventory().getContents()) {
+        for (ItemStack itemStack : player.getInventory().getContents())
             if (itemStack != null && itemStack.getType() == itemMaterial) {
                 if (itemStack.getAmount() <= 1) player.getInventory().remove(itemStack);
                 else itemStack.setAmount(Math.max(itemStack.getAmount() - 1, 0));
                 return true;
             }
-        }
         return false;
     }
 
     // doesn't require checks as passed itemStack should exist
     private boolean removeItem(Player player, ItemStack itemStack) {
-        for (ItemStack item : player.getInventory().getContents()) {
+        for (ItemStack item : player.getInventory().getContents())
             if (item != null && item.isSimilar(itemStack)) 
                 if (getItemEntryByItem(item) != null) {
                     if (item.getAmount() <= 1) player.getInventory().remove(item);
                     else item.setAmount(Math.max(item.getAmount() - 1, 0));
                     return true;
                 }
-        }
         return false;
     }
 
@@ -666,9 +664,9 @@ public class ItemUse implements Listener {
         ids[7] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
         ids[8] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
 
-        for (String id : ids) {
+        for (String id : ids) 
             if (!gdHook.hasBuilderTrust(shooter, id)) return false;
-        } return true;
+        return true;
     }
 
     private void handleFlameHit(Player shooter, ItemEntry entry) {
@@ -685,11 +683,11 @@ public class ItemUse implements Listener {
                         
                         if (dcHook != null) {
                             if (!passDCPvpLocCheck(location, 3.0)) passDCPvpLocCheck = false;
-                            if (!passDCPvpPlayerCheck(shooter)) passDCPvpLocCheck = false;
+                            else if (!passDCPvpPlayerCheck(shooter)) passDCPvpLocCheck = false;
                         }
                         if (gdHook != null) {
                             if (!passGDPvpCheck(location)) passGDPvpCheck = false;
-                            if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
+                            else if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
                         }
                 
                         if (!passDCPvpLocCheck) {
@@ -699,9 +697,8 @@ public class ItemUse implements Listener {
                             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Flames blocked -- claim pvp protection!"));
                             refundPlayer(shooter, entry);
                         } else {
-                            if (targetBlock.getType().isBlock() && targetBlockAbove.getType() == Material.AIR) {
+                            if (targetBlock.getType().isBlock() && targetBlockAbove.getType() == Material.AIR)
                                 targetBlockAbove.setType(Material.FIRE);
-                            }
                             damagePlayers(shooter, targetBlockAbove.getLocation(), 1.5, 1.6, entry.getDamage(), 60);
                         }
                     }
@@ -712,11 +709,10 @@ public class ItemUse implements Listener {
 
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent event) {
-        if (event.getEntity() instanceof Arrow) {
+        if (event.getEntity() instanceof Arrow)
             handleArrowHit((Arrow) event.getEntity());
-        } else if (event.getEntity() instanceof EnderPearl) {
+        else if (event.getEntity() instanceof EnderPearl)
             handlePearlHit(event, (EnderPearl) event.getEntity());
-        }
     }
 
     private void handleArrowHit(Arrow arrow) {
@@ -725,12 +721,11 @@ public class ItemUse implements Listener {
             Player shooter = (Player) arrow.getShooter();
             boolean passDCPvpLocCheck = true, passGDPvpCheck = true, passGDBuilderCheck = true;
 
-            if (dcHook != null) {
+            if (dcHook != null)
                 if (!passDCPvpLocCheck(location, 5.0)) passDCPvpLocCheck = false;
-            }
             if (gdHook != null) {
                 if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
-                if (!passGDPvpCheck(location)) passGDPvpCheck = false;
+                else if (!passGDPvpCheck(location)) passGDPvpCheck = false;
                 else if (!passGDBuilderCheck(shooter, location, 5)) passGDBuilderCheck = false;
             }
 
@@ -763,12 +758,11 @@ public class ItemUse implements Listener {
         Player shooter = (Player) pearl.getShooter();
         boolean passDCPvpLocCheck = true, passGDPvpCheck = true;
         
-        if (dcHook != null) {
+        if (dcHook != null)
             if (!passDCPvpLocCheck(location, 4.0)) passDCPvpLocCheck = false;
-        }
         if (gdHook != null) {
             if (!passGDPvpCheck(location)) passGDPvpCheck = false;
-            if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
+            else if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
         }        
 
         if (!passDCPvpLocCheck) {
@@ -800,12 +794,11 @@ public class ItemUse implements Listener {
         Player shooter = (Player) thrownPotion.getShooter();
         boolean passDCPvpLocCheck = true, passGDPvpCheck = true;
         
-        if (dcHook != null) {
+        if (dcHook != null)
             if (!passDCPvpLocCheck(location, 4.0)) passDCPvpLocCheck = false;
-        }
         if (gdHook != null) {
             if (!passGDPvpCheck(location)) passGDPvpCheck = false;
-            if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
+            else if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
         }
 
         if (!passDCPvpLocCheck) {
@@ -818,15 +811,14 @@ public class ItemUse implements Listener {
             thrownPotion.remove();
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- claim pvp protection!"));
             refundPlayer(shooter, itemManager.getItemEntryByType("RANDOM_POTION"));
-        } else if (thrownPotion.hasMetadata("randomPotionLeft")) {
+        } else if (thrownPotion.hasMetadata("randomPotionLeft"))
             damagePlayers(shooter, location, 0.9, 1.3, itemManager.getItemEntryByType("RANDOM_POTION").getDamage(), 20);
-        }
     }
 
     private boolean damagePlayers(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
         Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
         boolean damaged = false;
-        for (Entity entity : nearbyEntities) {
+        for (Entity entity : nearbyEntities)
             if (entity instanceof Player) {
                 Player player = (Player) entity;
                 player.damage(damage, shooter);
@@ -835,7 +827,6 @@ public class ItemUse implements Listener {
                 //shooter.sendMessage(ChatColor.RED + "hit: " + ChatColor.GRAY + damage + ChatColor.RED + ", on: " + ChatColor.GRAY + player);
                 damaged = true;
             }
-        }
         return damaged;
     }
 
@@ -845,12 +836,11 @@ public class ItemUse implements Listener {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getItemMeta() == null) return;
-        for (ItemEntry entry : itemCmdEntries) {
+        for (ItemEntry entry : itemCmdEntries)
             if (item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING)) {
                 event.setCancelled(true);
                 return;
             }
-        }
     }
 
     @EventHandler

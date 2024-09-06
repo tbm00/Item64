@@ -92,17 +92,17 @@ itemEntries:
     key: "HEALING_HONEY"
     givePerm: "item64.give.healing_honey"
     usePerm: "item64.use.healing_honey"
-    moneyCost: 16000.00
+    moneyCost: 0.0
     hungerCost: 0
-    cooldown: 90
+    cooldown: 60
     ammoItem: ""
     item: "HONEY_BOTTLE"
     name: "&6Healing Honey"
-    lore:
-      - "&eCost $16,000 per use!"
+    lore: []
+    #  - "&eCost $16,000 per use!"
     hideEnchants: true
     enchantments:
       - "UNBREAKING:1"
-    removeConsumedItem: false
+    removeConsumedItem: true
     consoleCommands:
       - "itm heal <player>"
