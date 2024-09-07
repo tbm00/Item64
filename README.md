@@ -2,7 +2,7 @@
   <img src="./icon.png" alt="Item64 Icon" width="400"/>
 </p>
 
-# Item64 v0.2.0-beta
+# Item64
 A spigot plugin that adds some custom items.
 
 Created by tbm00 for play.mc64.wtf.
