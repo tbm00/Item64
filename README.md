@@ -23,7 +23,6 @@ Created by tbm00 for play.mc64.wtf.
 - **DeluxeCombat**: OPTIONAL
 - **GriefDefender**: OPTIONAL
 
-
 ## Commands & Permissions
 ### Commands
 - `/itm help` Display this command list
@@ -82,6 +81,8 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 
 ## Default Config
 ```
+# Item64 v0.2.2-beta by @tbm00
+
 hooks:
   Vault:
     enabled: false
@@ -91,6 +92,10 @@ hooks:
       # - "9ae58371-3857-4ec8-9d19-f6d24c2f57c7"
   DeluxeCombat:
     enabled: false
+
+stopBlockPlace:
+- "REDSTONE_TORCH"
+
 itemEntries:
   enabled: true
   '1':
@@ -176,14 +181,15 @@ itemEntries:
     key: "HEALING_HONEY"
     givePerm: "item64.give.healing_honey"
     usePerm: "item64.use.healing_honey"
-    moneyCost: 0.0
+    moneyCost: 0.00
     hungerCost: 0
     cooldown: 60
     ammoItem: ""
     item: "HONEY_BOTTLE"
     name: "&6Healing Honey"
-    lore: []
-    #  - "&eCost $16,000 per use!"
+    lore:
+      - "&eRestores health, hunger,"
+      - "&eand removes potions effects"
     hideEnchants: true
     enchantments:
       - "UNBREAKING:1"

@@ -33,6 +33,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -61,6 +62,7 @@ public class ItemUse implements Listener {
     private final DeluxeCombatAPI dcHook;
     private final Boolean enabled;
     private final List<ItemEntry> itemCmdEntries;
+    private final List<String> ignorePlaced;
     private final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
     private final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
     private final ArrayList<Projectile> lightningPearls = new ArrayList<>();
@@ -98,6 +100,7 @@ public class ItemUse implements Listener {
         this.dcHook = dcHook;
         this.enabled = itemManager.isEnabled();
         this.itemCmdEntries = itemManager.getItemEntries();
+        this.ignorePlaced = javaPlugin.getConfig().getConfigurationSection("itemEntries").getStringList("stopBlockPlace");
     }
 
     private ItemEntry getItemEntryByItem(ItemStack item) {
@@ -516,33 +519,37 @@ public class ItemUse implements Listener {
             javaPlugin.getLogger().warning("Error: Poorly defined item " + itemName);
             return 1;
         }
-        for (ItemStack itemStack : player.getInventory().getContents())
+        for (ItemStack itemStack : player.getInventory().getContents()) {
             if (itemStack != null && itemStack.getType() == itemMaterial && itemStack.getAmount() > 0)
                 return 2;
+        }
         return 0;
     }
 
     // doesn't require checks as hasItem should always get called before
     private boolean removeItem(Player player, String itemName) {
         Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
-        for (ItemStack itemStack : player.getInventory().getContents())
+        for (ItemStack itemStack : player.getInventory().getContents()) {
             if (itemStack != null && itemStack.getType() == itemMaterial) {
                 if (itemStack.getAmount() <= 1) player.getInventory().remove(itemStack);
                 else itemStack.setAmount(Math.max(itemStack.getAmount() - 1, 0));
                 return true;
             }
+        }
         return false;
     }
 
     // doesn't require checks as passed itemStack should exist
     private boolean removeItem(Player player, ItemStack itemStack) {
-        for (ItemStack item : player.getInventory().getContents())
-            if (item != null && item.isSimilar(itemStack)) 
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item != null && item.isSimilar(itemStack))  {
                 if (getItemEntryByItem(item) != null) {
                     if (item.getAmount() <= 1) player.getInventory().remove(item);
                     else item.setAmount(Math.max(item.getAmount() - 1, 0));
                     return true;
                 }
+            }
+        }
         return false;
     }
 
@@ -664,8 +671,9 @@ public class ItemUse implements Listener {
         ids[7] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
         ids[8] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
 
-        for (String id : ids) 
+        for (String id : ids) {
             if (!gdHook.hasBuilderTrust(shooter, id)) return false;
+        }
         return true;
     }
 
@@ -818,7 +826,7 @@ public class ItemUse implements Listener {
     private boolean damagePlayers(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
         Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
         boolean damaged = false;
-        for (Entity entity : nearbyEntities)
+        for (Entity entity : nearbyEntities) {
             if (entity instanceof Player) {
                 Player player = (Player) entity;
                 player.damage(damage, shooter);
@@ -827,20 +835,26 @@ public class ItemUse implements Listener {
                 //shooter.sendMessage(ChatColor.RED + "hit: " + ChatColor.GRAY + damage + ChatColor.RED + ", on: " + ChatColor.GRAY + player);
                 damaged = true;
             }
+        }
         return damaged;
     }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
         if (!enabled) return;
-        Player player = event.getPlayer();
-        ItemStack item = player.getInventory().getItemInMainHand();
-        if (item.getItemMeta() == null) return;
-        for (ItemEntry entry : itemCmdEntries)
-            if (item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING)) {
+        
+        ItemStack item = event.getItemInHand();
+        if (!ignorePlaced.contains(item.getType().toString())) return;
+
+        ItemMeta itemData = item.getItemMeta();
+        if (itemData==null) return;
+
+        for (ItemEntry entry : itemCmdEntries) {
+            if (itemData.getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING)) {
                 event.setCancelled(true);
                 return;
             }
+        }
     }
 
     @EventHandler
