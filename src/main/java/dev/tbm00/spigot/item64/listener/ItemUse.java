@@ -468,7 +468,7 @@ public class ItemUse implements Listener {
         Location particleLocation = particleVector.toLocation(shooter.getWorld()).add(shooter.getLocation()).add(0, 1.05, 0);
         
         // Shoot flames
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 8; i++) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -481,7 +481,7 @@ public class ItemUse implements Listener {
                     offsetLocation.add(0, 0.3, 0);
                     shooter.getWorld().spawnParticle(Particle.FLAME, offsetLocation, 0, offsetPath.getX(), offsetPath.getY(), offsetPath.getZ(), 0.1);
                 }
-            }.runTaskLater(javaPlugin, 2*i);
+            }.runTaskLater(javaPlugin, i);
         }
 
         // Set fire & extraDamage
