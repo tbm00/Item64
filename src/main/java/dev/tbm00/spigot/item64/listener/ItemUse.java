@@ -429,14 +429,14 @@ public class ItemUse implements Listener {
             
             consumer.setHealth(20);
             consumer.setFoodLevel(20);
-            consumer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 36000, 2, true));
-            consumer.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 36000, 4, true));
-            consumer.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 36000, 4, true));
-            consumer.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 36000, 1, true));
-            consumer.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 36000, 2, true));
-            consumer.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 36000, 2, true));
-            consumer.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 36000, 2, true));
-            consumer.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 36000, 1, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 36000, 1, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 36000, 3, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 36000, 3, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 36000, 0, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 36000, 1, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 36000, 1, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 36000, 1, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 36000, 0, true));
         }
         
 
