@@ -152,6 +152,11 @@ public class ItemUse implements Listener {
                 // has custom listener: onItemConsume
                 break;
             } */
+           /* case "CONSUME_EFFECTS": {
+                // activeCooldowns index: 5
+                // has custom listener: onItemConsume
+                break;
+            } */
             default:
                 break;
         }
@@ -378,17 +383,22 @@ public class ItemUse implements Listener {
 
         event.setCancelled(true);
 
-        if (!entry.getType().equalsIgnoreCase("CONSUME_COMMANDS") || !consumer.hasPermission(entry.getUsePerm()))
+        if ((!entry.getType().equalsIgnoreCase("CONSUME_COMMANDS") && !entry.getType().equalsIgnoreCase("CONSUME_EFFECTS")) 
+            || !consumer.hasPermission(entry.getUsePerm())) {
             return;
+        }
+
+        int i = 0;
+        if (entry.getType().equalsIgnoreCase("CONSUME_EFFECTS")) i = 1;
 
         if (consumer.getFoodLevel() < entry.getHunger()) {
-            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Healing blocked -- you're too hungry!"));
+            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- you're too hungry!"));
             return;
         }
 
         List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(consumer.getUniqueId(), k -> itemManager.getCooldowns());
-        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(4)) < entry.getCooldown()) {
-            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Healing blocked -- active cooldown!"));
+        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(4+i)) < entry.getCooldown()) {
+            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- active cooldown!"));
             return;
         }
 
@@ -401,23 +411,36 @@ public class ItemUse implements Listener {
         double cost = entry.getMoney();
         if (ecoHook != null)
             if (cost > 0 && !hasMoney(consumer, cost)) {
-                consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Healing blocked -- not enough money!"));
+                consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- not enough money!"));
                 return;
             }
 
-        // Passed all checks!
-        consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Healing..."));
-        
-        
-        // Run commands
-        List<String> commands = entry.getCommands();
-        for (String command : commands) {
-            String cmd = command.replace("<player>", consumer.getName());
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+        if (i != 1) {
+            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Healing..."));
+
+            // Run commands
+            List<String> commands = entry.getCommands();
+            for (String command : commands) {
+                String cmd = command.replace("<player>", consumer.getName());
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            }
+        } else {
+            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Healing & applying effects..."));
+            
+            consumer.setHealth(20);
+            consumer.setFoodLevel(20);
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 36000, 2, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 36000, 4, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 36000, 1, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 36000, 2, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 36000, 2, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 36000, 2, true));
+            consumer.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 36000, 1, true));
         }
+        
 
         // Set cooldowns, etc.
-        adjustCooldowns(consumer, itemManager.getHungers(), 4); // remove hunger & set cooldown
+        adjustCooldowns(consumer, itemManager.getHungers(), 4+i); // remove hunger & set cooldown
         if (ecoHook != null)
             if (cost>0 && !removeMoney(consumer, cost)) { // remove money
                 javaPlugin.getLogger().warning("Error: failed to remove money for " + consumer.getName() + "'s " + entry.getKeyString() + " usage!");

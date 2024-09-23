@@ -74,14 +74,22 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 - Runs commands on item consumption.
 - ExtraDamage & shotRandomness are not applicable.
 - Has no DeluxeCombat or GriefDefender checks.
-- Requires extra configuration options consoleCommands & removeConsumedItem. 
+- Requires extra configuration options: consoleCommands & removeConsumedItem 
     - ConsoleCommands are run when a player consumes the item (`<player>` is replaced with the consumer's username).
+    - RemoveConsumedItem removes the custom item that is consumed (not the ammoItem) if `true`.
+- Applicable to most food, potions, milk, etc.
+
+**`CONSUME_EFFECTS`** 
+- Applies potion effects & fully heals player on on item consumption.
+- ExtraDamage & shotRandomness are not applicable.
+- Has no DeluxeCombat or GriefDefender checks.
+- Requires extra configuration option: removeConsumedItem 
     - RemoveConsumedItem removes the custom item that is consumed (not the ammoItem) if `true`.
 - Applicable to most food, potions, milk, etc.
 
 ## Default Config
 ```
-# Item64 v0.2.2-beta by @tbm00
+# Item64 v0.2.3-beta by @tbm00
 
 hooks:
   Vault:
@@ -107,7 +115,7 @@ itemEntries:
     moneyCost: 0.00
     hungerCost: 1
     cooldown: 0
-    shotRandomness: 0.25
+    shotRandomness: 0.3
     extraDamage: 2.0
     ammoItem: "COAL"
     item: "REDSTONE_TORCH"
@@ -196,4 +204,29 @@ itemEntries:
     removeConsumedItem: true
     consoleCommands:
       - "itm heal <player>"
+  '6':
+    enabled: true
+    type: "CONSUME_EFFECTS" # Don't change
+    key: "SUPERAPPLE"
+    givePerm: "item64.give.superapple"
+    usePerm: "item64.use.superapple"
+    moneyCost: 0.00
+    hungerCost: 0
+    cooldown: 60
+    ammoItem: ""
+    item: "ENCHANTED_GOLDEN_APPLE"
+    name: "&6Superapple"
+    lore:
+      - "&e30 mins of"
+      - "&e Regeneration II"
+      - "&e Resistance IV"
+      - "&e Fire Resistance I"
+      - "&e Strength II"
+      - "&e Haste II"
+      - "&e Jump Boost II"
+      - "&e Speed I"
+    hideEnchants: true
+    enchantments:
+      - "UNBREAKING:1"
+    removeConsumedItem: true
 ```

@@ -18,7 +18,7 @@ public class ItemManager {
         itemEntries = new ArrayList<>();
         cooldowns = new ArrayList<>();
         hungers = new ArrayList<>();
-        for (int i=0; i<5; ++i) {
+        for (int i=0; i<6; ++i) {
             cooldowns.add(0L);
             hungers.add(0);
         }
@@ -70,6 +70,11 @@ public class ItemManager {
                             commands = itemEntry.getStringList("consoleCommands");
                             cooldowns.set(4, Long.valueOf(cooldown));
                             hungers.set(4, hunger);
+                        }
+                        case "CONSUME_EFFECTS" -> {
+                            removeItem = itemEntry.getBoolean("removeConsumedItem");
+                            cooldowns.set(5, Long.valueOf(cooldown));
+                            hungers.set(5, hunger);
                         }
                         default -> {}
                     }
