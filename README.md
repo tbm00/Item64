@@ -218,13 +218,14 @@ itemEntries:
     name: "&6Superapple"
     lore:
       - "&e30 mins of"
-      - "&e Regeneration II"
-      - "&e Resistance IV"
-      - "&e Fire Resistance I"
-      - "&e Strength II"
-      - "&e Haste II"
-      - "&e Jump Boost II"
-      - "&e Speed I"
+      - "&e  Regeneration II"
+      - "&e  Absorption IV"
+      - "&e  Resistance IV"
+      - "&e  Fire Resistance I"
+      - "&e  Strength II"
+      - "&e  Haste II"
+      - "&e  Jump Boost II"
+      - "&e  Speed I"
     hideEnchants: true
     enchantments:
       - "UNBREAKING:1"
