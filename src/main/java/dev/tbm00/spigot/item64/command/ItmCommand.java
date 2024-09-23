@@ -39,7 +39,7 @@ public class ItmCommand implements TabExecutor {
             return false;
         }
         
-        if (args.length < 1 || args.length > 3) {
+        if (args.length < 1 || args.length > 4) {
             // Invalid argument length - run HELP cmd
             if (sender.hasPermission("item64.help")) runHelpCmd(sender);
             return false;
@@ -48,6 +48,7 @@ public class ItmCommand implements TabExecutor {
         String subCommand = args[0].toLowerCase();
         String argument = args.length >= 2 ? args[1] : null;
         String argument2 = args.length >= 3 ? args[2] : null;
+        String argument3 = args.length >= 4 ? args[3] : null;
 
         // Run HELP cmd
         if (sender.hasPermission("item64.help") && subCommand.equals("help")) {
@@ -61,7 +62,7 @@ public class ItmCommand implements TabExecutor {
 
         // Run GIVE cmd
         if (subCommand.equals("give") && argument != null)
-            return runGiveCmd(sender, argument, argument2);
+            return runGiveCmd(sender, argument, argument2, argument3);
         
         // Unknown subcommand - run HELP cmd
         if (sender.hasPermission("item64.help")) runHelpCmd(sender);
@@ -72,7 +73,7 @@ public class ItmCommand implements TabExecutor {
     private void runHelpCmd(CommandSender sender) {
         sender.sendMessage(ChatColor.DARK_RED + "--- " + ChatColor.RED + "Item64 Admin Commands" + ChatColor.DARK_RED + " ---\n"
             + ChatColor.WHITE + "/itm help" + ChatColor.GRAY + " Display this command list\n"
-            + ChatColor.WHITE + "/itm give <itemKey> [player]" + ChatColor.GRAY + " Spawn a custom item\n"
+            + ChatColor.WHITE + "/itm give <itemKey> [player] (#)" + ChatColor.GRAY + " Spawn custom item(s)\n"
             + ChatColor.WHITE + "/itm heal [player]" + ChatColor.GRAY + " Heal a player (health, hunger, potion effects)\n"
         );
     }
@@ -92,14 +93,17 @@ public class ItmCommand implements TabExecutor {
         return true;
     }
 
-    private boolean runGiveCmd(CommandSender sender, String argument, String argument2) {
+    private boolean runGiveCmd(CommandSender sender, String argument, String argument2, String argument3) {
         Player player = getPlayer(sender, argument2);
         if (player == null) return false;
 
         ItemEntry entry = getItemEntryByKey(argument);
         if (entry == null || !hasPermission(sender, entry)) return false;
+        
+        int quantity = 1;
+        if (argument3 != null) quantity = Integer.parseInt(argument3);
 
-        giveItemToPlayer(player, entry);
+        giveItemToPlayer(player, entry, quantity);
         return true;
     }
     
@@ -130,7 +134,7 @@ public class ItmCommand implements TabExecutor {
         return sender.hasPermission(entry.getGivePerm()) || sender instanceof ConsoleCommandSender;
     }
 
-    private void giveItemToPlayer(Player player, ItemEntry entry) {
+    private void giveItemToPlayer(Player player, ItemEntry entry, int quantity) {
         try {
             ItemStack item = new ItemStack(Material.valueOf(entry.getItem()));
             ItemMeta meta = item.getItemMeta();
@@ -146,6 +150,7 @@ public class ItmCommand implements TabExecutor {
                 meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
                 meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
                 item.setItemMeta(meta);
+                item.setAmount(quantity);
             }
             player.getInventory().addItem(item);
             player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());

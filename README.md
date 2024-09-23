@@ -26,7 +26,7 @@ Created by tbm00 for play.mc64.wtf.
 ## Commands & Permissions
 ### Commands
 - `/itm help` Display this command list
-- `/itm give <itemKey> [player]` Spawn a custom item
+- `/itm give <itemKey> [player] (#)` Spawn custom item(s)
 - `/itm heal [player]` Heal a player (health, hunger, potion effects)
 
 ### Permissions
@@ -89,7 +89,7 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 
 ## Default Config
 ```
-# Item64 v0.2.3-beta by @tbm00
+# Item64 v0.2.4-beta by @tbm00
 
 hooks:
   Vault:
