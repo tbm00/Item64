@@ -89,7 +89,7 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 
 ## Default Config
 ```
-# Item64 v0.2.4-beta by @tbm00
+# Item64 v0.2.5-beta by @tbm00
 
 hooks:
   Vault:
@@ -100,6 +100,7 @@ hooks:
       # - "9ae58371-3857-4ec8-9d19-f6d24c2f57c7"
   DeluxeCombat:
     enabled: false
+    anchorExplosionPvpCheck: false # Temporary fix until DC dev fixes anchor explosions
 
 stopBlockPlace:
 - "REDSTONE_TORCH"

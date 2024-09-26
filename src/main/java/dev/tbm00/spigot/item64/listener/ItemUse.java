@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+//import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
@@ -60,9 +61,9 @@ public class ItemUse implements Listener {
     private final Economy ecoHook;
     private final GDHook gdHook;
     private final DeluxeCombatAPI dcHook;
-    private final Boolean enabled;
     private final List<ItemEntry> itemCmdEntries;
     private final List<String> ignorePlaced;
+    private final boolean checkAnchorExplosions; // temp
     private final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
     private final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
     private final ArrayList<Projectile> lightningPearls = new ArrayList<>();
@@ -98,14 +99,14 @@ public class ItemUse implements Listener {
         this.ecoHook = ecoHook;
         this.gdHook = gdHook;
         this.dcHook = dcHook;
-        this.enabled = itemManager.isEnabled();
         this.itemCmdEntries = itemManager.getItemEntries();
         this.ignorePlaced = javaPlugin.getConfig().getConfigurationSection("itemEntries").getStringList("stopBlockPlace");
+        this.checkAnchorExplosions = javaPlugin.getConfig().getConfigurationSection("hooks.DeluxeCombat").getBoolean("anchorExplosionPvpCheck"); // temp
     }
 
     private ItemEntry getItemEntryByItem(ItemStack item) {
         if (item == null) return null;
-        if (!item.hasItemMeta() || item.getType() == Material.AIR) 
+        if (!item.hasItemMeta() || item.getType() == Material.AIR || item.getType() == Material.RESPAWN_ANCHOR) 
             return null;
         return itemCmdEntries.stream()
             .filter(entry -> item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING))
@@ -115,7 +116,18 @@ public class ItemUse implements Listener {
 
     @EventHandler
     public void onItemUse(PlayerInteractEvent event) {
-        if (!enabled) return;
+        // Temporary anchor explosion DeluxeCombat check 
+        if (event.getClickedBlock() != null && event.getClickedBlock().getType() == Material.RESPAWN_ANCHOR) {
+            checkAnchorExplosion(event);
+            return;
+        }
+
+        /*if (event.getClickedBlock() != null) {
+            if (event.getClickedBlock().getType() == Material.RESPAWN_ANCHOR) {
+                checkAnchorExplosion(event);
+                return;
+            }
+        }*/
 
         Player shooter = event.getPlayer();
         ItemStack item = event.getItem();
@@ -865,8 +877,6 @@ public class ItemUse implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (!enabled) return;
-        
         ItemStack item = event.getItemInHand();
         if (!ignorePlaced.contains(item.getType().toString())) return;
 
@@ -879,6 +889,36 @@ public class ItemUse implements Listener {
                 return;
             }
         }
+    }
+
+    public void checkAnchorExplosion(PlayerInteractEvent event) {
+        //Player player = event.getPlayer();
+        //player.sendMessage("" + ChatColor.YELLOW + "test: anchor detected");
+
+        if (!checkAnchorExplosions) return;
+        //player.sendMessage("" + ChatColor.YELLOW + "test: checkAnchorExplosions on");
+
+        if (!(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) return;
+        //player.sendMessage("" + ChatColor.YELLOW + "test: RIGHT_CLICK_AIR || RIGHT_CLICK_BLOCK");
+        
+        //RespawnAnchor anchor = (RespawnAnchor) event.getClickedBlock().getBlockData();
+        //if (anchor.getCharges() <= 3) return;
+
+        Player player = event.getPlayer();
+        Location location = event.getClickedBlock().getLocation();
+        boolean passDCPvpPlayerCheck = true, passDCPvpLocCheck = true;
+        
+        if (dcHook != null) {
+            if (!passDCPvpLocCheck(location, 6.0)) passDCPvpLocCheck = false;
+            else if (!passDCPvpPlayerCheck(player)) passDCPvpPlayerCheck = false;
+        }
+        
+        if (!passDCPvpPlayerCheck || !passDCPvpLocCheck) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- pvp protection!"));
+            event.setCancelled(true);
+        }/* else {
+            player.sendMessage("" + ChatColor.YELLOW + "test: passed checks");
+        }*/
     }
 
     @EventHandler

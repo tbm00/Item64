@@ -32,28 +32,40 @@ public class Item64 extends JavaPlugin {
             ChatColor.DARK_PURPLE + "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
 		);
 
-        if (getConfig().getBoolean("hooks.DeluxeCombat.enabled"))
+        if (getConfig().getBoolean("hooks.DeluxeCombat.enabled")) {
             if (!setupDeluxeCombat()) {
                 getLogger().warning("DeluxeCombat hook failed!");
+                disablePlugin();
                 return;
             }
+        }
 
-        if (getConfig().getBoolean("hooks.GriefDefender.enabled"))
+        if (getConfig().getBoolean("hooks.GriefDefender.enabled")) {
             if (!setupGriefDefender()) {
                 getLogger().warning("GriefDefender hook failed!");
+                disablePlugin();
                 return;
             }
+        }
 
-        if (getConfig().getBoolean("hooks.Vault.enabled"))
+        if (getConfig().getBoolean("hooks.Vault.enabled")) {
             if (!setupVault()) {
                 getLogger().warning("Vault hook failed!");
+                disablePlugin();
                 return;
             }
+        }
 
         if (getConfig().getBoolean("itemEntries.enabled")) {
             itemManager = new ItemManager(this);
-            getCommand("itm").setExecutor(new ItmCommand(this, itemManager));
-            getServer().getPluginManager().registerEvents(new ItemUse(this, itemManager, ecoHook, gdHook, dcHook), this);
+            if (itemManager.isEnabled()) {
+                getCommand("itm").setExecutor(new ItmCommand(this, itemManager));
+                getServer().getPluginManager().registerEvents(new ItemUse(this, itemManager, ecoHook, gdHook, dcHook), this);
+            } else {
+                getLogger().warning("itemEntries disabled in config!");
+                disablePlugin();
+                return;
+            }
         }
     }
 
@@ -95,5 +107,10 @@ public class Item64 extends JavaPlugin {
 
         getLogger().info("Vault hooked.");
         return true;
+    }
+
+    private void disablePlugin() {
+        getServer().getPluginManager().disablePlugin(this);
+        getLogger().info("Item64 disabled.");
     }
 }
