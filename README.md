@@ -89,7 +89,7 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 
 ## Default Config
 ```
-# Item64 v0.2.6-beta by @tbm00
+# Item64 v0.2.7-beta by @tbm00
 
 hooks:
   Vault:
@@ -109,7 +109,7 @@ itemEntries:
   enabled: true
   '1':
     enabled: true
-    type: "FLAME_PARTICLE" # Don't change
+    type: "FLAME_PARTICLE" 
     key: "FLAMETHROWER"
     givePerm: "item64.give.flamethrower"
     usePerm: "item64.use.flamethrower"
@@ -128,7 +128,7 @@ itemEntries:
       - "MENDING:1"
   '2':
     enabled: true
-    type: "EXPLOSIVE_ARROW" # Don't change
+    type: "EXPLOSIVE_ARROW" 
     key: "EXPLOSIVE_CROSSBOW"
     givePerm: "item64.give.explosive_crossbow"
     usePerm: "item64.use.explosive_crossbow"
@@ -148,7 +148,7 @@ itemEntries:
       - "MENDING:1"
   '3':
     enabled: true
-    type: "LIGHTNING_PEARL" # Don't change
+    type: "LIGHTNING_PEARL" 
     key: "LIGHTNING_GUN"
     givePerm: "item64.give.lightning_gun"
     usePerm: "item64.use.lightning_gun"
@@ -167,7 +167,7 @@ itemEntries:
       - "MENDING:1"
   '4':
     enabled: true
-    type: "RANDOM_POTION" # Don't change
+    type: "RANDOM_POTION" 
     key: "MAGIC_WAND"
     givePerm: "item64.give.magic_wand"
     usePerm: "item64.use.magic_wand"
@@ -186,7 +186,7 @@ itemEntries:
       - "MENDING:1"
   '5':
     enabled: true
-    type: "CONSUME_COMMANDS" # Don't change
+    type: "CONSUME_COMMANDS" 
     key: "HEALING_HONEY"
     givePerm: "item64.give.healing_honey"
     usePerm: "item64.use.healing_honey"
@@ -207,7 +207,7 @@ itemEntries:
       - "itm heal <player>"
   '6':
     enabled: true
-    type: "CONSUME_EFFECTS" # Don't change
+    type: "CONSUME_EFFECTS" 
     key: "SUPERAPPLE"
     givePerm: "item64.give.superapple"
     usePerm: "item64.use.superapple"

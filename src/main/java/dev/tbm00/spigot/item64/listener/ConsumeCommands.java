@@ -19,15 +19,15 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
-import dev.tbm00.spigot.item64.ItemManager;
+import dev.tbm00.spigot.item64.ItemConfig;
 import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.GDHook;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ConsumeCommands extends ListenerLeader implements Listener {
 
-    public ConsumeCommands(JavaPlugin javaPlugin, ItemManager itemManager, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
-        super(javaPlugin, itemManager, ecoHook, gdHook, dcHook);
+    public ConsumeCommands(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
+        super(javaPlugin, itemConfig, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
@@ -47,8 +47,8 @@ public class ConsumeCommands extends ListenerLeader implements Listener {
             return;
         }
 
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(consumer.getUniqueId(), k -> itemManager.getCooldowns());
-        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(4)) < entry.getCooldown()) {
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(consumer.getUniqueId(), k -> cooldowns);
+        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
             consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- active cooldown!"));
             return;
         }
@@ -65,9 +65,7 @@ public class ConsumeCommands extends ListenerLeader implements Listener {
             return;
         }
 
-        consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Healing..."));
-
-        // Run commands
+        //consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Using..."));
         List<String> commands = entry.getCommands();
         for (String command : commands) {
             String cmd = command.replace("<player>", consumer.getName());
@@ -75,7 +73,8 @@ public class ConsumeCommands extends ListenerLeader implements Listener {
         }
 
         // Set cooldowns and remove resources
-        adjustCooldowns(consumer, itemManager.getHungers(), 4);
+        adjustCooldown(consumer, entry);
+        adjustHunger(consumer, entry);
         if (ecoHook != null && cost > 0 && !removeMoney(consumer, cost)) {
             javaPlugin.getLogger().warning("Error: failed to remove money for " + consumer.getName() + "'s " + entry.getKeyString() + " usage!");
         }

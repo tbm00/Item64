@@ -10,14 +10,14 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import net.milkbowl.vault.economy.Economy;
 import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
-import dev.tbm00.spigot.item64.ItemManager;
+import dev.tbm00.spigot.item64.ItemConfig;
 import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.GDHook;
 
 public class PlayerConnection extends ListenerLeader implements Listener {
 
-    public PlayerConnection(JavaPlugin javaPlugin, ItemManager itemManager, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
-        super(javaPlugin, itemManager, ecoHook, gdHook, dcHook);
+    public PlayerConnection(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
+        super(javaPlugin, itemConfig, ecoHook, gdHook, dcHook);
     }
 
     // join listener unnecessary

@@ -26,15 +26,15 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
-import dev.tbm00.spigot.item64.ItemManager;
+import dev.tbm00.spigot.item64.ItemConfig;
 import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.GDHook;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class RandomPotion extends ListenerLeader implements Listener {
 
-    public RandomPotion(JavaPlugin javaPlugin, ItemManager itemManager, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
-        super(javaPlugin, itemManager, ecoHook, gdHook, dcHook);
+    public RandomPotion(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
+        super(javaPlugin, itemConfig, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
@@ -62,8 +62,8 @@ public class RandomPotion extends ListenerLeader implements Listener {
             return;
         }
 
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> itemManager.getCooldowns());
-        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(2)) < entry.getCooldown()) {
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> cooldowns);
+        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- active cooldown!"));
             return;
         }
@@ -84,7 +84,9 @@ public class RandomPotion extends ListenerLeader implements Listener {
         boolean rightClick = !(action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
         shootPotion(shooter, rightClick);
 
-        adjustCooldowns(shooter, itemManager.getHungers(), 2);
+        // Set cooldowns and remove resources
+        adjustCooldown(shooter, entry);
+        adjustHunger(shooter, entry);
         if (ecoHook != null && cost > 0 && !removeMoney(shooter, cost))
             javaPlugin.getLogger().warning("Error: failed to remove money for " + shooter.getName() + "'s " + entry.getKeyString() + " usage!");
         if (hasAmmoItem == 2)
@@ -104,10 +106,10 @@ public class RandomPotion extends ListenerLeader implements Listener {
             thrownPotion.setItem(potion);
             thrownPotion.setBounce(false);
             thrownPotion.setVelocity(shooter.getLocation().getDirection().multiply(1.4));
-            ItemEntry entry = itemManager.getItemEntryByType("RANDOM_POTION");
+            ItemEntry entry = itemConfig.getItemEntryByType("RANDOM_POTION");
 
             double random = entry.getRandom();
-            if (random > 0) randomizeVelocity(thrownPotion, random);
+            if (random > 0) randomizeProjectile(thrownPotion, random);
             
             if (!rightClick) {
                 thrownPotion.setVisualFire(true);
@@ -143,13 +145,13 @@ public class RandomPotion extends ListenerLeader implements Listener {
             event.setCancelled(true);
             thrownPotion.remove();
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- pvp protection!"));
-            refundPlayer(shooter, itemManager.getItemEntryByType("RANDOM_POTION"));
+            refundPlayer(shooter, itemConfig.getItemEntryByType("RANDOM_POTION"));
         } else if (!passGDPvpCheck) {
             event.setCancelled(true);
             thrownPotion.remove();
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- claim pvp protection!"));
-            refundPlayer(shooter, itemManager.getItemEntryByType("RANDOM_POTION"));
+            refundPlayer(shooter, itemConfig.getItemEntryByType("RANDOM_POTION"));
         } else if (thrownPotion.hasMetadata("randomPotionLeft"))
-            damagePlayers(shooter, location, 0.9, 1.3, itemManager.getItemEntryByType("RANDOM_POTION").getDamage(), 20);
+            damagePlayers(shooter, location, 0.9, 1.3, itemConfig.getItemEntryByType("RANDOM_POTION").getDamage(), 20);
     }
 }

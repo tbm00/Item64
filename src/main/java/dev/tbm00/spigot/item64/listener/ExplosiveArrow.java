@@ -19,15 +19,15 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
-import dev.tbm00.spigot.item64.ItemManager;
+import dev.tbm00.spigot.item64.ItemConfig;
 import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.GDHook;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ExplosiveArrow extends ListenerLeader implements Listener {
 
-    public ExplosiveArrow(JavaPlugin javaPlugin, ItemManager itemManager, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
-        super(javaPlugin, itemManager, ecoHook, gdHook, dcHook);
+    public ExplosiveArrow(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
+        super(javaPlugin, itemConfig, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
@@ -44,7 +44,7 @@ public class ExplosiveArrow extends ListenerLeader implements Listener {
             return;
 
         double random = entry.getRandom();
-        if (random > 0) randomizeVelocity(arrow, random);
+        if (random > 0) randomizeProjectile(arrow, random);
 
         triggerExplosiveArrow(shooter, arrow, entry);
     }
@@ -60,8 +60,8 @@ public class ExplosiveArrow extends ListenerLeader implements Listener {
             return;
         }
 
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> itemManager.getCooldowns());
-        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(0)) < entry.getCooldown()) {
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> cooldowns);
+        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- active cooldown!"));
             return;
         }
@@ -79,10 +79,11 @@ public class ExplosiveArrow extends ListenerLeader implements Listener {
         }
 
         shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
-
         explosiveArrows.add(arrow);
         
-        adjustCooldowns(shooter, itemManager.getHungers(), 0); // remove hunger and set cooldown
+        // Set cooldowns and remove resources
+        adjustCooldown(shooter, entry);
+        adjustHunger(shooter, entry);
         if (ecoHook != null && cost > 0 && !removeMoney(shooter, cost)) {
             javaPlugin.getLogger().warning("Error: failed to remove money for " + shooter.getName() + "'s " + entry.getKeyString() + " usage!");
         }
@@ -111,18 +112,18 @@ public class ExplosiveArrow extends ListenerLeader implements Listener {
             if (!passDCPvpLocCheck) {
                 arrow.remove();
                 shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- pvp protection!"));
-                refundPlayer(shooter, itemManager.getItemEntryByType("EXPLOSIVE_ARROW"));
+                refundPlayer(shooter, itemConfig.getItemEntryByType("EXPLOSIVE_ARROW"));
             } else if (!passGDPvpCheck) {
                 arrow.remove();
                 shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
-                refundPlayer(shooter, itemManager.getItemEntryByType("EXPLOSIVE_ARROW"));
+                refundPlayer(shooter, itemConfig.getItemEntryByType("EXPLOSIVE_ARROW"));
             } else if (!passGDBuilderCheck) {
-                damagePlayers(shooter, location, 1.7, 1.2, itemManager.getItemEntryByType("EXPLOSIVE_ARROW").getDamage(), 0);
+                damagePlayers(shooter, location, 1.7, 1.2, itemConfig.getItemEntryByType("EXPLOSIVE_ARROW").getDamage(), 0);
                 arrow.getWorld().createExplosion(location, 2.0F, true, false, shooter);
                 arrow.remove();
                 shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion nerfed -- claim block protection!"));
             } else {
-                damagePlayers(shooter, location, 1.7, 1.2, itemManager.getItemEntryByType("EXPLOSIVE_ARROW").getDamage(), 20);
+                damagePlayers(shooter, location, 1.7, 1.2, itemConfig.getItemEntryByType("EXPLOSIVE_ARROW").getDamage(), 20);
                 arrow.getWorld().createExplosion(location, 2.0F, true, true, shooter);
                 arrow.remove();
             }

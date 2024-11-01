@@ -17,33 +17,26 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Entity;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
-
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import nl.marido.deluxecombat.api.DeluxeCombatAPI;
+
 import dev.tbm00.spigot.item64.hook.GDHook;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ListenerLeader {
     protected final JavaPlugin javaPlugin;
-    protected final ItemManager itemManager;
+    protected final ItemConfig itemConfig;
     protected final Economy ecoHook;
     protected final GDHook gdHook;
     protected final DeluxeCombatAPI dcHook;
-    protected final List<ItemEntry> itemCmdEntries;
+    protected final List<ItemEntry> itemEntries;
     protected final List<String> ignorePlaced;
     protected final boolean checkAnchorExplosions;
+    protected static final List<Long> cooldowns = new ArrayList<>();
     protected static final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
     protected static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
     protected static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
@@ -73,42 +66,44 @@ public class ListenerLeader {
         PotionEffectType.GLOWING
     };
 
-    public ListenerLeader(JavaPlugin javaPlugin, ItemManager itemManager, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
+    public ListenerLeader(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
         this.javaPlugin = javaPlugin;
-        this.itemManager = itemManager;
+        this.itemConfig = itemConfig;
         this.ecoHook = ecoHook;
         this.gdHook = gdHook;
         this.dcHook = dcHook;
-        this.itemCmdEntries = itemManager.getItemEntries();
-        this.ignorePlaced = javaPlugin.getConfig().getConfigurationSection("itemEntries").getStringList("stopBlockPlace");
-        this.checkAnchorExplosions = javaPlugin.getConfig().getConfigurationSection("hooks.DeluxeCombat").getBoolean("anchorExplosionPvpCheck");
+        itemEntries = itemConfig.getItemEntries();
+        ignorePlaced = itemConfig.getIgnoredPlaced();
+        checkAnchorExplosions = itemConfig.getCheckAnchorExplosions();
+
+        // initialize item cooldowns
+        for (ItemEntry entry : itemEntries) {
+            cooldowns.add(0L);
+            
+            int index = entry.getID()-1;
+            cooldowns.set(index, Long.valueOf(entry.getCooldown()));
+        }
     }
 
     protected ItemEntry getItemEntryByItem(ItemStack item) {
         if (item == null) return null;
         if (!item.hasItemMeta() || item.getType() == Material.AIR || item.getType() == Material.RESPAWN_ANCHOR) 
             return null;
-        return itemCmdEntries.stream()
+        return itemEntries.stream()
             .filter(entry -> item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING))
             .findFirst()
             .orElse(null);
     }
 
-    protected void adjustCooldown(Player player, int index) {
+    protected void adjustCooldown(Player player, ItemEntry entry) {
+        int index = entry.getID()-1;
         List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
         playerCooldowns.set(index, System.currentTimeMillis() / 1000);
         activeCooldowns.put(player.getUniqueId(), playerCooldowns);
     }
 
-    protected void adjustCooldowns(Player player, List<Integer> hungers, int index) {
-        player.setFoodLevel(Math.max(player.getFoodLevel() - hungers.get(index), 0));
-        List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
-        playerCooldowns.set(index, System.currentTimeMillis() / 1000);
-        activeCooldowns.put(player.getUniqueId(), playerCooldowns);
-    }
-
-    protected void adjustHunger(Player player, List<Integer> hungers, int index) {
-        player.setFoodLevel(Math.max(player.getFoodLevel() - hungers.get(index), 0));
+    protected void adjustHunger(Player player, ItemEntry entry) {
+        player.setFoodLevel(Math.max(player.getFoodLevel() - entry.getHunger(), 0));
     }
 
     // 0 - doesnt have ammo & action blocked
@@ -219,13 +214,9 @@ public class ListenerLeader {
         return failed;
     }
 
-    protected void randomizeVelocity(Projectile projectile, double random) {
+    protected void randomizeProjectile(Projectile projectile, double random) {
         Vector velocity = projectile.getVelocity();
-        velocity.add(new Vector(
-            ThreadLocalRandom.current().nextDouble(-random, random),
-            ThreadLocalRandom.current().nextDouble(-random / 2, random / 2),
-            ThreadLocalRandom.current().nextDouble(-random, random)
-        ));
+        randomizeVelocity(velocity, random);
         projectile.setVelocity(velocity);
     }
 
@@ -297,57 +288,5 @@ public class ListenerLeader {
             }
         }
         return damaged;
-    }
-
-    @EventHandler
-    public void onBlockPlace(BlockPlaceEvent event) {
-        ItemStack item = event.getItemInHand();
-        if (!ignorePlaced.contains(item.getType().toString())) return;
-
-        ItemMeta itemData = item.getItemMeta();
-        if (itemData==null) return;
-
-        for (ItemEntry entry : itemCmdEntries) {
-            if (itemData.getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING)) {
-                event.setCancelled(true);
-                return;
-            }
-        }
-    }
-
-    public void checkAnchorExplosion(PlayerInteractEvent event) {
-        //Player player = event.getPlayer();
-        //player.sendMessage("" + ChatColor.YELLOW + "test: anchor detected");
-
-        if (!checkAnchorExplosions) return;
-        //player.sendMessage("" + ChatColor.YELLOW + "test: checkAnchorExplosions on");
-
-        if (!(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) return;
-        //player.sendMessage("" + ChatColor.YELLOW + "test: RIGHT_CLICK_AIR || RIGHT_CLICK_BLOCK");
-        
-        //RespawnAnchor anchor = (RespawnAnchor) event.getClickedBlock().getBlockData();
-        //if (anchor.getCharges() <= 3) return;
-
-        Player player = event.getPlayer();
-        Location location = event.getClickedBlock().getLocation();
-        boolean passDCPvpPlayerCheck = true, passDCPvpLocCheck = true;
-        
-        if (dcHook != null) {
-            if (!passDCPvpLocCheck(location, 6.0)) passDCPvpLocCheck = false;
-            else if (!passDCPvpPlayerCheck(player)) passDCPvpPlayerCheck = false;
-        }
-        
-        if (!passDCPvpPlayerCheck || !passDCPvpLocCheck) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- pvp protection!"));
-            event.setCancelled(true);
-        }/* else {
-            player.sendMessage("" + ChatColor.YELLOW + "test: passed checks");
-        }*/
-    }
-
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        UUID uuid = event.getPlayer().getUniqueId();
-        activeCooldowns.remove(uuid);
     }
 }

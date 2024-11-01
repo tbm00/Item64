@@ -19,22 +19,24 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import dev.tbm00.spigot.item64.ItemManager;
+import dev.tbm00.spigot.item64.ItemConfig;
 import dev.tbm00.spigot.item64.model.ItemEntry;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class ItmCommand implements TabExecutor {
     private final JavaPlugin javaPlugin;
-    private final ItemManager itemManager;
+    private final ItemConfig itemConfig;
     private final List<ItemEntry> itemEntries;
 
-    public ItmCommand(JavaPlugin javaPlugin, ItemManager itemManager) {
+    public ItmCommand(JavaPlugin javaPlugin, ItemConfig itemConfig) {
         this.javaPlugin = javaPlugin;
-        this.itemManager = itemManager;
-        this.itemEntries = itemManager.getItemEntries();
+        this.itemConfig = itemConfig;
+        this.itemEntries = itemConfig.getItemEntries();
     }
 
     public boolean onCommand(CommandSender sender, Command consoleCommand, String label, String[] args) {
-        if (!itemManager.isEnabled()) {
+        if (!itemConfig.isEnabled()) {
             sender.sendMessage(ChatColor.RED + "Item64 is disabled!");
             return false;
         }
@@ -87,7 +89,8 @@ public class ItmCommand implements TabExecutor {
         player.setHealth(20);
         player.setFoodLevel(20);
         player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
-        player.sendMessage(ChatColor.GREEN + "You have been healed!");
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN + "You have been healed!"));
+
         if (!player.equals(sender))
             sender.sendMessage(ChatColor.GREEN + player.getName() + " has been healed.");
         return true;

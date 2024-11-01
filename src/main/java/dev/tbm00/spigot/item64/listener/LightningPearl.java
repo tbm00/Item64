@@ -19,15 +19,15 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
-import dev.tbm00.spigot.item64.ItemManager;
+import dev.tbm00.spigot.item64.ItemConfig;
 import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.GDHook;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class LightningPearl extends ListenerLeader implements Listener {
 
-    public LightningPearl(JavaPlugin javaPlugin, ItemManager itemManager, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
-        super(javaPlugin, itemManager, ecoHook, gdHook, dcHook);
+    public LightningPearl(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
+        super(javaPlugin, itemConfig, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
@@ -55,8 +55,8 @@ public class LightningPearl extends ListenerLeader implements Listener {
             return;
         }
 
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> itemManager.getCooldowns());
-        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(1)) < entry.getCooldown()) {
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> cooldowns);
+        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- active cooldown!"));
             return;
         }
@@ -74,13 +74,14 @@ public class LightningPearl extends ListenerLeader implements Listener {
         }
 
         shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
-        
         EnderPearl pearl = shooter.launchProjectile(EnderPearl.class);
         lightningPearls.add(pearl);
         double random = entry.getRandom();
-        if (random > 0) randomizeVelocity(pearl, random);
+        if (random > 0) randomizeProjectile(pearl, random);
 
-        adjustCooldowns(shooter, itemManager.getHungers(), 1);
+        // Set cooldowns and remove resources
+        adjustCooldown(shooter, entry);
+        adjustHunger(shooter, entry);
         if (ecoHook != null && cost > 0 && !removeMoney(shooter, cost)) {
             javaPlugin.getLogger().warning("Error: failed to remove money for " + shooter.getName() + "'s " + entry.getKeyString() + " usage!");
         }
@@ -110,13 +111,13 @@ public class LightningPearl extends ListenerLeader implements Listener {
         if (!passDCPvpLocCheck) {
             pearl.remove();
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- pvp protection!"));
-            refundPlayer(shooter, itemManager.getItemEntryByType("LIGHTNING_PEARL"));
+            refundPlayer(shooter, itemConfig.getItemEntryByType("LIGHTNING_PEARL"));
         } else if (!passGDPvpCheck) {
             pearl.remove();
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- claim pvp protection!"));
-            refundPlayer(shooter, itemManager.getItemEntryByType("LIGHTNING_PEARL"));
+            refundPlayer(shooter, itemConfig.getItemEntryByType("LIGHTNING_PEARL"));
         } else {
-            damagePlayers(shooter, location, 1.2, 3.0, itemManager.getItemEntryByType("LIGHTNING_PEARL").getDamage(), 0);
+            damagePlayers(shooter, location, 1.2, 3.0, itemConfig.getItemEntryByType("LIGHTNING_PEARL").getDamage(), 0);
             location.getWorld().strikeLightning(location);
             pearl.remove();
         }

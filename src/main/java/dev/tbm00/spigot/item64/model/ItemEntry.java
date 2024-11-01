@@ -6,6 +6,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ItemEntry {
+    private int id;
     private String givePerm;
     private String usePerm;
     private String type;
@@ -25,9 +26,10 @@ public class ItemEntry {
     private List<String> enchants;
     private List<String> commands;
     
-    public ItemEntry(JavaPlugin javaPlugin, String givePerm, String usePerm, String type, String KEY, double money, 
+    public ItemEntry(JavaPlugin javaPlugin, int id, String givePerm, String usePerm, String type, String KEY, double money, 
                         int hunger, int cooldown, double random, double damage, String ammoItem, String item, String name, 
                         List<String> lore, Boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands) {
+        this.id = id;
         this.givePerm = givePerm;
         this.usePerm = usePerm;
         this.type = type;
@@ -46,6 +48,14 @@ public class ItemEntry {
         this.enchants = enchants;
         this.removeItem = removeItem;
         this.commands = commands;
+    }
+    
+    public int getID() {
+        return id;
+    }
+
+    public void setID(int id) {
+        this.id = id;
     }
 
     public String getGivePerm() {

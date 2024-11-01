@@ -23,15 +23,15 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
-import dev.tbm00.spigot.item64.ItemManager;
+import dev.tbm00.spigot.item64.ItemConfig;
 import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.GDHook;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class FlameParticle extends ListenerLeader implements Listener {
 
-    public FlameParticle(JavaPlugin javaPlugin, ItemManager itemManager, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
-        super(javaPlugin, itemManager, ecoHook, gdHook, dcHook);
+    public FlameParticle(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
+        super(javaPlugin, itemConfig, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
@@ -59,8 +59,8 @@ public class FlameParticle extends ListenerLeader implements Listener {
             return;
         }
 
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> itemManager.getCooldowns());
-        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(3)) < entry.getCooldown()) {
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> cooldowns);
+        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Flames blocked -- active cooldown!"));
             return;
         }
@@ -78,8 +78,6 @@ public class FlameParticle extends ListenerLeader implements Listener {
         }
 
         shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting flames..."));
-
-        // Shoot particles
         shootFlames(shooter, entry);
 
         // Set cooldowns and remove resources
@@ -87,12 +85,12 @@ public class FlameParticle extends ListenerLeader implements Listener {
             javaPlugin.getLogger().warning("Error: failed to remove money for " + shooter.getName() + "'s " + entry.getKeyString() + " usage!");
         }
         if (hasAmmoItem == 2) removeItem(shooter, entry.getAmmoItem());
-        adjustHunger(shooter, itemManager.getHungers(), 3);
+        adjustHunger(shooter, entry);
 
         new BukkitRunnable() {
             @Override
             public void run() {
-                adjustCooldown(shooter, 3);
+                adjustCooldown(shooter, entry);
             }
         }.runTaskLater(javaPlugin, entry.getCooldown() * 20);
     }
