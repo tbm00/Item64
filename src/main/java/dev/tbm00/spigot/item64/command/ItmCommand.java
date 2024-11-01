@@ -19,24 +19,24 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import dev.tbm00.spigot.item64.ItemConfig;
+import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
 public class ItmCommand implements TabExecutor {
     private final JavaPlugin javaPlugin;
-    private final ItemConfig itemConfig;
+    private final ConfigHandler configHandler;
     private final List<ItemEntry> itemEntries;
 
-    public ItmCommand(JavaPlugin javaPlugin, ItemConfig itemConfig) {
+    public ItmCommand(JavaPlugin javaPlugin, ConfigHandler configHandler) {
         this.javaPlugin = javaPlugin;
-        this.itemConfig = itemConfig;
-        this.itemEntries = itemConfig.getItemEntries();
+        this.configHandler = configHandler;
+        this.itemEntries = configHandler.getItemEntries();
     }
 
     public boolean onCommand(CommandSender sender, Command consoleCommand, String label, String[] args) {
-        if (!itemConfig.isEnabled()) {
+        if (!configHandler.isEnabled()) {
             sender.sendMessage(ChatColor.RED + "Item64 is disabled!");
             return false;
         }
@@ -60,7 +60,7 @@ public class ItmCommand implements TabExecutor {
 
         // Run HEAL cmd
         if (subCommand.equals("heal"))
-            return runHealCmd(sender, argument);
+            return runHealCmd(sender, argument, argument2);
 
         // Run GIVE cmd
         if (subCommand.equals("give") && argument != null)
@@ -76,11 +76,12 @@ public class ItmCommand implements TabExecutor {
         sender.sendMessage(ChatColor.DARK_RED + "--- " + ChatColor.RED + "Item64 Admin Commands" + ChatColor.DARK_RED + " ---\n"
             + ChatColor.WHITE + "/itm help" + ChatColor.GRAY + " Display this command list\n"
             + ChatColor.WHITE + "/itm give <itemKey> [player] (#)" + ChatColor.GRAY + " Spawn custom item(s)\n"
-            + ChatColor.WHITE + "/itm heal [player]" + ChatColor.GRAY + " Heal a player (health, hunger, potion effects)\n"
+            + ChatColor.WHITE + "/itm heal [player]" + ChatColor.GRAY + " Heal yourself or [player]\n"
+            + ChatColor.WHITE + "/itm heal [player] -fx" + ChatColor.GRAY + " Heal & remove effects on yourself or [player]\n"
         );
     }
 
-    private boolean runHealCmd(CommandSender sender, String argument) {
+    private boolean runHealCmd(CommandSender sender, String argument, String argument2) {
         if (!sender.hasPermission("item64.heal") && !(sender instanceof ConsoleCommandSender))
             return false;
         Player player = getPlayer(sender, argument);
@@ -88,7 +89,9 @@ public class ItmCommand implements TabExecutor {
 
         player.setHealth(20);
         player.setFoodLevel(20);
-        player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
+        if (argument2 != null && argument2.equalsIgnoreCase("-fx")) {
+            player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
+        }
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN + "You have been healed!"));
 
         if (!player.equals(sender))
@@ -139,7 +142,7 @@ public class ItmCommand implements TabExecutor {
 
     private void giveItemToPlayer(Player player, ItemEntry entry, int quantity) {
         try {
-            ItemStack item = new ItemStack(Material.valueOf(entry.getItem()));
+            ItemStack item = new ItemStack(Material.valueOf(entry.getMaterial()));
             ItemMeta meta = item.getItemMeta();
     
             if (meta != null) {

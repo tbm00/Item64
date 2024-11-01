@@ -8,16 +8,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import net.milkbowl.vault.economy.Economy;
-import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
-import dev.tbm00.spigot.item64.ItemConfig;
+import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.ListenerLeader;
-import dev.tbm00.spigot.item64.hook.GDHook;
+import dev.tbm00.spigot.item64.hook.*;
 
 public class PlayerConnection extends ListenerLeader implements Listener {
 
-    public PlayerConnection(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
-        super(javaPlugin, itemConfig, ecoHook, gdHook, dcHook);
+    public PlayerConnection(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+        super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
     }
 
     // join listener unnecessary

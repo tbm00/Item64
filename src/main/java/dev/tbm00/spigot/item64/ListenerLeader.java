@@ -18,68 +18,52 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffectType;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
-import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
-import dev.tbm00.spigot.item64.hook.GDHook;
+import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ListenerLeader {
     protected final JavaPlugin javaPlugin;
-    protected final ItemConfig itemConfig;
+    protected final ConfigHandler configHandler;
     protected final Economy ecoHook;
     protected final GDHook gdHook;
-    protected final DeluxeCombatAPI dcHook;
-    protected final List<ItemEntry> itemEntries;
-    protected final List<String> ignorePlaced;
-    protected final boolean checkAnchorExplosions;
+    protected final DCHook dcHook;
+    protected static List<ItemEntry> itemEntries = null;
     protected static final List<Long> cooldowns = new ArrayList<>();
     protected static final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
     protected static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
     protected static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
     protected static final ArrayList<Projectile> magicPotions = new ArrayList<>();
-    protected static final PotionEffectType[] positiveEFFECTS = {
-        PotionEffectType.INCREASE_DAMAGE, //STRENGTH
-        PotionEffectType.HEAL, //INSTANT_HEALTH
-        PotionEffectType.JUMP, //JUMP_BOOST
-        PotionEffectType.SPEED,
-        PotionEffectType.REGENERATION,
-        PotionEffectType.FIRE_RESISTANCE,
-        PotionEffectType.NIGHT_VISION,
-        PotionEffectType.INVISIBILITY,
-        PotionEffectType.ABSORPTION,
-        PotionEffectType.SATURATION,
-        PotionEffectType.SLOW_FALLING,
-    };
-    protected static final PotionEffectType[] negativeEFFECTS = {
-        PotionEffectType.SLOW, //SLOWNESS
-        PotionEffectType.HARM, //INSTANT_DAMAGE
-        PotionEffectType.CONFUSION, //NAUSEA
-        PotionEffectType.BLINDNESS,
-        PotionEffectType.HUNGER,
-        PotionEffectType.WEAKNESS,
-        PotionEffectType.POISON,
-        PotionEffectType.LEVITATION,
-        PotionEffectType.GLOWING
-    };
 
-    public ListenerLeader(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
+    public ListenerLeader(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         this.javaPlugin = javaPlugin;
-        this.itemConfig = itemConfig;
+        this.configHandler = configHandler;
         this.ecoHook = ecoHook;
         this.gdHook = gdHook;
         this.dcHook = dcHook;
-        itemEntries = itemConfig.getItemEntries();
-        ignorePlaced = itemConfig.getIgnoredPlaced();
-        checkAnchorExplosions = itemConfig.getCheckAnchorExplosions();
+        itemEntries = configHandler.getItemEntries();
 
-        // initialize item cooldowns
+        // only set cooldowns on first initization of ListenerLeader
+        if (cooldowns.size()!=0) return;
+
+        // get cooldown size
+        int cooldownSize = 0;
         for (ItemEntry entry : itemEntries) {
-            cooldowns.add(0L);
-            
+            if (entry.getID()>cooldownSize) cooldownSize = entry.getID();
+        }
+
+        // initialize `cooldowns`
+        for (int i = 0; i<cooldownSize; ++i) {
+            if (cooldowns.size()<cooldownSize)
+                cooldowns.add(0L);
+            else return;
+        }
+
+        // load `cooldowns`
+        for (ItemEntry entry : itemEntries) {
             int index = entry.getID()-1;
             cooldowns.set(index, Long.valueOf(entry.getCooldown()));
         }
@@ -203,13 +187,17 @@ public class ListenerLeader {
 
     protected boolean refundPlayer(Player player, ItemEntry entry) {
         boolean failed = false;
-        if (!giveMoney(player, entry.getMoney())) {
-            player.sendMessage(ChatColor.RED + "Money refund failed!");
-            failed = true;
+        if (entry.getMoney() > 0){
+            if (!giveMoney(player, entry.getMoney())) {
+                player.sendMessage(ChatColor.RED + "Money refund failed!");
+                failed = true;
+            }
         }
-        if (!giveItem(player, entry.getAmmoItem())) {
-            player.sendMessage(ChatColor.RED + "Ammo refund failed!");
-            failed = true;
+        if (entry.getRemoveAmmo()) {
+            if (!giveItem(player, entry.getAmmoItem())) {
+                player.sendMessage(ChatColor.RED + "Ammo refund failed!");
+                failed = true;
+            }
         }
         return failed;
     }
@@ -243,6 +231,7 @@ public class ListenerLeader {
     }
 
     protected boolean passDCPvpLocCheck(Location location, double radius) {
+        if (dcHook==null) return true;
         return location.getWorld().getNearbyEntities(location, radius, radius, radius).stream()
             .filter(entity -> entity instanceof Player)
             .map(entity -> (Player) entity)
@@ -250,11 +239,13 @@ public class ListenerLeader {
     }
     
     protected boolean passDCPvpPlayerCheck(Player player) {
-        if (dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player)) return false;
+        if (dcHook==null) return true;
+        else if (dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player)) return false;
         return true;
     }
 
     protected boolean passGDBuilderCheck(Player shooter, Location location, int radius) {
+        if (gdHook==null) return true;
         String[] ids = new String[9];
         Location loc = location.clone();
     

@@ -27,10 +27,10 @@ import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-public class FlameParticle extends ListenerLeader implements Listener {
+public class FlameParticleDC extends ListenerLeader implements Listener {
 
-    public FlameParticle(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook) {
-        super(javaPlugin, configHandler, ecoHook, gdHook, null);
+    public FlameParticleDC(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+        super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
@@ -139,14 +139,23 @@ public class FlameParticle extends ListenerLeader implements Listener {
                     @Override
                     public void run() {
                         Location location = targetBlockAbove.getLocation();
-                        boolean passGDPvpCheckResult = true;
+                        boolean passGDPvpCheckResult = true, passDCPvpLocCheckResult = true;
 
+                        if (dcHook != null) {
+                            if (!passDCPvpLocCheck(location, 3.0)) passDCPvpLocCheckResult = false;
+                            else if (!passDCPvpPlayerCheck(shooter)) passDCPvpLocCheckResult = false;
+                        }
                         if (gdHook != null) {
                             if (!passGDPvpCheck(location)) passGDPvpCheckResult = false;
                             else if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheckResult = false;
                         }
 
-                        if (!passGDPvpCheckResult) {
+                        if (dcHook != null) {
+                            if (!passDCPvpLocCheckResult) {
+                                shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Flames blocked -- pvp protection!"));
+                                refundPlayer(shooter, entry);
+                            }
+                        } else if (!passGDPvpCheckResult) {
                             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Flames blocked -- claim pvp protection!"));
                             refundPlayer(shooter, entry);
                         } else {

@@ -10,6 +10,7 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Arrow;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.Location;
 import org.bukkit.ChatColor;
 
@@ -17,17 +18,16 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
 import net.milkbowl.vault.economy.Economy;
-import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
-import dev.tbm00.spigot.item64.ItemConfig;
+import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.ListenerLeader;
-import dev.tbm00.spigot.item64.hook.GDHook;
+import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ExplosiveArrow extends ListenerLeader implements Listener {
 
-    public ExplosiveArrow(JavaPlugin javaPlugin, ItemConfig itemConfig, Economy ecoHook, GDHook gdHook, DeluxeCombatAPI dcHook) {
-        super(javaPlugin, itemConfig, ecoHook, gdHook, dcHook);
+    public ExplosiveArrow(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+        super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
@@ -79,6 +79,7 @@ public class ExplosiveArrow extends ListenerLeader implements Listener {
         }
 
         shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
+        arrow.setMetadata("Item64-keyString", new FixedMetadataValue(javaPlugin, entry.getKeyString()));
         explosiveArrows.add(arrow);
         
         // Set cooldowns and remove resources
@@ -101,6 +102,7 @@ public class ExplosiveArrow extends ListenerLeader implements Listener {
             Location location = arrow.getLocation();
             Player shooter = (Player) arrow.getShooter();
             boolean passDCPvpLocCheck = true, passGDPvpCheck = true, passGDBuilderCheck = true;
+            ItemEntry entry = configHandler.getItemEntryByKeyString(arrow.getMetadata("Item64-keyString").get(0).asString());
 
             if (dcHook != null && !passDCPvpLocCheck(location, 5.0)) passDCPvpLocCheck = false;
             if (gdHook != null) {
@@ -112,19 +114,19 @@ public class ExplosiveArrow extends ListenerLeader implements Listener {
             if (!passDCPvpLocCheck) {
                 arrow.remove();
                 shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- pvp protection!"));
-                refundPlayer(shooter, itemConfig.getItemEntryByType("EXPLOSIVE_ARROW"));
+                refundPlayer(shooter, entry);
             } else if (!passGDPvpCheck) {
                 arrow.remove();
                 shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
-                refundPlayer(shooter, itemConfig.getItemEntryByType("EXPLOSIVE_ARROW"));
+                refundPlayer(shooter, entry);
             } else if (!passGDBuilderCheck) {
-                damagePlayers(shooter, location, 1.7, 1.2, itemConfig.getItemEntryByType("EXPLOSIVE_ARROW").getDamage(), 0);
-                arrow.getWorld().createExplosion(location, 2.0F, true, false, shooter);
+                damagePlayers(shooter, location, 1.7, 1.2, entry.getDamage(), 30);
+                arrow.getWorld().createExplosion(location, entry.getPower(), true, false, shooter);
                 arrow.remove();
                 shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion nerfed -- claim block protection!"));
             } else {
-                damagePlayers(shooter, location, 1.7, 1.2, itemConfig.getItemEntryByType("EXPLOSIVE_ARROW").getDamage(), 20);
-                arrow.getWorld().createExplosion(location, 2.0F, true, true, shooter);
+                damagePlayers(shooter, location, 1.7, 1.2, entry.getDamage(), 30);
+                arrow.getWorld().createExplosion(location, entry.getPower(), true, true, shooter);
                 arrow.remove();
             }
         }

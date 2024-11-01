@@ -19,16 +19,22 @@ public class ItemEntry {
     private double random;
     private double damage;
     private String ammoItem;
-    private String item;
+    private boolean removeAmmo;
+    private String material;
     private String name;
     private List<String> lore;
     private Boolean hideEnchants;
     private List<String> enchants;
     private List<String> commands;
+    private List<String> effects;
+    private List<String> rEffects;
+    private List<String> lEffects;
+    private float power;
     
     public ItemEntry(JavaPlugin javaPlugin, int id, String givePerm, String usePerm, String type, String KEY, double money, 
-                        int hunger, int cooldown, double random, double damage, String ammoItem, String item, String name, 
-                        List<String> lore, Boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands) {
+                        int hunger, int cooldown, double random, double damage, String ammoItem, boolean removeAmmo, String material, String name, 
+                        List<String> lore, Boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands,
+                        List<String> effects, List<String> rEffects, List<String> lEffects, float power) {
         this.id = id;
         this.givePerm = givePerm;
         this.usePerm = usePerm;
@@ -41,13 +47,17 @@ public class ItemEntry {
         this.random = random;
         this.damage = damage;
         this.ammoItem = ammoItem;
-        this.item = item;
+        this.material = material;
         this.name = name;
         this.lore = lore;
         this.hideEnchants = hideEnchants;
         this.enchants = enchants;
         this.removeItem = removeItem;
         this.commands = commands;
+        this.effects = effects;
+        this.rEffects = rEffects;
+        this.lEffects = lEffects;
+        this.power = power;
     }
     
     public int getID() {
@@ -126,7 +136,7 @@ public class ItemEntry {
         return damage;
     }
 
-    public void setDamage(int damage) {
+    public void setDamage(double damage) {
         this.damage = damage;
     }
 
@@ -138,12 +148,21 @@ public class ItemEntry {
         this.ammoItem = ammoItem;
     }
 
-    public String getItem() {
-        return item;
+    public boolean getRemoveAmmo() {
+        return removeAmmo;
     }
 
-    public void setItem(String item) {
-        this.item = item;
+    public void setRemoveAmmo(boolean removeAmmo) {
+        this.removeAmmo = removeAmmo;
+    }
+
+
+    public String getMaterial() {
+        return material;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
     }
 
     public String getName() {
@@ -192,5 +211,37 @@ public class ItemEntry {
 
     public void setCommands(List<String> commands) {
         this.commands = commands;
+    }
+
+    public List<String> getEffects() {
+        return effects;
+    }
+
+    public void setEffects(List<String> effects) {
+        this.effects = effects;
+    }
+
+    public List<String> getREffects() {
+        return rEffects;
+    }
+
+    public void setREffects(List<String> rEffects) {
+        this.rEffects = rEffects;
+    }
+
+    public List<String> getLEffects() {
+        return lEffects;
+    }
+
+    public void setLEffects(List<String> lEffects) {
+        this.lEffects = lEffects;
+    }
+
+    public float getPower() {
+        return power;
+    }
+
+    public void setPower(float power) {
+        this.power = power;
     }
 }

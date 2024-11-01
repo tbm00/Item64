@@ -8,16 +8,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import net.milkbowl.vault.economy.Economy;
-import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
 import dev.tbm00.spigot.item64.command.ItmCommand;
-import dev.tbm00.spigot.item64.hook.GDHook;
+import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.listener.*;
 
 public class Item64 extends JavaPlugin {
-    private static ItemConfig itemConfig;
+    private static ConfigHandler configHandler;
     private static GDHook gdHook;
-    private static DeluxeCombatAPI dcHook;
+    private static DCHook dcHook;
     private static Economy ecoHook;
 
     @Override
@@ -56,16 +55,20 @@ public class Item64 extends JavaPlugin {
         }
 
         if (getConfig().getBoolean("itemEntries.enabled")) {
-            itemConfig = new ItemConfig(this);
-            if (itemConfig.isEnabled()) {
-                getCommand("itm").setExecutor(new ItmCommand(this, itemConfig));
-                getServer().getPluginManager().registerEvents(new PlayerConnection(this, itemConfig, ecoHook, gdHook, dcHook), this);
-                getServer().getPluginManager().registerEvents(new ExplosiveArrow(this, itemConfig, ecoHook, gdHook, dcHook), this);
-                getServer().getPluginManager().registerEvents(new LightningPearl(this, itemConfig, ecoHook, gdHook, dcHook), this);
-                getServer().getPluginManager().registerEvents(new RandomPotion(this, itemConfig, ecoHook, gdHook, dcHook), this);
-                getServer().getPluginManager().registerEvents(new FlameParticle(this, itemConfig, ecoHook, gdHook, dcHook), this);
-                getServer().getPluginManager().registerEvents(new ConsumeCommands(this, itemConfig, ecoHook, gdHook, dcHook), this);
-                getServer().getPluginManager().registerEvents(new ConsumeEffects(this, itemConfig, ecoHook, gdHook, dcHook), this);
+            configHandler = new ConfigHandler(this);
+            if (configHandler.isEnabled()) {
+                getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
+                getServer().getPluginManager().registerEvents(new PlayerConnection(this, configHandler, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new ExplosiveArrow(this, configHandler, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new LightningPearl(this, configHandler, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new RandomPotion(this, configHandler, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new ConsumeItem(this, configHandler, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new PreventUsage(this, configHandler, ecoHook, gdHook, dcHook), this);
+
+                // I made 2 flame particle listeners because it was failing to load on servers with DeluxeCombat
+                // Not sure why only the flame particle listener fails without a dcHook...
+                if (gdHook!=null) getServer().getPluginManager().registerEvents(new FlameParticleDC(this, configHandler, ecoHook, gdHook, dcHook), this);
+                else getServer().getPluginManager().registerEvents(new FlameParticle(this, configHandler, ecoHook, gdHook), this);
             } else {
                 getLogger().warning("itemEntries disabled in config!");
                 disablePlugin();
@@ -87,7 +90,7 @@ public class Item64 extends JavaPlugin {
     private boolean setupDeluxeCombat() {
         if (Bukkit.getPluginManager().getPlugin("DeluxeCombat")==null) return false;
 
-        dcHook = new DeluxeCombatAPI();
+        dcHook = new DCHook();
         
         getLogger().info("DeluxeCombat hooked.");
         return true;
