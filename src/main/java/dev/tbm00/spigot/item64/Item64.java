@@ -1,19 +1,18 @@
 package dev.tbm00.spigot.item64;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 
 import net.milkbowl.vault.economy.Economy;
-
 import nl.marido.deluxecombat.api.DeluxeCombatAPI;
 
 import dev.tbm00.spigot.item64.command.ItmCommand;
 import dev.tbm00.spigot.item64.hook.GDHook;
-import dev.tbm00.spigot.item64.listener.ItemUse;
+import dev.tbm00.spigot.item64.listener.*;
 
 public class Item64 extends JavaPlugin {
     private static ItemManager itemManager;
@@ -60,7 +59,13 @@ public class Item64 extends JavaPlugin {
             itemManager = new ItemManager(this);
             if (itemManager.isEnabled()) {
                 getCommand("itm").setExecutor(new ItmCommand(this, itemManager));
-                getServer().getPluginManager().registerEvents(new ItemUse(this, itemManager, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new PlayerConnection(this, itemManager, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new ExplosiveArrow(this, itemManager, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new LightningPearl(this, itemManager, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new RandomPotion(this, itemManager, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new FlameParticle(this, itemManager, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new ConsumeCommands(this, itemManager, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new ConsumeEffects(this, itemManager, ecoHook, gdHook, dcHook), this);
             } else {
                 getLogger().warning("itemEntries disabled in config!");
                 disablePlugin();

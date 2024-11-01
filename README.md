@@ -89,7 +89,7 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 
 ## Default Config
 ```
-# Item64 v0.2.5-beta by @tbm00
+# Item64 v0.2.6-beta by @tbm00
 
 hooks:
   Vault:
