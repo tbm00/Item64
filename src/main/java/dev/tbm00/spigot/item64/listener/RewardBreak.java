@@ -27,7 +27,7 @@ import dev.tbm00.spigot.item64.model.ItemEntry;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class BlockBreak implements Listener {
+public class RewardBreak implements Listener {
     private final JavaPlugin javaPlugin;
     private final ConsoleCommandSender console;
     private final ConfigHandler configHandler;
@@ -36,7 +36,7 @@ public class BlockBreak implements Listener {
     private static List<ItemEntry> rewards = new ArrayList<>();
     private Random rand;
 
-    public BlockBreak(JavaPlugin javaPlugin, ConfigHandler configHandler) {
+    public RewardBreak(JavaPlugin javaPlugin, ConfigHandler configHandler) {
         this.javaPlugin = javaPlugin;
         this.configHandler = configHandler;
         enabled = configHandler.isRewardedBreakingEnabled();

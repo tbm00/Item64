@@ -254,7 +254,7 @@ Only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0.
 ## Default Config
 
 ```
-# Item64 v0.2.9-beta by @tbm00
+# Item64 v0.2.10-beta by @tbm00
 # https://github.com/tbm00/Item64
 
 hooks:

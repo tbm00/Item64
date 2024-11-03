@@ -12,6 +12,12 @@ import net.milkbowl.vault.economy.Economy;
 import dev.tbm00.spigot.item64.command.ItmCommand;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.listener.*;
+import dev.tbm00.spigot.item64.listener.item.Consumable;
+import dev.tbm00.spigot.item64.listener.item.ExplosiveArrow;
+import dev.tbm00.spigot.item64.listener.item.FlameParticle;
+import dev.tbm00.spigot.item64.listener.item.LightningPearl;
+import dev.tbm00.spigot.item64.listener.item.RandomPotion;
+import dev.tbm00.spigot.item64.listener.item.Usable;
 
 public class Item64 extends JavaPlugin {
     private static ConfigHandler configHandler;
@@ -59,6 +65,7 @@ public class Item64 extends JavaPlugin {
             if (configHandler.isEnabled()) {
                 getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
                 getServer().getPluginManager().registerEvents(new PlayerConnection(this, configHandler), this);
+                getServer().getPluginManager().registerEvents(new ItemLeader(this, configHandler, ecoHook, gdHook, dcHook), this);
                 getServer().getPluginManager().registerEvents(new ExplosiveArrow(this, configHandler, ecoHook, gdHook, dcHook), this);
                 getServer().getPluginManager().registerEvents(new LightningPearl(this, configHandler, ecoHook, gdHook, dcHook), this);
                 getServer().getPluginManager().registerEvents(new RandomPotion(this, configHandler, ecoHook, gdHook, dcHook), this);
@@ -66,7 +73,7 @@ public class Item64 extends JavaPlugin {
                 getServer().getPluginManager().registerEvents(new Usable(this, configHandler, ecoHook, gdHook, dcHook), this);
                 getServer().getPluginManager().registerEvents(new PreventUsage(this, configHandler, dcHook), this);
                 getServer().getPluginManager().registerEvents(new PreventGrowth(this, configHandler, gdHook), this);
-                getServer().getPluginManager().registerEvents(new BlockBreak(this, configHandler), this);
+                getServer().getPluginManager().registerEvents(new RewardBreak(this, configHandler), this);
                 getServer().getPluginManager().registerEvents(new FlameParticle(this, configHandler, ecoHook, gdHook, dcHook), this);
             } else {
                 getLogger().warning("itemEntries disabled in config!");

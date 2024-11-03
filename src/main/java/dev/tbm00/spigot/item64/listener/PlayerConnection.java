@@ -6,15 +6,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import dev.tbm00.spigot.item64.ConfigHandler;
-import dev.tbm00.spigot.item64.ListenerLeader;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class PlayerConnection extends ListenerLeader implements Listener {
+public class PlayerConnection extends ItemLeader {
 
     public PlayerConnection(JavaPlugin javaPlugin, ConfigHandler configHandler) {
         super(javaPlugin, configHandler, null, null, null);
@@ -41,6 +39,4 @@ public class PlayerConnection extends ListenerLeader implements Listener {
         UUID uuid = event.getPlayer().getUniqueId();
         activeCooldowns.remove(uuid);
     }
-
-
 }

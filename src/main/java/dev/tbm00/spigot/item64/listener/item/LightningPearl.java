@@ -1,4 +1,4 @@
-package dev.tbm00.spigot.item64.listener;
+package dev.tbm00.spigot.item64.listener.item;
 
 import java.util.List;
 
@@ -8,10 +8,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import net.md_5.bungee.api.ChatMessageType;
@@ -20,26 +18,25 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 
 import dev.tbm00.spigot.item64.ConfigHandler;
-import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
+import dev.tbm00.spigot.item64.listener.ItemLeader;
+import dev.tbm00.spigot.item64.listener.InteractHandler;
 
-public class LightningPearl extends ListenerLeader implements Listener {
+public class LightningPearl extends ItemLeader implements InteractHandler {
 
     public LightningPearl(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
+        super.registerHandler(this);
     }
 
-    @EventHandler
-    public void onItemUse(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack item = event.getItem();
-        if (item == null || player == null) return;
+    @Override
+    public boolean canHandle(ItemEntry entry) {
+        return "LIGHTNING_PEARL".equals(entry.getType());
+    }
 
-        ItemEntry entry = getItemEntryByItem(item);
-        if (entry == null || !entry.getType().equals("LIGHTNING_PEARL") || !player.hasPermission(entry.getUsePerm()))
-            return;
-
+    @Override
+    public void handle(PlayerInteractEvent event, Player player, ItemEntry entry) {
         triggerLightningPearl(event, player, entry);
     }
 

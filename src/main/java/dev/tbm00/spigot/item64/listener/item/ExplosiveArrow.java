@@ -1,9 +1,8 @@
-package dev.tbm00.spigot.item64.listener;
+package dev.tbm00.spigot.item64.listener.item;
 
 import java.util.List;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -20,11 +19,11 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 
 import dev.tbm00.spigot.item64.ConfigHandler;
-import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
+import dev.tbm00.spigot.item64.listener.ItemLeader;
 
-public class ExplosiveArrow extends ListenerLeader implements Listener {
+public class ExplosiveArrow extends ItemLeader {
 
     public ExplosiveArrow(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);

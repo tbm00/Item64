@@ -1,4 +1,4 @@
-package dev.tbm00.spigot.item64;
+package dev.tbm00.spigot.item64.listener;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,15 +17,18 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Entity;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
-
+import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-public class ListenerLeader {
+public class ItemLeader implements Listener {
     protected final JavaPlugin javaPlugin;
     protected final ConfigHandler configHandler;
     protected final Economy ecoHook;
@@ -37,8 +40,9 @@ public class ListenerLeader {
     protected static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
     protected static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
     protected static final ArrayList<Projectile> magicPotions = new ArrayList<>();
+    private final List<InteractHandler> itemHandlers = new ArrayList<>();
 
-    public ListenerLeader(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+    public ItemLeader(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         this.javaPlugin = javaPlugin;
         this.configHandler = configHandler;
         this.ecoHook = ecoHook;
@@ -69,9 +73,29 @@ public class ListenerLeader {
         }
     }
 
+    public void registerHandler(InteractHandler handler) {
+        itemHandlers.add(handler);
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+        if (item == null || player == null) return;
+        
+        ItemEntry entry = getItemEntryByItem(item);
+        if (entry == null || !player.hasPermission(entry.getUsePerm())) return;
+
+        for (InteractHandler handler : itemHandlers) {
+            if (handler.canHandle(entry)) {
+                handler.handle(event, player, entry);
+                break;
+            }
+        }
+    }
+
     protected ItemEntry getItemEntryByItem(ItemStack item) {
-        if (item == null) return null;
-        if (!item.hasItemMeta() || item.getType() == Material.AIR || item.getType() == Material.RESPAWN_ANCHOR) 
+        if (item == null || !item.hasItemMeta() || item.getType() == Material.AIR)
             return null;
         return itemEntries.stream()
             .filter(entry -> item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING))
@@ -96,9 +120,9 @@ public class ListenerLeader {
     // 1 - doesnt have ammo & action permitted
     // 2 - has ammo & action permitted
     protected int hasItem(Player player, String itemName) {
-        if (itemName.equals("none")
-            || itemName.isBlank()
-            || itemName == null) return 1;
+        if (itemName == null 
+            || itemName.equals("none")
+            || itemName.isBlank()) return 1;
 
         Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
         if (itemMaterial == null) {

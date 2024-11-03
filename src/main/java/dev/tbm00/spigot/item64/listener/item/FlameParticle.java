@@ -1,4 +1,4 @@
-package dev.tbm00.spigot.item64.listener;
+package dev.tbm00.spigot.item64.listener.item;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -14,10 +14,7 @@ import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -25,27 +22,26 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 
 import dev.tbm00.spigot.item64.ConfigHandler;
-import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.*;
+import dev.tbm00.spigot.item64.listener.ItemLeader;
+import dev.tbm00.spigot.item64.listener.InteractHandler;
 
-public class FlameParticle extends ListenerLeader implements Listener {
+public class FlameParticle extends ItemLeader implements InteractHandler {
     private final static Queue<Pair<Boolean, Boolean>> queue = new LinkedList<>();
 
     public FlameParticle(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
+        super.registerHandler(this);
     }
 
-    @EventHandler
-    public void onItemUse(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack item = event.getItem();
-        if (item == null || player == null) return;
+    @Override
+    public boolean canHandle(ItemEntry entry) {
+        return "FLAME_PARTICLE".equals(entry.getType());
+    }
 
-        ItemEntry entry = getItemEntryByItem(item);
-        if (entry == null || !entry.getType().equals("FLAME_PARTICLE") || !player.hasPermission(entry.getUsePerm()))
-            return;
-
+    @Override
+    public void handle(PlayerInteractEvent event, Player player, ItemEntry entry) {
         triggerFlameParticle(event, player, entry);
     }
 

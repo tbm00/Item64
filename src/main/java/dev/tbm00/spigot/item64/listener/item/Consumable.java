@@ -1,4 +1,4 @@
-package dev.tbm00.spigot.item64.listener;
+package dev.tbm00.spigot.item64.listener.item;
 
 import java.util.List;
 
@@ -7,8 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -19,26 +18,30 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 
 import dev.tbm00.spigot.item64.ConfigHandler;
-import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.*;
+import dev.tbm00.spigot.item64.listener.ItemLeader;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-public class Usable extends ListenerLeader implements Listener {
+public class Consumable extends ItemLeader {
 
-    public Usable(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+    public Consumable(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
-    public void onItemUse(PlayerInteractEvent event) {
+    public void onItemConsume(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         if (item == null || player == null) return;
 
         ItemEntry entry = getItemEntryByItem(item);
-        if (entry == null || !entry.getType().equalsIgnoreCase("USABLE") || !player.hasPermission(entry.getUsePerm()))
+        if (entry == null || !entry.getType().equalsIgnoreCase("CONSUMABLE") || !player.hasPermission(entry.getUsePerm()))
             return;
 
+        triggerConsumable(event, player, entry, item);
+    }
+
+    private void triggerConsumable(PlayerItemConsumeEvent event, Player player, ItemEntry entry, ItemStack item) {
         event.setCancelled(true);
 
         if (player.getFoodLevel() < entry.getHunger()) {
