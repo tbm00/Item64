@@ -1,8 +1,6 @@
 package dev.tbm00.spigot.item64.listener.item;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import org.bukkit.util.Vector;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,7 +26,6 @@ import dev.tbm00.spigot.item64.listener.ItemLeader;
 import dev.tbm00.spigot.item64.listener.InteractHandler;
 
 public class FlameParticle extends ItemLeader implements InteractHandler {
-    private final static Queue<Pair<Boolean, Boolean>> queue = new LinkedList<>();
 
     public FlameParticle(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
@@ -107,7 +104,7 @@ public class FlameParticle extends ItemLeader implements InteractHandler {
         Location particleLocation = particleVector.toLocation(player.getWorld()).add(player.getLocation()).add(0, 1.05, 0);
 
         // Shoot flames
-        sendFlameHit(player, entry); // Set blocks on fire and damage players
+        sendFlameHit(player, entry); // Set blocks on fire and damage entities
         // visuals:
         for (int i = 0; i < 5; i++) {
             new BukkitRunnable() {
@@ -146,32 +143,22 @@ public class FlameParticle extends ItemLeader implements InteractHandler {
                     else if (!passGDPvpCheck(player.getLocation())) passGDPvpCheckResult = false;
                 }
                 
-                Pair<Boolean, Boolean> passage = new Pair<>(passDCPvpLocCheckResult, passGDPvpCheckResult);
-                queue.add(passage);
-
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        Pair<Boolean, Boolean> check = queue.poll();
-
-                        if (check!=null) {
-                            boolean first = check.getFirst();
-                            boolean second = check.getSecond();
-                            
-                            if (!first) {
-                                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Flames blocked -- pvp protection!"));
-                                refundPlayer(player, entry);
-                            } else if (!second) {
-                                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Flames blocked -- claim pvp protection!"));
-                                refundPlayer(player, entry);
-                            } else {
-                                if (targetBlock.getType().isBlock() && targetBlockAbove.getType() == Material.AIR)
-                                    targetBlockAbove.setType(Material.FIRE);
-                                damagePlayers(player, targetBlockAbove.getLocation(), 1.5, 1.6, entry.getDamage(), 60);
-                            }
+                if (!passDCPvpLocCheckResult) {
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Flames blocked -- pvp protection!"));
+                    refundPlayer(player, entry);
+                } else if (!passGDPvpCheckResult) {
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Flames blocked -- claim pvp protection!"));
+                    refundPlayer(player, entry);
+                } else {
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (targetBlock.getType().isBlock() && targetBlockAbove.getType() == Material.AIR)
+                                targetBlockAbove.setType(Material.FIRE);
+                            damageEntities(player, targetBlockAbove.getLocation(), 0.9, 1.5, entry.getDamage(), 60);
                         }
-                    }
-                }.runTaskLater(javaPlugin, 10);
+                    }.runTaskLater(javaPlugin, 12);
+                }
             }
         }
     }

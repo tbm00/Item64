@@ -11,31 +11,36 @@ Created by tbm00 for play.mc64.wtf.
 ## Features
 
 ### **Custom PVP & non-PVP Items**
-*Explosive bows, crossbows, flamethrowers, magic wands, lightning guns, candy, and an endless possibility of items designed by you!*
+*Explosive bows, crossbows, flamethrowers, magic wands, lightning guns, candy, and an endless possibilities of items designed by you!*
 
 Pre-Defined Items:
   - **Flamethrower** Shoots flames and causes fires.
   - **Explosive Crossbow** Shoots survival-friendly explosive arrows.
   - **Explosive Bow** Shoots extremely powerful explosive arrows.
   - **Lightning Gun** Shoots ender pearls that summon lightning.
-  - **Magic Wand** Shoots random potion/beacon effects. Left click for an offensive effect, right click for a positive effect.
+  - **Magic Wand** Shoots random potion/beacon effects. Left-click for an offensive effect, right-click for a positive effect.
   - **Various Candies** Applies enhanced effects to players when they consume/use the item.
 
 ### **Block Breaking Event**
 *Give items and/or run commands when players break specific blocks.*
 
-The default config uses this feature for a Halloween event that gives custom candy items when players break pumpkins. If you choose to use this feature, you can re-theme it to be entirely different!
+The default config uses this feature for a Halloween event that gives custom candy items when players break pumpkins. If you choose to use this feature, you can retheme it to be entirely different!
 
-### **Very Simple but Very Configurable** 
+### **Survival-Friendly**
+*The default config is safe to use on SMP servers.*
+
+  - Configure ammo, cooldowns, hunger costs, money costs, randomness, and chance to find a better balance on your server.
+  - Respects claims and PVP; hooks into GriefDefender and DeluxeCombat to make sure the player doesn't bypass PVP-toggled-off or destroy claimed land.
+  - Listeners to prevent players from exploiting the block breaking event.
+
+### **Very Simple but Very Configurable**
 *Drag-&-Drop install, yet powerful & highly tinkerable!*
 
 Simply use the default config, which is survival-friendly, or customize it to your liking:
-  - Define item entries that shoot custom projectiles, run commands, and apply effects.
-  - Configure damage, ammo, hunger costs, money costs, cooldown timers, projectile randomness, & more.
-  - Of course configure every item's name, lore, enchants, etc.
-
-### **Respects Claims & PVP** 
-Hooks into GriefDefender and DeluxeCombat to make sure the player doesn't bypass pvp-toggled-off or destroy claimed land.
+  - Delete/modify pre-defined item entries.
+  - Create unlimited item entries that shoot custom projectiles, run commands, and apply effects.
+  - Configure damage, ammo, hunger costs, money costs, cooldown timers, projectile randomness, lore, enchantments, effects, & more.
+  - Redesign the Halloween block breaking event to fit your server or a different theme.
 
 
 ## Dependencies
@@ -59,7 +64,7 @@ Hooks into GriefDefender and DeluxeCombat to make sure the player doesn't bypass
 Each item has configurable permissions (in `config.yml`) that must be fulfilled for a player to use or spawn the item. The only hardcoded permissions are:
 - `item64.help` Ability to display the command list *(Default: OP)*
 - `item64.heal` Ability to heal a player *(Default: OP)*
-- `item64.alllowplace` Ability to place blocked items during event *(Default: OP)*
+- `item64.allowplace` Ability to place blocked items during event *(Default: OP)*
 
   *If you're using the default config and haven't changed any usePerms or givePerms, then the following nodes will work for you:*
   - `item64.give.<key>` Ability to spawn a particular item *(Default: OP)*
@@ -68,43 +73,41 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
   - `item64.use.*` Ability to use all items *(Default: OP)*
 
 
-## Item Entries
+## Custom Items
 
-### Types
+### ItemEntry Types
 
 **`EXPLOSIVE_ARROW`**
 - Summons an explosion on arrow impact.
 - Applicable to bows and crossbows.
-- Explosion deals a lot of damage + arrow damage if direct hit, so extraPlayerDamage is disabled by default.
 - Has GriefDefender check that prevents block damage if user doesn't have builder trust in affected claims.
-- Has GriefDefender check that prevents explosions entirely if pvp is toggled off in any affected claims.
-- Has DeluxeCombat check that prevents explosions entirely if pvp is toggled off on any affected players.
+- Has GriefDefender check that prevents explosions entirely if PVP is toggled off in any affected claims.
+- Has DeluxeCombat check that prevents explosions entirely if PVP is toggled off for any affected players.
 
 **`LIGHTNING_PEARL`** 
 - Shoots an ender pearl that summons a lightning strike on impact.
 - Applicable to most items.
-- Lightning doesn't deal much damage, so extraPlayerDamage is set high by default.
-- Has GriefDefender check that prevents lightning entirely if pvp is toggled off in any affected claims.
-- Has DeluxeCombat check that prevents lightning entirely if pvp is toggled off on any affected players.
+- Has GriefDefender check that prevents lightning entirely if PVP is toggled off in any affected claims.
+- Has DeluxeCombat check that prevents lightning entirely if PVP is toggled off for any affected players.
 
 **`RANDOM_POTION`** 
 - Shoots a random splash potion.
 - Applicable to most items.
-- Most potions don't deal direct damage, so extraPlayerDamage is applied to left-clicked potion effects.
-- Has GriefDefender check that prevents potion shots entirely if pvp is toggled off in any affected claims.
-- Has DeluxeCombat check that prevents potion shots entirely if pvp is toggled off on any affected players.
+- Has GriefDefender check that prevents potion shots entirely if PVP is toggled off in any affected claims.
+- Has DeluxeCombat check that prevents potion shots entirely if PVP is toggled off for any affected players.
 
 **`FLAME_PARTICLE`** 
 - Shoots flame particles that make fires.
 - Applicable to most items.
-- Particles don't deal any damage, so extraPlayerDamage is enabled by default.
+- Particles don't deal any damage, so be sure to use extraDamage.
 - Cooldown works differently; it's the maximum number of seconds a player can repetitively use the item.
-- Has GriefDefender check that prevents flames entirely if pvp is toggled off in any affected claims.
-- Has DeluxeCombat check that prevents flames entirely if pvp is toggled off on any affected players.
+- Has GriefDefender check that prevents flames entirely if PVP is toggled off in any affected claims.
+- Has DeluxeCombat check that prevents flames entirely if PVP is toggled off for any affected players.
 
 **`CONSUMABLE`** 
 - Runs commands and/or gives potion effects on item consumption.
-- Applicable to most food, potions, milk, etc.
+- Applicable to food, potions, milk, etc.
+- moneyCost, hungerCost, cooldown, & ammoItem are applicable but not necessary; the default config excludes them for these types.
 - Doesn't have any GriefDefender or DeluxeCombat checks.
 
 **`USABLE`** 
@@ -113,11 +116,11 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 - Doesn't have any GriefDefender or DeluxeCombat checks.
 
 **`NO_ITEM`** 
-- NOT AN ITEM -- used to run commands for a BreakEvent reward.
+- NOT AN ITEM -- use to simply run commands for a BreakEvent reward.
 - Not applicable on any items/blocks.
 - Doesn't have any GriefDefender or DeluxeCombat checks.
 
-### Specification
+### ItemEntry Specification
 
 <details><summary>`ID` (click to expand)</summary>
 <details><summary>-- key: (STRING)</summary>
@@ -130,20 +133,20 @@ Required for *all ItemEntries*. Must be `EXPLOSIVE_ARROW`, `LIGHTNING_PEARL`, `R
 </details>
 <details><summary>-- enabled: (BOOLEAN)</summary>
 
-Required for *all types*.
+Required for *all ItemEntries*.
 </details>
 <details><summary>-- givePerm: (STRING)</summary>
 
-Required for *all types*.
+Required on *all types except `NO_ITEM`*.
 </details>
 <details><summary>-- usePerm: (STRING)</summary>
 
-Required for *all types*.
+Required on *all types except `NO_ITEM`*.
 </details>
 <details><summary>-- item:</summary>
 <details><summary>-- -- mat: (STRING)</summary>
 
-Applicable on *all types except `NO_ITEM`*.
+Required on *all types except `NO_ITEM`*.
 </details>
 <details><summary>-- -- name: (STRING)</summary>
 
@@ -190,7 +193,7 @@ Applicable on *all types except `NO_ITEM`*.
 
 Only applicable on `EXPLOSIVE_ARROW`, `LIGHTNING_PEARL`, `RANDOM_POTION`, & `FLAME_PARTICLE`. 
 </details>
-<details><summary>-- -- -- extraPlayerDamage: (DOUBLE)</summary>
+<details><summary>-- -- -- extraDamage: (DOUBLE)</summary>
 
 Only applicable on `EXPLOSIVE_ARROW`, `LIGHTNING_PEARL`, `RANDOM_POTION`, & `FLAME_PARTICLE`. 
 </details>
@@ -233,19 +236,19 @@ Only applicable on `CONSUMABLE` & `USABLE`.
 <details><summary>-- breakEvent:</summary>
 <details><summary>-- -- rewardChance: (DOUBLE)</summary>
 
-Only applicable if breakEvent.rewardBlockPlacing.enabled==true. 0 to exclude from reward calcuation.
+Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.enabled==true. 0 to exclude from reward calculation.
 </details>
 <details><summary>-- -- rewardMessage: (STRING)</summary>
 
-Only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0.
+Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0.
 </details>
 <details><summary>-- -- giveRewardItem: (BOOLEAN)</summary>
 
-Only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0. Not applicable on `NO_ITEM`.
+Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0. Not applicable on `NO_ITEM`.
 </details>
 <details><summary>-- -- rewardCommands: (LIST-STRING)</summary>
 
-Only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0.
+Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0.
 </details>
 </details>
 </details>
@@ -254,7 +257,7 @@ Only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0.
 ## Default Config
 
 ```
-# Item64 v0.2.10-beta by @tbm00
+# Item64 v0.2.11-beta by @tbm00
 # https://github.com/tbm00/Item64
 
 hooks:
@@ -274,7 +277,7 @@ breakEvent:
     - "world_the_end"
   rewardBlockBreaking:
     enabled: false
-    joinMessage: "&eWelcome! &6We're currently having our halloween event -- break pumpkins to find candy!"
+    joinMessage: "&eWelcome! &6We're currently having our Halloween event -- break pumpkins to find candy!"
     joinMessageDelay: 5
     chance: 33.3
     blocks:
@@ -318,7 +321,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.42
-        extraPlayerDamage: 3.0
+        extraDamage: 3.0
   "2":
     key: "EXPLOSIVE_BOW"
     type: "EXPLOSIVE_ARROW"
@@ -343,7 +346,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.32
-        extraPlayerDamage: 0.0
+        extraDamage: 0.0
         explosiveArrow:
           power: 96
   "3":
@@ -370,7 +373,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.2
-        extraPlayerDamage: 0.0
+        extraDamage: 0.0
         explosiveArrow:
           power: 4
   "4":
@@ -396,7 +399,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.17
-        extraPlayerDamage: 5.0
+        extraDamage: 5.0
   "5":
     key: "MAGIC_WAND"
     type: "RANDOM_POTION"
@@ -422,7 +425,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.17
-        extraPlayerDamage: 6.0
+        extraDamage: 6.0
         randomPotion:
           rightClickEffects:
             - "INCREASE_DAMAGE:1:30"
@@ -863,11 +866,9 @@ itemEntries:
       giveRewardItem: true
       rewardCommands: []
   "19":
-    key: "CRATE_KEY_CMD"
+    key: "CRATE_KEY_REWARD"
     type: "NO_ITEM"
     enabled: false
-    givePerm: "item64.give.no_item.crate_key_cmd"
-    usePerm: "item64.use.no_item.crate_key_cmd"
     breakEvent:
       rewardChance: 0.0
       rewardMessage: "&6You found a crate key!"

@@ -1,10 +1,10 @@
 package dev.tbm00.spigot.item64.listener;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.EventHandler;
@@ -24,6 +25,7 @@ import org.bukkit.inventory.ItemStack;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+
 import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
@@ -289,17 +291,19 @@ public class ItemLeader implements Listener {
         return true;
     }
 
-    protected boolean damagePlayers(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
+    protected boolean damageEntities(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
         Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
         boolean damaged = false;
+        int count = 0;
         for (Entity entity : nearbyEntities) {
-            if (entity instanceof Player) {
-                Player player = (Player) entity;
-                player.damage(damage, shooter);
-                if (ignite>0) player.setFireTicks(ignite);
+            if (count>=4) return damaged;
+            if (entity instanceof LivingEntity livingEntity) {
+                livingEntity.damage(damage, shooter);
+                if (ignite>0) livingEntity.setFireTicks(ignite);
                 //player.sendMessage(ChatColor.RED + "hit: " + ChatColor.GRAY + damage + ChatColor.RED + ", by: " + ChatColor.GRAY + shooter);
                 //shooter.sendMessage(ChatColor.RED + "hit: " + ChatColor.GRAY + damage + ChatColor.RED + ", on: " + ChatColor.GRAY + player);
                 damaged = true;
+                count++;
             }
         }
         return damaged;

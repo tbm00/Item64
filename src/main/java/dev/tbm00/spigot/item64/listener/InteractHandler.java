@@ -1,10 +1,12 @@
 package dev.tbm00.spigot.item64.listener;
 
 import org.bukkit.event.player.PlayerInteractEvent;
-import dev.tbm00.spigot.item64.model.ItemEntry;
 import org.bukkit.entity.Player;
 
+import dev.tbm00.spigot.item64.model.ItemEntry;
+
 public interface InteractHandler {
+    
     /**
      * Determines if this handler can process the given ItemEntry.
      *

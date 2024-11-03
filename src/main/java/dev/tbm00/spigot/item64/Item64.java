@@ -36,33 +36,27 @@ public class Item64 extends JavaPlugin {
             ChatColor.DARK_PURPLE + "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
 		);
 
-        if (getConfig().getBoolean("hooks.DeluxeCombat.enabled")) {
-            if (!setupDeluxeCombat()) {
-                getLogger().warning("DeluxeCombat hook failed!");
-                disablePlugin();
-                return;
-            }
-        }
-
-        if (getConfig().getBoolean("hooks.GriefDefender.enabled")) {
-            if (!setupGriefDefender()) {
-                getLogger().warning("GriefDefender hook failed!");
-                disablePlugin();
-                return;
-            }
-        }
-
-        if (getConfig().getBoolean("hooks.Vault.enabled")) {
-            if (!setupVault()) {
-                getLogger().warning("Vault hook failed!");
-                disablePlugin();
-                return;
-            }
-        }
-
         if (getConfig().getBoolean("itemEntries.enabled")) {
             configHandler = new ConfigHandler(this);
             if (configHandler.isEnabled()) {
+                if (getConfig().getBoolean("hooks.DeluxeCombat.enabled") && !setupDeluxeCombat()) {
+                    getLogger().warning("DeluxeCombat hook failed!");
+                    disablePlugin();
+                    return;
+                }
+        
+                if (getConfig().getBoolean("hooks.GriefDefender.enabled") && !setupGriefDefender()) {
+                    getLogger().warning("GriefDefender hook failed!");
+                    disablePlugin();
+                    return;
+                }
+        
+                if (getConfig().getBoolean("hooks.Vault.enabled") && !setupVault()) {
+                    getLogger().warning("Vault hook failed!");
+                    disablePlugin();
+                    return;
+                }
+
                 getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
                 getServer().getPluginManager().registerEvents(new PlayerConnection(this, configHandler), this);
                 getServer().getPluginManager().registerEvents(new ItemLeader(this, configHandler, ecoHook, gdHook, dcHook), this);
@@ -76,9 +70,8 @@ public class Item64 extends JavaPlugin {
                 getServer().getPluginManager().registerEvents(new RewardBreak(this, configHandler), this);
                 getServer().getPluginManager().registerEvents(new FlameParticle(this, configHandler, ecoHook, gdHook, dcHook), this);
             } else {
-                getLogger().warning("itemEntries disabled in config!");
+                getLogger().warning("Either itemEntries is disabled or there was an error in config... disabling plugin!");
                 disablePlugin();
-                return;
             }
         }
     }

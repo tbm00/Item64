@@ -1,7 +1,5 @@
 package dev.tbm00.spigot.item64.listener;
 
-import org.bukkit.plugin.java.JavaPlugin;
-
 import java.util.Set;
 
 import org.bukkit.ChatColor;
@@ -15,6 +13,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;

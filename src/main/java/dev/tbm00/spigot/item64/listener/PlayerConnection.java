@@ -9,8 +9,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import dev.tbm00.spigot.item64.ConfigHandler;
 import net.md_5.bungee.api.chat.TextComponent;
+
+import dev.tbm00.spigot.item64.ConfigHandler;
 
 public class PlayerConnection extends ItemLeader {
 

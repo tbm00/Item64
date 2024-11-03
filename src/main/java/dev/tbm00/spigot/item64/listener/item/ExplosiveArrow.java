@@ -119,12 +119,12 @@ public class ExplosiveArrow extends ItemLeader {
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
                 refundPlayer(player, entry);
             } else if (!passGDBuilderCheck) {
-                damagePlayers(player, location, 1.7, 1.2, entry.getDamage(), 30);
+                damageEntities(player, location, 1.7, 1.2, entry.getDamage(), 30);
                 arrow.getWorld().createExplosion(location, (float)entry.getPower(), true, false, player);
                 arrow.remove();
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion nerfed -- claim block protection!"));
             } else {
-                damagePlayers(player, location, 1.7, 1.2, entry.getDamage(), 30);
+                damageEntities(player, location, 1.7, 1.2, entry.getDamage(), 30);
                 arrow.getWorld().createExplosion(location, (float)entry.getPower(), true, true, player);
                 arrow.remove();
             }

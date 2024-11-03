@@ -162,6 +162,6 @@ public class RandomPotion extends ItemLeader implements InteractHandler {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- claim pvp protection!"));
             refundPlayer(player, entry);
         } else if (thrownPotion.hasMetadata("Item64-randomPotion-left"))
-            damagePlayers(player, location, 0.9, 1.3, entry.getDamage(), 20);
+            damageEntities(player, location, 0.9, 1.3, entry.getDamage(), 20);
     }
 }

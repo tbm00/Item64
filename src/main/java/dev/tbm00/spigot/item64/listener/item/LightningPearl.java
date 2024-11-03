@@ -116,7 +116,7 @@ public class LightningPearl extends ItemLeader implements InteractHandler {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- claim pvp protection!"));
             refundPlayer(player, entry);
         } else {
-            damagePlayers(player, location, 1.2, 3.0, entry.getDamage(), 0);
+            damageEntities(player, location, 1.0, 2.5, entry.getDamage(), 0);
             location.getWorld().strikeLightning(location);
             pearl.remove();
         }

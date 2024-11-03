@@ -1,9 +1,9 @@
 package dev.tbm00.spigot.item64.listener;
 
-import java.util.Random;
 import java.util.Set;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -22,10 +22,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import dev.tbm00.spigot.item64.ConfigHandler;
-import dev.tbm00.spigot.item64.model.ItemEntry;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+
+import dev.tbm00.spigot.item64.ConfigHandler;
+import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class RewardBreak implements Listener {
     private final JavaPlugin javaPlugin;

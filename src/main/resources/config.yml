@@ -1,4 +1,4 @@
-# Item64 v0.2.10-beta by @tbm00
+# Item64 v0.2.11-beta by @tbm00
 # https://github.com/tbm00/Item64
 
 hooks:
@@ -18,7 +18,7 @@ breakEvent:
     - "world_the_end"
   rewardBlockBreaking:
     enabled: false
-    joinMessage: "&eWelcome! &6We're currently having our halloween event -- break pumpkins to find candy!"
+    joinMessage: "&eWelcome! &6We're currently having our Halloween event -- break pumpkins to find candy!"
     joinMessageDelay: 5
     chance: 33.3
     blocks:
@@ -62,7 +62,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.42
-        extraPlayerDamage: 3.0
+        extraDamage: 3.0
   "2":
     key: "EXPLOSIVE_BOW"
     type: "EXPLOSIVE_ARROW"
@@ -87,7 +87,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.32
-        extraPlayerDamage: 0.0
+        extraDamage: 0.0
         explosiveArrow:
           power: 96
   "3":
@@ -114,7 +114,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.2
-        extraPlayerDamage: 0.0
+        extraDamage: 0.0
         explosiveArrow:
           power: 4
   "4":
@@ -140,7 +140,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.17
-        extraPlayerDamage: 5.0
+        extraDamage: 5.0
   "5":
     key: "MAGIC_WAND"
     type: "RANDOM_POTION"
@@ -166,7 +166,7 @@ itemEntries:
         removeAmmoItemOnUse: true
       projectile:
         shotRandomness: 0.17
-        extraPlayerDamage: 6.0
+        extraDamage: 6.0
         randomPotion:
           rightClickEffects:
             - "INCREASE_DAMAGE:1:30"
@@ -607,11 +607,9 @@ itemEntries:
       giveRewardItem: true
       rewardCommands: []
   "19":
-    key: "CRATE_KEY_CMD"
+    key: "CRATE_KEY_REWARD"
     type: "NO_ITEM"
     enabled: false
-    givePerm: "item64.give.no_item.crate_key_cmd"
-    usePerm: "item64.use.no_item.crate_key_cmd"
     breakEvent:
       rewardChance: 0.0
       rewardMessage: "&6You found a crate key!"
