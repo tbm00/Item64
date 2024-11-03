@@ -1,5 +1,7 @@
-# Item64 v0.2.11-beta by @tbm00
+# Item64 v0.2.12-beta by @tbm00
 # https://github.com/tbm00/Item64
+
+enabled: true
 
 hooks:
   Vault:
@@ -38,7 +40,6 @@ breakEvent:
       - "PUMPKIN"
 
 itemEntries:
-  enabled: true
   "1":
     key: "FLAMETHROWER"
     type: "FLAME_PARTICLE"

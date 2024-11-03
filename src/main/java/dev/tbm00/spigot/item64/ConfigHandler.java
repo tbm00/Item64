@@ -11,8 +11,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ConfigHandler {
-    private static boolean enabled;
-    private static List<ItemEntry> itemEntries;
+    private final JavaPlugin javaPlugin;
+    private static boolean enabled = false;
+    private static List<ItemEntry> itemEntries = new ArrayList<>();
     private static Set<String> inactiveWorlds = new HashSet<>();
     private static boolean rewardedBreakingEnabled = false;
     private static String rewardedBreakingJoinMessage = "";
@@ -27,9 +28,8 @@ public class ConfigHandler {
     private static boolean checkAnchorExplosions = false;
 
     public ConfigHandler(JavaPlugin javaPlugin) {
+        this.javaPlugin = javaPlugin;
         try {
-            itemEntries = new ArrayList<>();
-            
             // Load Hook: respawn anchor PVP check
             checkAnchorExplosions = javaPlugin.getConfig().getConfigurationSection("hooks.DeluxeCombat").getBoolean("anchorExplosionPvpCheck");
 
@@ -65,66 +65,19 @@ public class ConfigHandler {
 
             // Load ItemEntries: custom items
             ConfigurationSection entriesSection = javaPlugin.getConfig().getConfigurationSection("itemEntries");
-            if (entriesSection != null && entriesSection.getBoolean("enabled")) {
+            if (entriesSection != null) {
                 enabled = true;
                 for (String key : entriesSection.getKeys(false)) {
                     if (key.equalsIgnoreCase("enabled")) 
                         continue;
                     try {
                         int id = Integer.parseInt(key);
-                        ConfigurationSection itemEntry = entriesSection.getConfigurationSection(key);
+                        ConfigurationSection itemEntrySec = entriesSection.getConfigurationSection(key);
         
-                        if (itemEntry != null && itemEntry.getBoolean("enabled")) {
-                            List<String> rEffects = null, lEffects = null, commands = null, effects = null;
-                            double power = 0.0;
-                            boolean removeItem = false;
-                            String message = null;
-
-                            String KEY = itemEntry.contains("key") ? itemEntry.getString("key") : null;
-                            String type = itemEntry.contains("type") ? itemEntry.getString("type") : "NULL";
-                            String givePerm = itemEntry.contains("givePerm") ? itemEntry.getString("givePerm") : null;
-                            String usePerm = itemEntry.contains("usePerm") ? itemEntry.getString("usePerm") : null;
-                            String material = itemEntry.contains("item.mat") ? itemEntry.getString("item.mat") : null;
-                            String name = itemEntry.contains("item.name") ? itemEntry.getString("item.name") : null;
-                            List<String> lore = itemEntry.contains("item.lore") ? itemEntry.getStringList("item.lore") : null;
-                            boolean hideEnchants = itemEntry.contains("item.hideEnchants") ? itemEntry.getBoolean("item.hideEnchants") : false;
-                            List<String> enchants = itemEntry.contains("item.enchantments") ? itemEntry.getStringList("item.enchantments") : null;
-                            double money = itemEntry.contains("usage.moneyCost") ? itemEntry.getDouble("usage.moneyCost") : 0.0;
-                            int hunger = itemEntry.contains("usage.hungerCost") ? itemEntry.getInt("usage.hungerCost") : 0;
-                            int cooldown = itemEntry.contains("usage.cooldown") ? itemEntry.getInt("usage.cooldown") : 0;
-                            String ammoItem = itemEntry.contains("usage.ammoItem.mat") ? itemEntry.getString("usage.ammoItem.mat") : null;
-                            boolean removeAmmo = itemEntry.contains("usage.ammoItem.removeAmmoItemOnUse") ? itemEntry.getBoolean("usage.ammoItem.removeAmmoItemOnUse") : false;
-                            double random = itemEntry.contains("usage.projectile.shotRandomness") ? itemEntry.getDouble("usage.projectile.shotRandomness") : 0.0;
-                            double damage = itemEntry.contains("usage.projectile.extraPlayerDamage") ? itemEntry.getDouble("usage.projectile.extraPlayerDamage") : 0.0;
-                            if (type.equals("RANDOM_POTION")) {
-                                rEffects = itemEntry.contains("usage.projectile.randomPotion.rightClickEffects") ? itemEntry.getStringList("usage.projectile.randomPotion.rightClickEffects") : null;
-                                lEffects = itemEntry.contains("usage.projectile.randomPotion.leftClickEffects") ? itemEntry.getStringList("usage.projectile.randomPotion.leftClickEffects") : null;
-                            } else if (type.equals("EXPLOSIVE_ARROW")) {
-                                power = itemEntry.contains("usage.projectile.explosiveArrow.power") ? itemEntry.getInt("usage.projectile.explosiveArrow.power") : 0.0;
-                            } else if (type.equals("USABLE") || type.equals("CONSUMABLE")) {
-                                removeItem = itemEntry.contains("usage.triggers.removeItemOnUse") ? itemEntry.getBoolean("usage.triggers.removeItemOnUse") : false;
-                                commands = itemEntry.contains("usage.triggers.consoleCommands") ? itemEntry.getStringList("usage.triggers.consoleCommands") : null;
-                                effects = itemEntry.contains("usage.triggers.effects") ? itemEntry.getStringList("usage.triggers.effects") : null;
-                                message = itemEntry.contains("usage.triggers.actionBarMessage") ? itemEntry.getString("usage.triggers.actionBarMessage") : null;
-                            }
-                            double rewardChance = itemEntry.contains("breakEvent.rewardChance") ? itemEntry.getDouble("breakEvent.rewardChance") : 0.0;
-                            String rewardMessage = itemEntry.contains("breakEvent.rewardMessage") ? itemEntry.getString("breakEvent.rewardMessage") : null;
-                            boolean giveItem = itemEntry.contains("breakEvent.giveRewardItem") ? itemEntry.getBoolean("breakEvent.giveRewardItem") : false;
-                            List<String> rewardCommands = itemEntry.contains("breakEvent.rewardCommands") ? itemEntry.getStringList("breakEvent.rewardCommands") : null;
-
-                            //javaPlugin.getLogger().info("entries["+ (id-1) + "] -> " + KEY + " @ " + rewardChance);
-                            if (type != null && KEY != null) {
-                                ItemEntry entry = new ItemEntry(javaPlugin, id, givePerm, usePerm, type, KEY, money, hunger, cooldown, random, damage, 
-                                                            ammoItem, removeAmmo, material, name, lore, hideEnchants, enchants, removeItem, commands, message, effects, 
-                                                            rEffects, lEffects, power, rewardChance, rewardMessage, giveItem, rewardCommands);
-                                itemEntries.add(entry);
-                                javaPlugin.getLogger().info("Loaded itemEntry: " + id + " " + KEY + " " + type + " " + material + " " + usePerm + " " + rewardChance);
-                            } else {
-                                javaPlugin.getLogger().warning("Error: Poorly defined itemEntry: " + id + " " + KEY + " " + type + " " + material + " " + usePerm + " " + rewardChance);
-                            }
-                        }
+                        if (itemEntrySec != null && itemEntrySec.getBoolean("enabled"))
+                            loadEntry(itemEntrySec, id);
                     } catch (NumberFormatException e) {
-                        javaPlugin.getLogger().warning("Skipping invalid itemEntry key: " + key);
+                        javaPlugin.getLogger().warning("Skipping invalid itemEntrySec key: " + key);
                         continue;
                     }
                 }
@@ -132,6 +85,56 @@ public class ConfigHandler {
         } catch (Exception e) {
             javaPlugin.getLogger().warning("Caught exception loading config: " + e.getMessage());
             enabled = false;
+        }
+    }
+
+    private void loadEntry(ConfigurationSection itemEntrySec, int id) {
+        List<String> rEffects = null, lEffects = null, commands = null, effects = null;
+        double power = 0.0;
+        boolean removeItem = false;
+        String message = null;
+
+        String KEY = itemEntrySec.contains("key") ? itemEntrySec.getString("key") : null;
+        String type = itemEntrySec.contains("type") ? itemEntrySec.getString("type") : "NULL";
+        String givePerm = itemEntrySec.contains("givePerm") ? itemEntrySec.getString("givePerm") : null;
+        String usePerm = itemEntrySec.contains("usePerm") ? itemEntrySec.getString("usePerm") : null;
+        String material = itemEntrySec.contains("item.mat") ? itemEntrySec.getString("item.mat") : null;
+        String name = itemEntrySec.contains("item.name") ? itemEntrySec.getString("item.name") : null;
+        List<String> lore = itemEntrySec.contains("item.lore") ? itemEntrySec.getStringList("item.lore") : null;
+        boolean hideEnchants = itemEntrySec.contains("item.hideEnchants") ? itemEntrySec.getBoolean("item.hideEnchants") : false;
+        List<String> enchants = itemEntrySec.contains("item.enchantments") ? itemEntrySec.getStringList("item.enchantments") : null;
+        double money = itemEntrySec.contains("usage.moneyCost") ? itemEntrySec.getDouble("usage.moneyCost") : 0.0;
+        int hunger = itemEntrySec.contains("usage.hungerCost") ? itemEntrySec.getInt("usage.hungerCost") : 0;
+        int cooldown = itemEntrySec.contains("usage.cooldown") ? itemEntrySec.getInt("usage.cooldown") : 0;
+        String ammoItem = itemEntrySec.contains("usage.ammoItem.mat") ? itemEntrySec.getString("usage.ammoItem.mat") : null;
+        boolean removeAmmo = itemEntrySec.contains("usage.ammoItem.removeAmmoItemOnUse") ? itemEntrySec.getBoolean("usage.ammoItem.removeAmmoItemOnUse") : false;
+        double random = itemEntrySec.contains("usage.projectile.shotRandomness") ? itemEntrySec.getDouble("usage.projectile.shotRandomness") : 0.0;
+        double damage = itemEntrySec.contains("usage.projectile.extraPlayerDamage") ? itemEntrySec.getDouble("usage.projectile.extraPlayerDamage") : 0.0;
+        if (type.equals("RANDOM_POTION")) {
+            rEffects = itemEntrySec.contains("usage.projectile.randomPotion.rightClickEffects") ? itemEntrySec.getStringList("usage.projectile.randomPotion.rightClickEffects") : null;
+            lEffects = itemEntrySec.contains("usage.projectile.randomPotion.leftClickEffects") ? itemEntrySec.getStringList("usage.projectile.randomPotion.leftClickEffects") : null;
+        } else if (type.equals("EXPLOSIVE_ARROW")) {
+            power = itemEntrySec.contains("usage.projectile.explosiveArrow.power") ? itemEntrySec.getInt("usage.projectile.explosiveArrow.power") : 0.0;
+        } else if (type.equals("USABLE") || type.equals("CONSUMABLE")) {
+            removeItem = itemEntrySec.contains("usage.triggers.removeItemOnUse") ? itemEntrySec.getBoolean("usage.triggers.removeItemOnUse") : false;
+            commands = itemEntrySec.contains("usage.triggers.consoleCommands") ? itemEntrySec.getStringList("usage.triggers.consoleCommands") : null;
+            effects = itemEntrySec.contains("usage.triggers.effects") ? itemEntrySec.getStringList("usage.triggers.effects") : null;
+            message = itemEntrySec.contains("usage.triggers.actionBarMessage") ? itemEntrySec.getString("usage.triggers.actionBarMessage") : null;
+        }
+        double rewardChance = itemEntrySec.contains("breakEvent.rewardChance") ? itemEntrySec.getDouble("breakEvent.rewardChance") : 0.0;
+        String rewardMessage = itemEntrySec.contains("breakEvent.rewardMessage") ? itemEntrySec.getString("breakEvent.rewardMessage") : null;
+        boolean giveItem = itemEntrySec.contains("breakEvent.giveRewardItem") ? itemEntrySec.getBoolean("breakEvent.giveRewardItem") : false;
+        List<String> rewardCommands = itemEntrySec.contains("breakEvent.rewardCommands") ? itemEntrySec.getStringList("breakEvent.rewardCommands") : null;
+
+        //javaPlugin.getLogger().info("entries["+ (id-1) + "] -> " + KEY + " @ " + rewardChance);
+        if (type != null && KEY != null) {
+            ItemEntry entry = new ItemEntry(javaPlugin, id, givePerm, usePerm, type, KEY, money, hunger, cooldown, random, damage, 
+                                        ammoItem, removeAmmo, material, name, lore, hideEnchants, enchants, removeItem, commands, message, effects, 
+                                        rEffects, lEffects, power, rewardChance, rewardMessage, giveItem, rewardCommands);
+            itemEntries.add(entry);
+            javaPlugin.getLogger().info("Loaded itemEntrySec: " + id + " " + KEY + " " + type + " " + material + " " + usePerm + " " + rewardChance);
+        } else {
+            javaPlugin.getLogger().warning("Error: Poorly defined itemEntry: " + id + " " + KEY + " " + type + " " + material + " " + usePerm + " " + rewardChance);
         }
     }
 

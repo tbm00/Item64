@@ -137,16 +137,16 @@ Required for *all ItemEntries*.
 </details>
 <details><summary>-- givePerm: (STRING)</summary>
 
-Required on *all types except `NO_ITEM`*.
+Required for *all types except `NO_ITEM`*.
 </details>
 <details><summary>-- usePerm: (STRING)</summary>
 
-Required on *all types except `NO_ITEM`*.
+Required for *all types except `NO_ITEM`*.
 </details>
 <details><summary>-- item:</summary>
 <details><summary>-- -- mat: (STRING)</summary>
 
-Required on *all types except `NO_ITEM`*.
+Required for *all types except `NO_ITEM`*.
 </details>
 <details><summary>-- -- name: (STRING)</summary>
 
@@ -168,7 +168,7 @@ Applicable on *all types except `NO_ITEM`*. Format: `enchant-name:level`
 <details><summary>-- usage:</summary>
 <details><summary>-- -- moneyCost: (DOUBLE)</summary>
 
-Applicable on *all types except `NO_ITEM`*. Requires Vault dependency to use this; leave null/empty if not using Vault.
+Applicable on *all types except `NO_ITEM`*. Requires Vault dependency to use this; leave empty/null if not using Vault.
 </details>
 <details><summary>-- -- hungerCost: (INTEGER)</summary>
 
@@ -244,7 +244,7 @@ Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.e
 </details>
 <details><summary>-- -- giveRewardItem: (BOOLEAN)</summary>
 
-Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0. Not applicable on `NO_ITEM`.
+Applicable on *all types except `NO_ITEM`* but only applicable if breakEvent.rewardBlockPlacing.enabled==true & rewardChance>0.
 </details>
 <details><summary>-- -- rewardCommands: (LIST-STRING)</summary>
 
@@ -257,8 +257,10 @@ Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.e
 ## Default Config
 
 ```
-# Item64 v0.2.11-beta by @tbm00
+# Item64 v0.2.12-beta by @tbm00
 # https://github.com/tbm00/Item64
+
+enabled: true
 
 hooks:
   Vault:
@@ -297,7 +299,6 @@ breakEvent:
       - "PUMPKIN"
 
 itemEntries:
-  enabled: true
   "1":
     key: "FLAMETHROWER"
     type: "FLAME_PARTICLE"

@@ -36,7 +36,7 @@ public class Item64 extends JavaPlugin {
             ChatColor.DARK_PURPLE + "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
 		);
 
-        if (getConfig().getBoolean("itemEntries.enabled")) {
+        if (getConfig().getBoolean("enabled")) {
             configHandler = new ConfigHandler(this);
             if (configHandler.isEnabled()) {
                 if (getConfig().getBoolean("hooks.DeluxeCombat.enabled") && !setupDeluxeCombat()) {
@@ -73,6 +73,9 @@ public class Item64 extends JavaPlugin {
                 getLogger().warning("Either itemEntries is disabled or there was an error in config... disabling plugin!");
                 disablePlugin();
             }
+        } else {
+            getLogger().warning("Plugin disabled in config... disabling plugin!");
+            disablePlugin();
         }
     }
 
