@@ -4,7 +4,7 @@ description: ${project.description}
 author: tbm00
 main: dev.tbm00.spigot.item64.Item64
 api-version: 1.17
-softdepend: [Vault, DeluxeCombat, DeluxeCombatAPI, DeluxeCombat-API, GriefDefender]
+softdepend: [Vault, DeluxeCombat, GriefDefender]
 commands:
   itm:
     description: Base command for Item64
@@ -14,4 +14,7 @@ permissions:
     default: op
   item64.heal:
     description: Ability to heal a player
+    default: op
+  item64.allowplace:
+    description: Ability to place blocked items during event
     default: op

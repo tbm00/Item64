@@ -34,61 +34,61 @@ public class ExplosiveArrow extends ListenerLeader implements Listener {
     public void onBowShoot(EntityShootBowEvent event) {
         if (!(event.getEntity() instanceof Player)) return;
 
-        Player shooter = (Player) event.getEntity();
+        Player player = (Player) event.getEntity();
         Arrow arrow = (Arrow) event.getProjectile();
-        ItemStack item = shooter.getInventory().getItemInMainHand();
+        ItemStack item = player.getInventory().getItemInMainHand();
         ItemEntry entry = getItemEntryByItem(item);
         if (entry == null) return;
 
-        if (!entry.getType().equals("EXPLOSIVE_ARROW") || !shooter.hasPermission(entry.getUsePerm()))
+        if (!entry.getType().equals("EXPLOSIVE_ARROW") || !player.hasPermission(entry.getUsePerm()))
             return;
 
         double random = entry.getRandom();
         if (random > 0) randomizeProjectile(arrow, random);
 
-        triggerExplosiveArrow(shooter, arrow, entry);
+        triggerExplosiveArrow(player, arrow, entry);
     }
 
-    private void triggerExplosiveArrow(Player shooter, Arrow arrow, ItemEntry entry) {
-        if (!passGDPvpCheck(shooter.getLocation())) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
+    private void triggerExplosiveArrow(Player player, Arrow arrow, ItemEntry entry) {
+        if (!passGDPvpCheck(player.getLocation())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
             return;
         }
 
-        if (shooter.getFoodLevel() < entry.getHunger()) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- you're too hungry!"));
+        if (player.getFoodLevel() < entry.getHunger()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- you're too hungry!"));
             return;
         }
 
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> cooldowns);
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> cooldowns);
         if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- active cooldown!"));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- active cooldown!"));
             return;
         }
 
-        int hasAmmoItem = hasItem(shooter, entry.getAmmoItem());
+        int hasAmmoItem = hasItem(player, entry.getAmmoItem());
         if (hasAmmoItem == 0) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
             return;
         }
         
         double cost = entry.getMoney();
-        if (ecoHook != null && cost > 0 && !hasMoney(shooter, cost)) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- not enough money!"));
+        if (ecoHook != null && cost > 0 && !hasMoney(player, cost)) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- not enough money!"));
             return;
         }
 
-        shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
         arrow.setMetadata("Item64-keyString", new FixedMetadataValue(javaPlugin, entry.getKeyString()));
         explosiveArrows.add(arrow);
         
         // Set cooldowns and remove resources
-        adjustCooldown(shooter, entry);
-        adjustHunger(shooter, entry);
-        if (ecoHook != null && cost > 0 && !removeMoney(shooter, cost)) {
-            javaPlugin.getLogger().warning("Error: failed to remove money for " + shooter.getName() + "'s " + entry.getKeyString() + " usage!");
+        adjustCooldown(player, entry);
+        adjustHunger(player, entry);
+        if (ecoHook != null && cost > 0 && !removeMoney(player, cost)) {
+            javaPlugin.getLogger().warning("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
         }
-        if (hasAmmoItem == 2) removeItem(shooter, entry.getAmmoItem()); // remove ammo item
+        if (hasAmmoItem == 2) removeItem(player, entry.getAmmoItem()); // remove ammo item
     }
 
     @EventHandler
@@ -100,33 +100,33 @@ public class ExplosiveArrow extends ListenerLeader implements Listener {
     private void handleArrowHit(Arrow arrow) {
         if (explosiveArrows.remove(arrow)) {
             Location location = arrow.getLocation();
-            Player shooter = (Player) arrow.getShooter();
+            Player player = (Player) arrow.getShooter();
             boolean passDCPvpLocCheck = true, passGDPvpCheck = true, passGDBuilderCheck = true;
             ItemEntry entry = configHandler.getItemEntryByKeyString(arrow.getMetadata("Item64-keyString").get(0).asString());
 
             if (dcHook != null && !passDCPvpLocCheck(location, 5.0)) passDCPvpLocCheck = false;
             if (gdHook != null) {
-                if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
+                if (!passGDPvpCheck(player.getLocation())) passGDPvpCheck = false;
                 else if (!passGDPvpCheck(location)) passGDPvpCheck = false;
-                else if (!passGDBuilderCheck(shooter, location, 5)) passGDBuilderCheck = false;
+                else if (!passGDBuilderCheck(player, location, 5)) passGDBuilderCheck = false;
             }
 
             if (!passDCPvpLocCheck) {
                 arrow.remove();
-                shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- pvp protection!"));
-                refundPlayer(shooter, entry);
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- pvp protection!"));
+                refundPlayer(player, entry);
             } else if (!passGDPvpCheck) {
                 arrow.remove();
-                shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
-                refundPlayer(shooter, entry);
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion blocked -- claim pvp protection!"));
+                refundPlayer(player, entry);
             } else if (!passGDBuilderCheck) {
-                damagePlayers(shooter, location, 1.7, 1.2, entry.getDamage(), 30);
-                arrow.getWorld().createExplosion(location, entry.getPower(), true, false, shooter);
+                damagePlayers(player, location, 1.7, 1.2, entry.getDamage(), 30);
+                arrow.getWorld().createExplosion(location, (float)entry.getPower(), true, false, player);
                 arrow.remove();
-                shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion nerfed -- claim block protection!"));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Explosion nerfed -- claim block protection!"));
             } else {
-                damagePlayers(shooter, location, 1.7, 1.2, entry.getDamage(), 30);
-                arrow.getWorld().createExplosion(location, entry.getPower(), true, true, shooter);
+                damagePlayers(player, location, 1.7, 1.2, entry.getDamage(), 30);
+                arrow.getWorld().createExplosion(location, (float)entry.getPower(), true, true, player);
                 arrow.remove();
             }
         }

@@ -47,25 +47,25 @@ public class ListenerLeader {
         itemEntries = configHandler.getItemEntries();
 
         // only set cooldowns on first initization of ListenerLeader
-        if (cooldowns.size()!=0) return;
+        if (cooldowns.size()==0) {
+            // get cooldown size
+            int cooldownSize = 0;
+            for (ItemEntry entry : itemEntries) {
+                if (entry.getID()>cooldownSize) cooldownSize = entry.getID();
+            }
 
-        // get cooldown size
-        int cooldownSize = 0;
-        for (ItemEntry entry : itemEntries) {
-            if (entry.getID()>cooldownSize) cooldownSize = entry.getID();
-        }
+            // initialize `cooldowns`
+            for (int i = 0; i<cooldownSize; ++i) {
+                if (cooldowns.size()<cooldownSize)
+                    cooldowns.add(0L);
+                else return;
+            }
 
-        // initialize `cooldowns`
-        for (int i = 0; i<cooldownSize; ++i) {
-            if (cooldowns.size()<cooldownSize)
-                cooldowns.add(0L);
-            else return;
-        }
-
-        // load `cooldowns`
-        for (ItemEntry entry : itemEntries) {
-            int index = entry.getID()-1;
-            cooldowns.set(index, Long.valueOf(entry.getCooldown()));
+            // load `cooldowns`
+            for (ItemEntry entry : itemEntries) {
+                int index = entry.getID()-1;
+                cooldowns.set(index, Long.valueOf(entry.getCooldown()));
+            }
         }
     }
 
@@ -80,6 +80,7 @@ public class ListenerLeader {
     }
 
     protected void adjustCooldown(Player player, ItemEntry entry) {
+        if (entry.getCooldown()<=0) return;
         int index = entry.getID()-1;
         List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
         playerCooldowns.set(index, System.currentTimeMillis() / 1000);
@@ -87,6 +88,7 @@ public class ListenerLeader {
     }
 
     protected void adjustHunger(Player player, ItemEntry entry) {
+        if (entry.getHunger()<=0) return;
         player.setFoodLevel(Math.max(player.getFoodLevel() - entry.getHunger(), 0));
     }
 
@@ -96,7 +98,6 @@ public class ListenerLeader {
     protected int hasItem(Player player, String itemName) {
         if (itemName.equals("none")
             || itemName.isBlank()
-            || itemName.isEmpty()
             || itemName == null) return 1;
 
         Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
@@ -141,7 +142,6 @@ public class ListenerLeader {
     protected boolean giveItem(Player player, String itemName) {
         if (itemName.equals("none")
             || itemName.isBlank()
-            || itemName.isEmpty()
             || itemName == null) return true;
 
         Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
@@ -193,7 +193,7 @@ public class ListenerLeader {
                 failed = true;
             }
         }
-        if (entry.getRemoveAmmo()) {
+        if (entry.getRemoveAmmo() && !entry.getAmmoItem().isBlank() && entry.getAmmoItem()!=null) {
             if (!giveItem(player, entry.getAmmoItem())) {
                 player.sendMessage(ChatColor.RED + "Ammo refund failed!");
                 failed = true;

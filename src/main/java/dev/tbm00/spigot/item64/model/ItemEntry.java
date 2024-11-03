@@ -23,18 +23,23 @@ public class ItemEntry {
     private String material;
     private String name;
     private List<String> lore;
-    private Boolean hideEnchants;
+    private boolean hideEnchants;
     private List<String> enchants;
     private List<String> commands;
+    private String message;
     private List<String> effects;
     private List<String> rEffects;
     private List<String> lEffects;
-    private float power;
+    private double power;
+    private double rewardChance;
+    private String rewardMessage;
+    private boolean giveItem;
+    private List<String> rewardCommands;
     
-    public ItemEntry(JavaPlugin javaPlugin, int id, String givePerm, String usePerm, String type, String KEY, double money, 
-                        int hunger, int cooldown, double random, double damage, String ammoItem, boolean removeAmmo, String material, String name, 
-                        List<String> lore, Boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands,
-                        List<String> effects, List<String> rEffects, List<String> lEffects, float power) {
+    public ItemEntry(JavaPlugin javaPlugin, int id, String givePerm, String usePerm, String type, String KEY, double money, int hunger, 
+                        int cooldown, double random, double damage, String ammoItem, boolean removeAmmo, String material, String name, List<String> lore, 
+                        boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands, String message, List<String> effects, List<String> rEffects, 
+                        List<String> lEffects, double power, double rewardChance, String rewardMessage, boolean giveItem, List<String> rewardCommands) {
         this.id = id;
         this.givePerm = givePerm;
         this.usePerm = usePerm;
@@ -54,10 +59,15 @@ public class ItemEntry {
         this.enchants = enchants;
         this.removeItem = removeItem;
         this.commands = commands;
+        this.message = message;
         this.effects = effects;
         this.rEffects = rEffects;
         this.lEffects = lEffects;
         this.power = power;
+        this.rewardChance = rewardChance;
+        this.rewardMessage = rewardMessage;
+        this.giveItem = giveItem;
+        this.rewardCommands = rewardCommands;
     }
     
     public int getID() {
@@ -181,11 +191,11 @@ public class ItemEntry {
         this.lore = lore;
     }
 
-    public Boolean getHideEnchants() {
+    public boolean getHideEnchants() {
         return hideEnchants;
     }
 
-    public void setHideEnchants(Boolean hideEnchants) {
+    public void setHideEnchants(boolean hideEnchants) {
         this.hideEnchants = hideEnchants;
     }
 
@@ -213,6 +223,14 @@ public class ItemEntry {
         this.commands = commands;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     public List<String> getEffects() {
         return effects;
     }
@@ -237,11 +255,43 @@ public class ItemEntry {
         this.lEffects = lEffects;
     }
 
-    public float getPower() {
+    public double getPower() {
         return power;
     }
 
-    public void setPower(float power) {
+    public void setPower(double power) {
         this.power = power;
+    }
+
+    public double getRewardChance() {
+        return rewardChance;
+    }
+
+    public void setRewardChance(double rewardChance) {
+        this.rewardChance = rewardChance;
+    }
+
+    public String getRewardMessage() {
+        return rewardMessage;
+    }
+
+    public void setRewardMessage(String rewardMessage) {
+        this.rewardMessage = rewardMessage;
+    }
+
+    public boolean getGiveItem() {
+        return giveItem;
+    }
+
+    public void setGiveItem(boolean giveItem) {
+        this.giveItem = giveItem;
+    }
+
+    public List<String> getRewardCommands() {
+        return rewardCommands;
+    }
+
+    public void setRewardCommands(List<String> rewardCommands) {
+        this.rewardCommands = rewardCommands;
     }
 }

@@ -58,17 +58,16 @@ public class Item64 extends JavaPlugin {
             configHandler = new ConfigHandler(this);
             if (configHandler.isEnabled()) {
                 getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
-                getServer().getPluginManager().registerEvents(new PlayerConnection(this, configHandler, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new PlayerConnection(this, configHandler), this);
                 getServer().getPluginManager().registerEvents(new ExplosiveArrow(this, configHandler, ecoHook, gdHook, dcHook), this);
                 getServer().getPluginManager().registerEvents(new LightningPearl(this, configHandler, ecoHook, gdHook, dcHook), this);
                 getServer().getPluginManager().registerEvents(new RandomPotion(this, configHandler, ecoHook, gdHook, dcHook), this);
-                getServer().getPluginManager().registerEvents(new ConsumeItem(this, configHandler, ecoHook, gdHook, dcHook), this);
-                getServer().getPluginManager().registerEvents(new PreventUsage(this, configHandler, ecoHook, gdHook, dcHook), this);
-
-                // I made 2 flame particle listeners because it was failing to load on servers with DeluxeCombat
-                // Not sure why only the flame particle listener fails without a dcHook...
-                if (gdHook!=null) getServer().getPluginManager().registerEvents(new FlameParticleDC(this, configHandler, ecoHook, gdHook, dcHook), this);
-                else getServer().getPluginManager().registerEvents(new FlameParticle(this, configHandler, ecoHook, gdHook), this);
+                getServer().getPluginManager().registerEvents(new Consumable(this, configHandler, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new Usable(this, configHandler, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new PreventUsage(this, configHandler, dcHook), this);
+                getServer().getPluginManager().registerEvents(new PreventGrowth(this, configHandler, gdHook), this);
+                getServer().getPluginManager().registerEvents(new BlockBreak(this, configHandler), this);
+                getServer().getPluginManager().registerEvents(new FlameParticle(this, configHandler, ecoHook, gdHook, dcHook), this);
             } else {
                 getLogger().warning("itemEntries disabled in config!");
                 disablePlugin();

@@ -32,6 +32,13 @@ public class GDHook {
 		return !claim.isWilderness() ? claim.getUniqueId().toString() : null;
 	}
 
+	public String getClaimOwner(Location location) {
+		final Vector3i vector = Vector3i.from(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+		final Core gd = GriefDefender.getCore();
+		final Claim claim = gd.getClaimManager(location.getWorld().getUID()).getClaimAt(vector);
+		return !claim.isWilderness() ? claim.getOwnerName() : null;
+	}
+
 	public boolean hasBuilderTrust(OfflinePlayer player, String regionID) {
 		if (regionID == null || regionID.isEmpty()) return true;
 		if (ignoredClaims.contains(regionID)) return true;

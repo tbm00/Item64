@@ -32,61 +32,61 @@ public class LightningPearl extends ListenerLeader implements Listener {
 
     @EventHandler
     public void onItemUse(PlayerInteractEvent event) {
-        Player shooter = event.getPlayer();
+        Player player = event.getPlayer();
         ItemStack item = event.getItem();
-        if (item == null || shooter == null) return;
+        if (item == null || player == null) return;
 
         ItemEntry entry = getItemEntryByItem(item);
-        if (entry == null || !entry.getType().equals("LIGHTNING_PEARL") || !shooter.hasPermission(entry.getUsePerm()))
+        if (entry == null || !entry.getType().equals("LIGHTNING_PEARL") || !player.hasPermission(entry.getUsePerm()))
             return;
 
-        triggerLightningPearl(event, shooter, entry);
+        triggerLightningPearl(event, player, entry);
     }
 
-    private void triggerLightningPearl(PlayerInteractEvent event, Player shooter, ItemEntry entry) {
+    private void triggerLightningPearl(PlayerInteractEvent event, Player player, ItemEntry entry) {
         event.setCancelled(true);
-        if (!passGDPvpCheck(shooter.getLocation())) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- claim pvp protection!"));
+        if (!passGDPvpCheck(player.getLocation())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- claim pvp protection!"));
             return;
         }
 
-        if (shooter.getFoodLevel() < entry.getHunger()) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- you're too hungry!"));
+        if (player.getFoodLevel() < entry.getHunger()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- you're too hungry!"));
             return;
         }
 
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> cooldowns);
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> cooldowns);
         if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- active cooldown!"));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- active cooldown!"));
             return;
         }
 
-        int hasAmmoItem = hasItem(shooter, entry.getAmmoItem());
+        int hasAmmoItem = hasItem(player, entry.getAmmoItem());
         if (hasAmmoItem == 0) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
             return;
         }
 
         double cost = entry.getMoney();
-        if (ecoHook != null && cost > 0 && !hasMoney(shooter, cost)) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- not enough money!"));
+        if (ecoHook != null && cost > 0 && !hasMoney(player, cost)) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Shot blocked -- not enough money!"));
             return;
         }
 
-        shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
-        EnderPearl pearl = shooter.launchProjectile(EnderPearl.class);
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
+        EnderPearl pearl = player.launchProjectile(EnderPearl.class);
         pearl.setMetadata("Item64-keyString", new FixedMetadataValue(javaPlugin, entry.getKeyString()));
         lightningPearls.add(pearl);
         double random = entry.getRandom();
         if (random > 0) randomizeProjectile(pearl, random);
 
         // Set cooldowns and remove resources
-        adjustCooldown(shooter, entry);
-        adjustHunger(shooter, entry);
-        if (ecoHook != null && cost > 0 && !removeMoney(shooter, cost)) {
-            javaPlugin.getLogger().warning("Error: failed to remove money for " + shooter.getName() + "'s " + entry.getKeyString() + " usage!");
+        adjustCooldown(player, entry);
+        adjustHunger(player, entry);
+        if (ecoHook != null && cost > 0 && !removeMoney(player, cost)) {
+            javaPlugin.getLogger().warning("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
         }
-        if (hasAmmoItem == 2) removeItem(shooter, entry.getAmmoItem());
+        if (hasAmmoItem == 2) removeItem(player, entry.getAmmoItem());
     }
 
     @EventHandler
@@ -100,26 +100,26 @@ public class LightningPearl extends ListenerLeader implements Listener {
         event.setCancelled(true);
 
         Location location = pearl.getLocation();
-        Player shooter = (Player) pearl.getShooter();
+        Player player = (Player) pearl.getShooter();
         boolean passDCPvpLocCheck = true, passGDPvpCheck = true;
         ItemEntry entry = configHandler.getItemEntryByKeyString(pearl.getMetadata("Item64-keyString").get(0).asString());
         
         if (dcHook != null && !passDCPvpLocCheck(location, 4.0)) passDCPvpLocCheck = false;
         if (gdHook != null) {
             if (!passGDPvpCheck(location)) passGDPvpCheck = false;
-            else if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
+            else if (!passGDPvpCheck(player.getLocation())) passGDPvpCheck = false;
         }        
 
         if (!passDCPvpLocCheck) {
             pearl.remove();
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- pvp protection!"));
-            refundPlayer(shooter, entry);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- pvp protection!"));
+            refundPlayer(player, entry);
         } else if (!passGDPvpCheck) {
             pearl.remove();
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- claim pvp protection!"));
-            refundPlayer(shooter, entry);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Lightning blocked -- claim pvp protection!"));
+            refundPlayer(player, entry);
         } else {
-            damagePlayers(shooter, location, 1.2, 3.0, entry.getDamage(), 0);
+            damagePlayers(player, location, 1.2, 3.0, entry.getDamage(), 0);
             location.getWorld().strikeLightning(location);
             pearl.remove();
         }

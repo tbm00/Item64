@@ -38,61 +38,61 @@ public class RandomPotion extends ListenerLeader implements Listener {
 
     @EventHandler
     public void onItemUse(PlayerInteractEvent event) {
-        Player shooter = event.getPlayer();
+        Player player = event.getPlayer();
         ItemStack item = event.getItem();
-        if (item == null || shooter == null) return;
+        if (item == null || player == null) return;
 
         ItemEntry entry = getItemEntryByItem(item);
-        if (entry == null || !entry.getType().equals("RANDOM_POTION") || !shooter.hasPermission(entry.getUsePerm()))
+        if (entry == null || !entry.getType().equals("RANDOM_POTION") || !player.hasPermission(entry.getUsePerm()))
             return;
 
-        triggerRandomPotion(event, shooter, entry);
+        triggerRandomPotion(event, player, entry);
     }
 
-    private void triggerRandomPotion(PlayerInteractEvent event, Player shooter, ItemEntry entry) {
+    private void triggerRandomPotion(PlayerInteractEvent event, Player player, ItemEntry entry) {
         event.setCancelled(true);
-        if (!passGDPvpCheck(shooter.getLocation())) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- claim pvp protection!"));
+        if (!passGDPvpCheck(player.getLocation())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- claim pvp protection!"));
             return;
         }
 
-        if (shooter.getFoodLevel() < entry.getHunger()) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- you're too hungry!"));
+        if (player.getFoodLevel() < entry.getHunger()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- you're too hungry!"));
             return;
         }
 
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(shooter.getUniqueId(), k -> cooldowns);
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> cooldowns);
         if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- active cooldown!"));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- active cooldown!"));
             return;
         }
 
-        int hasAmmoItem = hasItem(shooter, entry.getAmmoItem());
+        int hasAmmoItem = hasItem(player, entry.getAmmoItem());
         if (hasAmmoItem == 0) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
             return;
         }
 
         double cost = entry.getMoney();
-        if (ecoHook != null && cost > 0 && !hasMoney(shooter, cost)) {
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- not enough money!"));
+        if (ecoHook != null && cost > 0 && !hasMoney(player, cost)) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- not enough money!"));
             return;
         }
 
         Action action = event.getAction();
         boolean rightClick = !(action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
-        shootPotion(shooter, entry, rightClick);
+        shootPotion(player, entry, rightClick);
 
         // Set cooldowns and remove resources
-        adjustCooldown(shooter, entry);
-        adjustHunger(shooter, entry);
-        if (ecoHook != null && cost > 0 && !removeMoney(shooter, cost))
-            javaPlugin.getLogger().warning("Error: failed to remove money for " + shooter.getName() + "'s " + entry.getKeyString() + " usage!");
+        adjustCooldown(player, entry);
+        adjustHunger(player, entry);
+        if (ecoHook != null && cost > 0 && !removeMoney(player, cost))
+            javaPlugin.getLogger().warning("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
         if (hasAmmoItem == 2)
-            removeItem(shooter, entry.getAmmoItem());
+            removeItem(player, entry.getAmmoItem());
     }
 
-    private void shootPotion(Player shooter, ItemEntry entry, boolean rightClick) {
+    private void shootPotion(Player player, ItemEntry entry, boolean rightClick) {
         ItemStack potion = new ItemStack(Material.SPLASH_POTION);
         PotionMeta potionMeta = (PotionMeta) potion.getItemMeta();
         String effectLine = rightClick ? entry.getREffects().get(ThreadLocalRandom.current().nextInt(entry.getREffects().size()))
@@ -106,11 +106,11 @@ public class RandomPotion extends ListenerLeader implements Listener {
                 potionMeta.addCustomEffect(new PotionEffect(effectType, duration, amplifier), true);
                 potion.setItemMeta(potionMeta);
         
-                shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting " + effectType.getName().toLowerCase() + "..."));
-                shooter.getWorld().spawn(shooter.getLocation().add(0, 1.5, 0), ThrownPotion.class, thrownPotion -> {
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting " + effectType.getName().toLowerCase() + "..."));
+                player.getWorld().spawn(player.getLocation().add(0, 1.5, 0), ThrownPotion.class, thrownPotion -> {
                     thrownPotion.setItem(potion);
                     thrownPotion.setBounce(false);
-                    thrownPotion.setVelocity(shooter.getLocation().getDirection().multiply(1.4));
+                    thrownPotion.setVelocity(player.getLocation().getDirection().multiply(1.4));
         
                     double random = entry.getRandom();
                     if (random > 0) randomizeProjectile(thrownPotion, random);
@@ -121,7 +121,7 @@ public class RandomPotion extends ListenerLeader implements Listener {
                             thrownPotion.setMetadata("Item64-randomPotion-left", new FixedMetadataValue(javaPlugin, "true"));
                     }
                     thrownPotion.setMetadata("Item64-keyString", new FixedMetadataValue(javaPlugin, entry.getKeyString()));
-                    thrownPotion.setShooter(shooter);
+                    thrownPotion.setShooter(player);
                     magicPotions.add(thrownPotion);
                 });
             } else {
@@ -143,27 +143,27 @@ public class RandomPotion extends ListenerLeader implements Listener {
 
     private void handlePotionHit(PotionSplashEvent event, ThrownPotion thrownPotion) {
         Location location = thrownPotion.getLocation();
-        Player shooter = (Player) thrownPotion.getShooter();
+        Player player = (Player) thrownPotion.getShooter();
         boolean passDCPvpLocCheck = true, passGDPvpCheck = true;
         ItemEntry entry = configHandler.getItemEntryByKeyString(thrownPotion.getMetadata("Item64-keyString").get(0).asString());
         
         if (dcHook != null && !passDCPvpLocCheck(location, 4.0)) passDCPvpLocCheck = false;
         if (gdHook != null) {
             if (!passGDPvpCheck(location)) passGDPvpCheck = false;
-            else if (!passGDPvpCheck(shooter.getLocation())) passGDPvpCheck = false;
+            else if (!passGDPvpCheck(player.getLocation())) passGDPvpCheck = false;
         }
 
         if (!passDCPvpLocCheck) {
             event.setCancelled(true);
             thrownPotion.remove();
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- pvp protection!"));
-            refundPlayer(shooter, entry);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- pvp protection!"));
+            refundPlayer(player, entry);
         } else if (!passGDPvpCheck) {
             event.setCancelled(true);
             thrownPotion.remove();
-            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- claim pvp protection!"));
-            refundPlayer(shooter, entry);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Magic blocked -- claim pvp protection!"));
+            refundPlayer(player, entry);
         } else if (thrownPotion.hasMetadata("Item64-randomPotion-left"))
-            damagePlayers(shooter, location, 0.9, 1.3, entry.getDamage(), 20);
+            damagePlayers(player, location, 0.9, 1.3, entry.getDamage(), 20);
     }
 }

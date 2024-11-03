@@ -8,7 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -23,68 +23,70 @@ import dev.tbm00.spigot.item64.ListenerLeader;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-public class ConsumeItem extends ListenerLeader implements Listener {
+public class Usable extends ListenerLeader implements Listener {
 
-    public ConsumeItem(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+    public Usable(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
-    public void onItemConsume(PlayerItemConsumeEvent event) {
-        Player consumer = event.getPlayer();
+    public void onItemUse(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
         ItemStack item = event.getItem();
-        if (item == null || consumer == null) return;
+        if (item == null || player == null) return;
 
         ItemEntry entry = getItemEntryByItem(item);
-        if (entry == null || !entry.getType().equalsIgnoreCase("CONSUMABLE") || !consumer.hasPermission(entry.getUsePerm()))
+        if (entry == null || !entry.getType().equalsIgnoreCase("USABLE") || !player.hasPermission(entry.getUsePerm()))
             return;
 
         event.setCancelled(true);
 
-        if (consumer.getFoodLevel() < entry.getHunger()) {
-            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- you're too hungry!"));
+        if (player.getFoodLevel() < entry.getHunger()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- you're too hungry!"));
             return;
         }
 
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(consumer.getUniqueId(), k -> cooldowns);
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> cooldowns);
         if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
-            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- active cooldown!"));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- active cooldown!"));
             return;
         }
 
-        int hasAmmoItem = hasItem(consumer, entry.getAmmoItem());
+        int hasAmmoItem = hasItem(player, entry.getAmmoItem());
         if (hasAmmoItem == 0) {
-            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No fuel: " + entry.getAmmoItem().toLowerCase()));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No fuel: " + entry.getAmmoItem().toLowerCase()));
             return;
         }
 
         double cost = entry.getMoney();
-        if (ecoHook != null && cost > 0 && !hasMoney(consumer, cost)) {
-            consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- not enough money!"));
+        if (ecoHook != null && cost > 0 && !hasMoney(player, cost)) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Use blocked -- not enough money!"));
             return;
         }
 
-        consumer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Consumed item..."));
+        if (!entry.getMessage().isBlank() && !entry.getMessage().isEmpty()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.translateAlternateColorCodes('&', entry.getMessage())));
+        }
         List<String> effects = entry.getEffects();
         List<String> commands = entry.getCommands();
         boolean removeItem = entry.getRemoveItem();
         if (commands!=null) { 
             for (String command : commands) {
-                String cmd = command.replace("<player>", consumer.getName());
+                String cmd = command.replace("<player>", player.getName());
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
             }
         }
         if (effects!=null) {
-            boolean appliedEffects = applyEffects(consumer, effects, item, removeItem);
-            if (appliedEffects && removeItem) removeItem(consumer, item);
-        } else if (removeItem) removeItem(consumer, item);
+            boolean appliedEffects = applyEffects(player, effects, item, removeItem);
+            if (appliedEffects && removeItem) removeItem(player, item);
+        } else if (removeItem) removeItem(player, item);
 
         // Set cooldowns and remove ammo
-        if (hasAmmoItem == 2) removeItem(consumer, entry.getAmmoItem());
-        adjustCooldown(consumer, entry);
-        adjustHunger(consumer, entry);
-        if (ecoHook != null && cost > 0 && !removeMoney(consumer, cost)) {
-            javaPlugin.getLogger().warning("Error: failed to remove money for " + consumer.getName() + "'s " + entry.getKeyString() + " usage!");
+        if (hasAmmoItem == 2) removeItem(player, entry.getAmmoItem());
+        adjustCooldown(player, entry);
+        adjustHunger(player, entry);
+        if (ecoHook != null && cost > 0 && !removeMoney(player, cost)) {
+            javaPlugin.getLogger().warning("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
         }
     }
 

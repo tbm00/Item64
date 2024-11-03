@@ -105,6 +105,8 @@ public class ItmCommand implements TabExecutor {
 
         ItemEntry entry = getItemEntryByKey(argument);
         if (entry == null || !hasPermission(sender, entry)) return false;
+        if (entry.getMaterial()==null || entry.getMaterial().isBlank() || entry.getType().equalsIgnoreCase("NO_ITEM"))
+            return false;
         
         int quantity = 1;
         if (argument3 != null) quantity = Integer.parseInt(argument3);
@@ -147,14 +149,14 @@ public class ItmCommand implements TabExecutor {
     
             if (meta != null) {
                 if (!entry.getLore().isEmpty())
-                    meta.setLore(entry.getLore().stream()
-                        .map(l -> ChatColor.translateAlternateColorCodes('&', l))
-                        .toList());
-    
-                if (entry.getHideEnchants()) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                    meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
+                if (entry.getHideEnchants())
+                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                 addEnchantments(meta, entry);
-                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
-                meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
+                if (entry.getName()!=null && !entry.getName().isBlank())
+                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
+                if (entry.getKeyString()!=null && !entry.getKeyString().isBlank())
+                    meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
                 item.setItemMeta(meta);
                 item.setAmount(quantity);
             }
@@ -168,7 +170,7 @@ public class ItmCommand implements TabExecutor {
     }
 
     private void addEnchantments(ItemMeta meta, ItemEntry entry) {
-        if (entry.getEnchants().isEmpty()) return;
+        if (entry.getEnchants().isEmpty() || entry.getEnchants()==null) return;
 
         for (String line : entry.getEnchants()) {
             String[] parts = line.split(":");
@@ -179,7 +181,7 @@ public class ItmCommand implements TabExecutor {
             if (enchantment != null) {
                 meta.addEnchant(enchantment, level, true);
             } else {
-                javaPlugin.getLogger().warning("Unknown enchantment: " + name);
+                javaPlugin.getLogger().warning("Unknown enchantment '" + name + "' in " + entry.getKeyString());
             }
         }
     }
@@ -203,8 +205,13 @@ public class ItmCommand implements TabExecutor {
             } else if ("heal".equals(args[0])) {
                 Bukkit.getOnlinePlayers().forEach(player -> list.add(player.getName()));
             }
-        } else if (args.length == 3 && "give".equals(args[0])) {
-            Bukkit.getOnlinePlayers().forEach(player -> list.add(player.getName()));
+        } else if (args.length == 3 && ("give".equals(args[0]) || "heal".equals(args[0]))) {
+            list.clear();
+            if ("give".equals(args[0])) {
+                Bukkit.getOnlinePlayers().forEach(player -> list.add(player.getName()));
+            } else if ("heal".equals(args[0])) {
+                list.add("-fx");
+            }
         }
         return list;
     }
