@@ -46,6 +46,9 @@ public class ConfigHandler {
                 rewardedBreakingChance = eventSection.getDouble("rewardBlockBreaking.chance");
                 List<String> rewardBlockHolder = eventSection.getStringList("rewardBlockBreaking.blocks");
                 rewardedBreaking.addAll(rewardBlockHolder);
+                javaPlugin.getLogger().info("rewardBlockBreaking is enabled. Rewarding breaking of: " + rewardBlockHolder);
+            } else {
+                javaPlugin.getLogger().info("rewardBlockBreaking is disabled.");
             }
 
             // Load BreakEvent: block placing
@@ -54,6 +57,9 @@ public class ConfigHandler {
                 List<String> preventBlockHolder = eventSection.getStringList("preventBlockPlacing.blocks");
                 preventedPlacing.addAll(preventBlockHolder);
                 preventedPlacingMessage = eventSection.getString("preventBlockPlacing.message");
+                javaPlugin.getLogger().info("preventBlockPlacing is enabled. Preventing placement of: " + preventBlockHolder);
+            } else {
+                javaPlugin.getLogger().info("preventBlockPlacing is disabled.");
             }
 
             // Load BreakEvent: block growth
@@ -61,7 +67,11 @@ public class ConfigHandler {
             if (preventedGrowingEnabled) {
                 List<String> preventGrowHolder = eventSection.getStringList("preventBlockGrowth.blocks");
                 preventedGrowing.addAll(preventGrowHolder);
+                javaPlugin.getLogger().info("preventBlockGrowth is enabled. Preventing growth of: " + preventGrowHolder);
+            } else {
+                javaPlugin.getLogger().info("preventBlockGrowth is disabled.");
             }
+
 
             // Load ItemEntries: custom items
             ConfigurationSection entriesSection = javaPlugin.getConfig().getConfigurationSection("itemEntries");

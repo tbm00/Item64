@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -22,16 +23,19 @@ import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-public class PreventUsage extends ItemLeader {
-    private static Set<String> preventedBlocks;
-    private static Set<String> inactiveWorlds;
+public class PreventUsage implements Listener {
+    private final ConfigHandler configHandler;
+    private final DCHook dcHook;
     private final boolean checkAnchorExplosions;
+    private final Set<String> preventedBlocks;
+    private final Set<String> inactiveWorlds;
 
     public PreventUsage(JavaPlugin javaPlugin, ConfigHandler configHandler, DCHook dcHook) {
-        super(javaPlugin, configHandler, null, null, dcHook);
         preventedBlocks = configHandler.getPreventedPlacing();
         checkAnchorExplosions = configHandler.getCheckAnchorExplosions();
         inactiveWorlds = configHandler.getInactiveWorlds();
+        this.configHandler = configHandler;
+        this.dcHook = dcHook;
     }
 
     @EventHandler
@@ -62,7 +66,7 @@ public class PreventUsage extends ItemLeader {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getClickedBlock() == null || event.getClickedBlock().getType() != Material.RESPAWN_ANCHOR) return;
-        if (!checkAnchorExplosions || dcHook==null) return;
+        if (dcHook==null || !checkAnchorExplosions) return;
         if (!(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) return;
 
         Player player = event.getPlayer();
@@ -77,5 +81,19 @@ public class PreventUsage extends ItemLeader {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Anchor explosion blocked -- pvp protection!"));
             event.setCancelled(true);
         }
+    }
+
+    private boolean passDCPvpLocCheck(Location location, double radius) {
+        if (dcHook==null) return true;
+        return location.getWorld().getNearbyEntities(location, radius, radius, radius).stream()
+            .filter(entity -> entity instanceof Player)
+            .map(entity -> (Player) entity)
+            .noneMatch(player -> dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player));
+    }
+    
+    private boolean passDCPvpPlayerCheck(Player player) {
+        if (dcHook==null) return true;
+        else if (dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player)) return false;
+        return true;
     }
 }
