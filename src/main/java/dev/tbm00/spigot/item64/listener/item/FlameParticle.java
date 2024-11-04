@@ -3,7 +3,6 @@ package dev.tbm00.spigot.item64.listener.item;
 import java.util.List;
 
 import org.bukkit.util.Vector;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -19,6 +18,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 import net.milkbowl.vault.economy.Economy;
 
+import dev.tbm00.spigot.item64.Item64;
 import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.*;
@@ -27,8 +27,8 @@ import dev.tbm00.spigot.item64.listener.InteractHandler;
 
 public class FlameParticle extends ItemLeader implements InteractHandler {
 
-    public FlameParticle(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
-        super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
+    public FlameParticle(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+        super(item64, configHandler, ecoHook, gdHook, dcHook);
         super.registerHandler(this);
     }
 
@@ -77,7 +77,7 @@ public class FlameParticle extends ItemLeader implements InteractHandler {
 
         // Set cooldowns and remove resources
         if (ecoHook != null && cost > 0 && !removeMoney(player, cost)) {
-            javaPlugin.getLogger().warning("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
+            item64.logRed("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
         }
         if (hasAmmoItem == 2) removeItem(player, entry.getAmmoItem());
         adjustHunger(player, entry);
@@ -87,7 +87,7 @@ public class FlameParticle extends ItemLeader implements InteractHandler {
             public void run() {
                 adjustCooldown(player, entry);
             }
-        }.runTaskLater(javaPlugin, entry.getCooldown() * 20);
+        }.runTaskLater(item64, entry.getCooldown() * 20);
     }
 
     private void shootFlames(Player player, ItemEntry entry) {
@@ -121,7 +121,7 @@ public class FlameParticle extends ItemLeader implements InteractHandler {
                         player.getWorld().spawnParticle(Particle.FLAME, offsetLocation, 0, offsetPath.getX(), offsetPath.getY(), offsetPath.getZ(), 0.1);
                     }
                 }
-            }.runTaskLater(javaPlugin, i);
+            }.runTaskLater(item64, i);
         }
     }
 
@@ -157,7 +157,7 @@ public class FlameParticle extends ItemLeader implements InteractHandler {
                                 targetBlockAbove.setType(Material.FIRE);
                             damageEntities(player, targetBlockAbove.getLocation(), 0.9, 1.5, entry.getDamage(), 60);
                         }
-                    }.runTaskLater(javaPlugin, 12);
+                    }.runTaskLater(item64, 12);
                 }
             }
         }

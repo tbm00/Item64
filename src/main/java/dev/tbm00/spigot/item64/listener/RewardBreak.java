@@ -20,16 +20,16 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
+import dev.tbm00.spigot.item64.Item64;
 import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class RewardBreak implements Listener {
-    private final JavaPlugin javaPlugin;
+    private final Item64 item64;
     private final ConsoleCommandSender console;
     private final ConfigHandler configHandler;
     private final boolean enabled;
@@ -37,8 +37,8 @@ public class RewardBreak implements Listener {
     private static List<ItemEntry> rewards = new ArrayList<>();
     private Random rand;
 
-    public RewardBreak(JavaPlugin javaPlugin, ConfigHandler configHandler) {
-        this.javaPlugin = javaPlugin;
+    public RewardBreak(Item64 item64, ConfigHandler configHandler) {
+        this.item64 = item64;
         this.configHandler = configHandler;
         enabled = configHandler.isRewardedBreakingEnabled();
         console = Bukkit.getServer().getConsoleSender();
@@ -106,21 +106,22 @@ public class RewardBreak implements Listener {
                 if (entry.getName()!=null && !entry.getName().isBlank())
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
                 if (entry.getKeyString()!=null && !entry.getKeyString().isBlank())
-                    meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
+                    meta.getPersistentDataContainer().set(new NamespacedKey(item64, entry.getKeyString()), PersistentDataType.STRING, "true");
                 item.setItemMeta(meta);
                 item.setAmount(1);
                 block.getWorld().dropItem(block.getLocation(), item);
                 rewarded = true;
             }
         } catch (Exception e) {
-            javaPlugin.getLogger().warning("Error when giving reward " + entry.getKeyString() + " to " + player.getDisplayName() + " - " + e.getMessage());
+            item64.logRed("Error when giving reward " + entry.getKeyString() + " to " + player.getDisplayName() + " - ");
+            item64.getLogger().warning(e.getMessage());
             return;
         }
         if (rewarded) {
             if (!entry.getRewardMessage().isBlank() && !entry.getRewardMessage().isEmpty()) {
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.translateAlternateColorCodes('&', entry.getRewardMessage())));
             }
-            javaPlugin.getLogger().info(player.getDisplayName() + " found reward: " + entry.getKeyString());
+            item64.logYellow(player.getDisplayName() + " found reward: " + entry.getKeyString());
         }
     }
 
@@ -136,7 +137,7 @@ public class RewardBreak implements Listener {
             if (enchantment != null) {
                 meta.addEnchant(enchantment, level, true);
             } else {
-                javaPlugin.getLogger().warning("Unknown enchantment '" + name + "' in " + entry.getKeyString());
+                item64.logRed("Unknown enchantment '" + name + "' in " + entry.getKeyString());
             }
         }
     }

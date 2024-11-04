@@ -17,21 +17,21 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
+import dev.tbm00.spigot.item64.Item64;
 import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ItmCommand implements TabExecutor {
-    private final JavaPlugin javaPlugin;
+    private final Item64 item64;
     private final ConfigHandler configHandler;
     private final List<ItemEntry> itemEntries;
 
-    public ItmCommand(JavaPlugin javaPlugin, ConfigHandler configHandler) {
-        this.javaPlugin = javaPlugin;
+    public ItmCommand(Item64 item64, ConfigHandler configHandler) {
+        this.item64 = item64;
         this.configHandler = configHandler;
         this.itemEntries = configHandler.getItemEntries();
     }
@@ -131,7 +131,7 @@ public class ItmCommand implements TabExecutor {
             }
             return (Player) sender;
         } else {
-            Player player = javaPlugin.getServer().getPlayer(arg);
+            Player player = item64.getServer().getPlayer(arg);
             if (player == null) {
                 sender.sendMessage(ChatColor.RED + "Could not find target player!");
             }
@@ -157,15 +157,16 @@ public class ItmCommand implements TabExecutor {
                 if (entry.getName()!=null && !entry.getName().isBlank())
                     meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
                 if (entry.getKeyString()!=null && !entry.getKeyString().isBlank())
-                    meta.getPersistentDataContainer().set(new NamespacedKey(javaPlugin, entry.getKeyString()), PersistentDataType.STRING, "true");
+                    meta.getPersistentDataContainer().set(new NamespacedKey(item64, entry.getKeyString()), PersistentDataType.STRING, "true");
                 item.setItemMeta(meta);
                 item.setAmount(quantity);
             }
             player.getInventory().addItem(item);
             player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());
-            javaPlugin.getLogger().info(player.getDisplayName() + " has been given the " + entry.getKeyString());
+            item64.logGreen(player.getDisplayName() + " has been given the " + entry.getKeyString());
         } catch (Exception e) {
-            javaPlugin.getLogger().warning("Error when giving item: " + e.getMessage());
+            item64.logRed("Error when giving an item: ");
+            item64.getLogger().warning(e.getMessage());
             player.sendMessage(ChatColor.RED + "There was an error giving the item.");
         }
     }
@@ -182,7 +183,7 @@ public class ItmCommand implements TabExecutor {
             if (enchantment != null) {
                 meta.addEnchant(enchantment, level, true);
             } else {
-                javaPlugin.getLogger().warning("Unknown enchantment '" + name + "' in " + entry.getKeyString());
+                item64.logRed("Unknown enchantment '" + name + "' in " + entry.getKeyString());
             }
         }
     }

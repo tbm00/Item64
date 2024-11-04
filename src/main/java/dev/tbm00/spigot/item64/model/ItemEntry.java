@@ -3,7 +3,8 @@ package dev.tbm00.spigot.item64.model;
 import java.util.List;
 
 import org.bukkit.NamespacedKey;
-import org.bukkit.plugin.java.JavaPlugin;
+
+import dev.tbm00.spigot.item64.Item64;
 
 public class ItemEntry {
     private int id;
@@ -36,7 +37,7 @@ public class ItemEntry {
     private boolean giveItem;
     private List<String> rewardCommands;
     
-    public ItemEntry(JavaPlugin javaPlugin, int id, String givePerm, String usePerm, String type, String KEY, double money, int hunger, 
+    public ItemEntry(Item64 item64, int id, String givePerm, String usePerm, String type, String KEY, double money, int hunger, 
                         int cooldown, double random, double damage, String ammoItem, boolean removeAmmo, String material, String name, List<String> lore, 
                         boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands, String message, List<String> effects, List<String> rEffects, 
                         List<String> lEffects, double power, double rewardChance, String rewardMessage, boolean giveItem, List<String> rewardCommands) {
@@ -44,7 +45,7 @@ public class ItemEntry {
         this.givePerm = givePerm;
         this.usePerm = usePerm;
         this.type = type;
-        this.key = new NamespacedKey(javaPlugin, KEY);
+        this.key = new NamespacedKey(item64, KEY);
         this.keyString = KEY;
         this.money = money;
         this.hunger = hunger;

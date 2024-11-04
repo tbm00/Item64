@@ -3,7 +3,6 @@ package dev.tbm00.spigot.item64.listener.item;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,6 +23,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 import net.milkbowl.vault.economy.Economy;
 
+import dev.tbm00.spigot.item64.Item64;
 import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
@@ -32,8 +32,8 @@ import dev.tbm00.spigot.item64.listener.InteractHandler;
 
 public class RandomPotion extends ItemLeader implements InteractHandler {
 
-    public RandomPotion(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
-        super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
+    public RandomPotion(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+        super(item64, configHandler, ecoHook, gdHook, dcHook);
         super.registerHandler(this);
     }
 
@@ -85,7 +85,7 @@ public class RandomPotion extends ItemLeader implements InteractHandler {
         adjustCooldown(player, entry);
         adjustHunger(player, entry);
         if (ecoHook != null && cost > 0 && !removeMoney(player, cost))
-            javaPlugin.getLogger().warning("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
+            item64.logRed("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
         if (hasAmmoItem == 2)
             removeItem(player, entry.getAmmoItem());
     }
@@ -116,17 +116,18 @@ public class RandomPotion extends ItemLeader implements InteractHandler {
                     if (!rightClick) {
                         thrownPotion.setVisualFire(true);
                         if (entry.getDamage() >= 0)
-                            thrownPotion.setMetadata("Item64-randomPotion-left", new FixedMetadataValue(javaPlugin, "true"));
+                            thrownPotion.setMetadata("Item64-randomPotion-left", new FixedMetadataValue(item64, "true"));
                     }
-                    thrownPotion.setMetadata("Item64-keyString", new FixedMetadataValue(javaPlugin, entry.getKeyString()));
+                    thrownPotion.setMetadata("Item64-keyString", new FixedMetadataValue(item64, entry.getKeyString()));
                     thrownPotion.setShooter(player);
                     magicPotions.add(thrownPotion);
                 });
             } else {
-                javaPlugin.getLogger().warning("Unknown potion effect type: " + parts[0]);
+                item64.logRed("Unknown potion effect type: " + parts[0]);
             }
         } catch (Exception e) {
-            javaPlugin.getLogger().warning("Exception while throwing potion: " + " - " + e.getMessage());
+            item64.logRed("Exception while throwing potion: " + " - ");
+            item64.getLogger().warning(e.getMessage());
         }
     }
 

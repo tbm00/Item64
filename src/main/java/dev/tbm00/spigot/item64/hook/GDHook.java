@@ -5,8 +5,6 @@ import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.griefdefender.api.Core;
 import com.griefdefender.api.GriefDefender;
@@ -14,15 +12,15 @@ import com.griefdefender.api.claim.Claim;
 import com.griefdefender.api.claim.TrustTypes;
 import com.griefdefender.lib.flowpowered.math.vector.Vector3i;
 
+import dev.tbm00.spigot.item64.Item64;
+
 public class GDHook {
 	private final List<String> ignoredClaims;
 
-	public GDHook(JavaPlugin javaPlugin) {
-		ConfigurationSection gdSection = javaPlugin.getConfig().getConfigurationSection("hooks.GriefDefender");
-		if (gdSection != null) {
-			ignoredClaims = gdSection.getStringList("ignoredClaims");
-			if (ignoredClaims != null && !ignoredClaims.isEmpty()) javaPlugin.getLogger().info("ignoredClaims: " + ignoredClaims);
-		} else ignoredClaims = null;
+	public GDHook(Item64 item64, List<String> ignoredClaims) {
+		if (ignoredClaims != null && !ignoredClaims.isEmpty()) {
+			this.ignoredClaims = ignoredClaims;
+		} else this.ignoredClaims = null;
 	}
 	
 	public String getRegionID(Location location) {

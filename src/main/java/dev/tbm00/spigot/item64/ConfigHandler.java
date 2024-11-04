@@ -6,95 +6,132 @@ import java.util.List;
 import java.util.Set;
 
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ConfigHandler {
-    private final JavaPlugin javaPlugin;
+    private final Item64 item64;
     private static boolean enabled = false;
+    
+    private boolean vaultEnabled = false;
+    private boolean deluxeCombatEnabled = false;
+    private boolean griefDefenderEnabled = false;
+    private boolean checkAnchorExplosions = false;
+    private List<String> ignoredClaims = null;
+
+    private Set<String> inactiveWorlds = new HashSet<>();
+    private boolean rewardedBreakingEnabled = false;
+    private String rewardedBreakingJoinMessage = "";
+    private int rewardedBreakingJoinMessageDelay = 0;
+    private double rewardedBreakingChance = 0.0;
+    private Set<String> rewardedBreaking = new HashSet<>();
+    private boolean preventedPlacingEnabled = false;
+    private String preventedPlacingMessage = "";
+    private Set<String> preventedPlacing = new HashSet<>();
+    private boolean preventedGrowingEnabled = false;
+    private boolean preventedGrowingLog = false;
+    private Set<String> preventedGrowing = new HashSet<>();
+    
+
     private static List<ItemEntry> itemEntries = new ArrayList<>();
-    private static Set<String> inactiveWorlds = new HashSet<>();
-    private static boolean rewardedBreakingEnabled = false;
-    private static String rewardedBreakingJoinMessage = "";
-    private static int rewardedBreakingJoinMessageDelay = 0;
-    private static double rewardedBreakingChance = 0.0;
-    private static Set<String> rewardedBreaking = new HashSet<>();
-    private static boolean preventedPlacingEnabled = false;
-    private static String preventedPlacingMessage = "";
-    private static Set<String> preventedPlacing = new HashSet<>();
-    private static boolean preventedGrowingEnabled = false;
-    private static Set<String> preventedGrowing = new HashSet<>();
-    private static boolean checkAnchorExplosions = false;
 
-    public ConfigHandler(JavaPlugin javaPlugin) {
-        this.javaPlugin = javaPlugin;
+    public ConfigHandler(Item64 item64) {
+        this.item64 = item64;
         try {
-            // Load Hook: respawn anchor PVP check
-            checkAnchorExplosions = javaPlugin.getConfig().getConfigurationSection("hooks.DeluxeCombat").getBoolean("anchorExplosionPvpCheck");
-
-            // Load BreakEvent: inactive worlds
-            ConfigurationSection eventSection = javaPlugin.getConfig().getConfigurationSection("breakEvent");
-            List<String> worldsHolder = eventSection.getStringList("inactiveWorlds");
-            inactiveWorlds.addAll(worldsHolder);
-
-            // Load BreakEvent: block breaking
-            rewardedBreakingEnabled = eventSection.getBoolean("rewardBlockBreaking.enabled");
-            if (rewardedBreakingEnabled) {
-                rewardedBreakingJoinMessage = eventSection.getString("rewardBlockBreaking.joinMessage");
-                rewardedBreakingJoinMessageDelay = 20*eventSection.getInt("rewardBlockBreaking.joinMessageDelay");
-                rewardedBreakingChance = eventSection.getDouble("rewardBlockBreaking.chance");
-                List<String> rewardBlockHolder = eventSection.getStringList("rewardBlockBreaking.blocks");
-                rewardedBreaking.addAll(rewardBlockHolder);
-                javaPlugin.getLogger().info("rewardBlockBreaking is enabled. Rewarding breaking of: " + rewardBlockHolder);
-            } else {
-                javaPlugin.getLogger().info("rewardBlockBreaking is disabled.");
+            // Load Hooks
+            ConfigurationSection hookSection = item64.getConfig().getConfigurationSection("hooks");
+            if (hookSection != null) {
+                loadHooks(hookSection);
             }
 
-            // Load BreakEvent: block placing
-            preventedPlacingEnabled = eventSection.getBoolean("preventBlockPlacing.enabled");
-            if (preventedPlacingEnabled) {
-                List<String> preventBlockHolder = eventSection.getStringList("preventBlockPlacing.blocks");
-                preventedPlacing.addAll(preventBlockHolder);
-                preventedPlacingMessage = eventSection.getString("preventBlockPlacing.message");
-                javaPlugin.getLogger().info("preventBlockPlacing is enabled. Preventing placement of: " + preventBlockHolder);
-            } else {
-                javaPlugin.getLogger().info("preventBlockPlacing is disabled.");
+            // Load BreakEvent
+            ConfigurationSection eventSection = item64.getConfig().getConfigurationSection("breakEvent");
+            if (eventSection != null) {
+                loadBreakEvent(eventSection);
             }
-
-            // Load BreakEvent: block growth
-            preventedGrowingEnabled = eventSection.getBoolean("preventBlockGrowth.enabled");
-            if (preventedGrowingEnabled) {
-                List<String> preventGrowHolder = eventSection.getStringList("preventBlockGrowth.blocks");
-                preventedGrowing.addAll(preventGrowHolder);
-                javaPlugin.getLogger().info("preventBlockGrowth is enabled. Preventing growth of: " + preventGrowHolder);
-            } else {
-                javaPlugin.getLogger().info("preventBlockGrowth is disabled.");
-            }
-
-
-            // Load ItemEntries: custom items
-            ConfigurationSection entriesSection = javaPlugin.getConfig().getConfigurationSection("itemEntries");
+            
+            // Load ItemEntries
+            ConfigurationSection entriesSection = item64.getConfig().getConfigurationSection("itemEntries");
             if (entriesSection != null) {
-                enabled = true;
-                for (String key : entriesSection.getKeys(false)) {
-                    if (key.equalsIgnoreCase("enabled")) 
-                        continue;
-                    try {
-                        int id = Integer.parseInt(key);
-                        ConfigurationSection itemEntrySec = entriesSection.getConfigurationSection(key);
-        
-                        if (itemEntrySec != null && itemEntrySec.getBoolean("enabled"))
-                            loadEntry(itemEntrySec, id);
-                    } catch (NumberFormatException e) {
-                        javaPlugin.getLogger().warning("Skipping invalid itemEntrySec key: " + key);
-                        continue;
-                    }
-                }
+                loadItemEntries(entriesSection);
             } else enabled = false;
         } catch (Exception e) {
-            javaPlugin.getLogger().warning("Caught exception loading config: " + e.getMessage());
+            item64.logRed("Caught exception loading config: ");
+            item64.getLogger().warning(e.getMessage());
             enabled = false;
+        }
+    }
+
+    private void loadHooks(ConfigurationSection hookSection) {
+        if (hookSection.getBoolean("Vault.enabled")) {
+            vaultEnabled = true;
+        }
+        if (hookSection.getBoolean("DeluxeCombat.enabled")) {
+            deluxeCombatEnabled = true;
+            checkAnchorExplosions = hookSection.getBoolean("DeluxeCombat.anchorExplosionPvpCheck");
+        }
+        if (hookSection.getBoolean("GriefDefender.enabled")) {
+            griefDefenderEnabled = true;
+            ignoredClaims = hookSection.getStringList("GriefDefender.ignoredClaims");
+        }
+    }
+
+    private void loadBreakEvent(ConfigurationSection eventSection) {
+        // active worlds
+        List<String> worldsHolder = eventSection.getStringList("inactiveWorlds");
+        inactiveWorlds.addAll(worldsHolder);
+
+        // reward block breaking listener
+        rewardedBreakingEnabled = eventSection.getBoolean("rewardBlockBreaking.enabled");
+        if (rewardedBreakingEnabled) {
+            rewardedBreakingJoinMessage = eventSection.getString("rewardBlockBreaking.joinMessage");
+            rewardedBreakingJoinMessageDelay = 20*eventSection.getInt("rewardBlockBreaking.joinMessageDelay");
+            rewardedBreakingChance = eventSection.getDouble("rewardBlockBreaking.chance");
+            List<String> rewardBlockHolder = eventSection.getStringList("rewardBlockBreaking.blocks");
+            rewardedBreaking.addAll(rewardBlockHolder);
+            item64.logGreen("rewardBlockBreaking is enabled. Rewarding breaking of: " + rewardBlockHolder);
+        } else {
+            item64.logYellow("rewardBlockBreaking is disabled.");
+        }
+
+        // prevent block placing listener
+        preventedPlacingEnabled = eventSection.getBoolean("preventBlockPlacing.enabled");
+        if (preventedPlacingEnabled) {
+            List<String> preventBlockHolder = eventSection.getStringList("preventBlockPlacing.blocks");
+            preventedPlacing.addAll(preventBlockHolder);
+            preventedPlacingMessage = eventSection.getString("preventBlockPlacing.message");
+            item64.logGreen("preventBlockPlacing is enabled. Preventing placement of: " + preventBlockHolder);
+        } else {
+            item64.logYellow("preventBlockPlacing is disabled.");
+        }
+
+        // prevent block growth listener
+        preventedGrowingEnabled = eventSection.getBoolean("preventBlockGrowth.enabled");
+        if (preventedGrowingEnabled) {
+            preventedGrowingLog = eventSection.getBoolean("preventBlockGrowth.logInConsole");
+            List<String> preventGrowHolder = eventSection.getStringList("preventBlockGrowth.blocks");
+            preventedGrowing.addAll(preventGrowHolder);
+            item64.logGreen("preventBlockGrowth is enabled. Preventing growth of: " + preventGrowHolder);
+        } else {
+            item64.logYellow("preventBlockGrowth is disabled.");
+        }
+    }
+
+    private void loadItemEntries(ConfigurationSection entriesSection) {
+        enabled = true;
+        for (String key : entriesSection.getKeys(false)) {
+            if (key.equalsIgnoreCase("enabled")) 
+                continue;
+            try {
+                int id = Integer.parseInt(key);
+                ConfigurationSection itemEntrySec = entriesSection.getConfigurationSection(key);
+
+                if (itemEntrySec != null && itemEntrySec.getBoolean("enabled"))
+                    loadEntry(itemEntrySec, id);
+            } catch (NumberFormatException e) {
+                item64.logRed("Skipping invalid itemEntry key: " + key);
+                continue;
+            }
         }
     }
 
@@ -136,15 +173,15 @@ public class ConfigHandler {
         boolean giveItem = itemEntrySec.contains("breakEvent.giveRewardItem") ? itemEntrySec.getBoolean("breakEvent.giveRewardItem") : false;
         List<String> rewardCommands = itemEntrySec.contains("breakEvent.rewardCommands") ? itemEntrySec.getStringList("breakEvent.rewardCommands") : null;
 
-        //javaPlugin.getLogger().info("entries["+ (id-1) + "] -> " + KEY + " @ " + rewardChance);
+        //item64.logYellow("entries["+ (id-1) + "] -> " + KEY + " @ " + rewardChance);
         if (type != null && KEY != null) {
-            ItemEntry entry = new ItemEntry(javaPlugin, id, givePerm, usePerm, type, KEY, money, hunger, cooldown, random, damage, 
+            ItemEntry entry = new ItemEntry(item64, id, givePerm, usePerm, type, KEY, money, hunger, cooldown, random, damage, 
                                         ammoItem, removeAmmo, material, name, lore, hideEnchants, enchants, removeItem, commands, message, effects, 
                                         rEffects, lEffects, power, rewardChance, rewardMessage, giveItem, rewardCommands);
             itemEntries.add(entry);
-            javaPlugin.getLogger().info("Loaded itemEntrySec: " + id + " " + KEY + " " + type + " " + material + " " + usePerm + " " + rewardChance);
+            item64.logGreen("Loaded itemEntry: " + id + ") " + KEY + ", " + type + ", " + rewardChance + "%");
         } else {
-            javaPlugin.getLogger().warning("Error: Poorly defined itemEntry: " + id + " " + KEY + " " + type + " " + material + " " + usePerm + " " + rewardChance);
+            item64.logRed("Errored itemEntry: " + id + ") " + KEY + ", " + type + ", " + rewardChance + "%");
         }
     }
 
@@ -152,11 +189,26 @@ public class ConfigHandler {
         return enabled;
     }
 
-
+    public boolean isVaultEnabled() {
+        return vaultEnabled;
+    }
+    
+    public boolean isDeluxeCombatEnabled() {
+        return deluxeCombatEnabled;
+    }
+    
+    public boolean isGriefDefenderEnabled() {
+        return griefDefenderEnabled;
+    }
+    
     public boolean getCheckAnchorExplosions() {
         return checkAnchorExplosions;
     }
-
+    
+    public List<String> getIgnoredClaims() {
+        return ignoredClaims;
+    }
+    
     public List<ItemEntry> getItemEntries() {
         return itemEntries;
     }
@@ -206,6 +258,10 @@ public class ConfigHandler {
 
     public boolean isPreventedGrowingEnabled() {
         return preventedGrowingEnabled;
+    }
+
+    public boolean isPreventedGrowingLogged() {
+        return preventedGrowingLog;
     }
 
     public Set<String> getPreventedGrowing() {

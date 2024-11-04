@@ -2,7 +2,6 @@ package dev.tbm00.spigot.item64.listener.item;
 
 import java.util.List;
 
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.EnderPearl;
@@ -17,6 +16,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 import net.milkbowl.vault.economy.Economy;
 
+import dev.tbm00.spigot.item64.Item64;
 import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
@@ -25,8 +25,8 @@ import dev.tbm00.spigot.item64.listener.InteractHandler;
 
 public class LightningPearl extends ItemLeader implements InteractHandler {
 
-    public LightningPearl(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
-        super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
+    public LightningPearl(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+        super(item64, configHandler, ecoHook, gdHook, dcHook);
         super.registerHandler(this);
     }
 
@@ -72,7 +72,7 @@ public class LightningPearl extends ItemLeader implements InteractHandler {
 
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
         EnderPearl pearl = player.launchProjectile(EnderPearl.class);
-        pearl.setMetadata("Item64-keyString", new FixedMetadataValue(javaPlugin, entry.getKeyString()));
+        pearl.setMetadata("Item64-keyString", new FixedMetadataValue(item64, entry.getKeyString()));
         lightningPearls.add(pearl);
         double random = entry.getRandom();
         if (random > 0) randomizeProjectile(pearl, random);
@@ -81,7 +81,7 @@ public class LightningPearl extends ItemLeader implements InteractHandler {
         adjustCooldown(player, entry);
         adjustHunger(player, entry);
         if (ecoHook != null && cost > 0 && !removeMoney(player, cost)) {
-            javaPlugin.getLogger().warning("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
+            item64.logRed("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
         }
         if (hasAmmoItem == 2) removeItem(player, entry.getAmmoItem());
     }

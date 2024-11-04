@@ -9,7 +9,6 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.util.Vector;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -26,12 +25,13 @@ import org.bukkit.inventory.ItemStack;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 
+import dev.tbm00.spigot.item64.Item64;
 import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ItemLeader implements Listener {
-    protected final JavaPlugin javaPlugin;
+    protected final Item64 item64;
     protected final ConfigHandler configHandler;
     protected final Economy ecoHook;
     protected final GDHook gdHook;
@@ -44,8 +44,8 @@ public class ItemLeader implements Listener {
     protected static final ArrayList<Projectile> magicPotions = new ArrayList<>();
     private final List<InteractHandler> itemHandlers = new ArrayList<>();
 
-    public ItemLeader(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
-        this.javaPlugin = javaPlugin;
+    public ItemLeader(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+        this.item64 = item64;
         this.configHandler = configHandler;
         this.ecoHook = ecoHook;
         this.gdHook = gdHook;
@@ -128,7 +128,7 @@ public class ItemLeader implements Listener {
 
         Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
         if (itemMaterial == null) {
-            javaPlugin.getLogger().warning("Error: Poorly defined item " + itemName);
+            item64.logRed("Error: Poorly defined item " + itemName);
             return 1;
         }
         for (ItemStack itemStack : player.getInventory().getContents()) {
@@ -172,7 +172,7 @@ public class ItemLeader implements Listener {
 
         Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
         if (itemMaterial == null) {
-            javaPlugin.getLogger().warning("Error: Unknown item " + itemMaterial);
+            item64.logRed("Error: Unknown item " + itemMaterial);
             return false;
         }
 

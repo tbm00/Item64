@@ -2,7 +2,6 @@ package dev.tbm00.spigot.item64.listener.item;
 
 import java.util.List;
 
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -17,6 +16,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 import net.milkbowl.vault.economy.Economy;
 
+import dev.tbm00.spigot.item64.Item64;
 import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.listener.ItemLeader;
@@ -24,8 +24,8 @@ import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class Consumable extends ItemLeader {
 
-    public Consumable(JavaPlugin javaPlugin, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
-        super(javaPlugin, configHandler, ecoHook, gdHook, dcHook);
+    public Consumable(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+        super(item64, configHandler, ecoHook, gdHook, dcHook);
     }
 
     @EventHandler
@@ -89,7 +89,7 @@ public class Consumable extends ItemLeader {
         adjustCooldown(player, entry);
         adjustHunger(player, entry);
         if (ecoHook != null && cost > 0 && !removeMoney(player, cost)) {
-            javaPlugin.getLogger().warning("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
+            item64.logRed("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
         }
     }
 
@@ -103,11 +103,12 @@ public class Consumable extends ItemLeader {
                 if (effectType != null) {
                     player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true));
                 } else {
-                    javaPlugin.getLogger().warning("Unknown potion effect type: " + parts[0]);
+                    item64.logRed("Unknown potion effect type: " + parts[0]);
                     return false;
                 }
             } catch (Exception e) {
-                javaPlugin.getLogger().warning("Error parsing effect: " + line + " - " + e.getMessage());
+                item64.logRed("Error parsing effect: " + line + " - ");
+                item64.getLogger().warning(e.getMessage());
                 return false;
             }
         }
