@@ -93,6 +93,7 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 **`RANDOM_POTION`** 
 - Shoots a random splash potion.
 - Applicable to most items.
+- extraDamage is only applied to potions shot via left-clicking.
 - Has GriefDefender check that prevents potion shots entirely if PVP is toggled off in any affected claims.
 - Has DeluxeCombat check that prevents potion shots entirely if PVP is toggled off for any affected players.
 
@@ -257,7 +258,7 @@ Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.e
 ## Default Config
 
 ```
-# Item64 v0.2.14-beta by @tbm00
+# Item64 v0.2.15-beta by @tbm00
 # https://github.com/tbm00/Item64
 
 enabled: true

@@ -33,8 +33,8 @@ public class RewardBreak implements Listener {
     private final ConsoleCommandSender console;
     private final ConfigHandler configHandler;
     private final boolean enabled;
-    private static Set<String> inactiveWorlds;
-    private static List<ItemEntry> rewards = new ArrayList<>();
+    private final Set<String> inactiveWorlds;
+    private final List<ItemEntry> rewards = new ArrayList<>();
     private Random rand;
 
     public RewardBreak(Item64 item64, ConfigHandler configHandler) {

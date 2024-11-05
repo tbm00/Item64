@@ -8,19 +8,21 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.bukkit.util.Vector;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.EventHandler;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
+
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -30,7 +32,7 @@ import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-public class ItemLeader implements Listener {
+public class UsageHelper {
     protected final Item64 item64;
     protected final ConfigHandler configHandler;
     protected final Economy ecoHook;
@@ -42,9 +44,8 @@ public class ItemLeader implements Listener {
     protected static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
     protected static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
     protected static final ArrayList<Projectile> magicPotions = new ArrayList<>();
-    private final List<InteractHandler> itemHandlers = new ArrayList<>();
 
-    public ItemLeader(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+    public UsageHelper(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         this.item64 = item64;
         this.configHandler = configHandler;
         this.ecoHook = ecoHook;
@@ -71,27 +72,6 @@ public class ItemLeader implements Listener {
             for (ItemEntry entry : itemEntries) {
                 int index = entry.getID()-1;
                 cooldowns.set(index, Long.valueOf(entry.getCooldown()));
-            }
-        }
-    }
-
-    public void registerHandler(InteractHandler handler) {
-        itemHandlers.add(handler);
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack item = event.getItem();
-        if (item == null || player == null) return;
-        
-        ItemEntry entry = getItemEntryByItem(item);
-        if (entry == null || !player.hasPermission(entry.getUsePerm())) return;
-
-        for (InteractHandler handler : itemHandlers) {
-            if (handler.canHandle(entry)) {
-                handler.handle(event, player, entry);
-                break;
             }
         }
     }
@@ -307,5 +287,86 @@ public class ItemLeader implements Listener {
             }
         }
         return damaged;
+    }
+
+    // HELPER: CONSUMABLE, USABLE
+    protected boolean applyEffects(Player player, List<String> effects, ItemStack item, boolean removeItem) {
+        for (String line : effects) {
+            try {
+                String[] parts = line.split(":");
+                PotionEffectType effectType = PotionEffectType.getByName(parts[0].toUpperCase());
+                int amplifier = Integer.parseInt(parts[1]);
+                int duration = Integer.parseInt(parts[2])*20;
+                if (effectType != null) {
+                    player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true));
+                } else {
+                    item64.logRed("Unknown potion effect type: " + parts[0]);
+                    return false;
+                }
+            } catch (Exception e) {
+                item64.logRed("Error parsing effect: " + line + " - ");
+                item64.getLogger().warning(e.getMessage());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // HELPER: ALL
+    // if it doesnt pass, returns 0, if it does, it returns hasAmmoItem
+    protected int passUsageChecks(Player player, ItemEntry entry, Projectile projectile) {
+        // Do claim-pvp, hunger, cooldown, ammo, and curreny checks & charges
+        if (!passGDPvpCheck(player.getLocation())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim pvp protection!"));
+            return 0;
+        }
+
+        if (player.getFoodLevel() < entry.getHunger()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- you're too hungry!"));
+            return 0;
+        }
+
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> cooldowns);
+        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- active cooldown!"));
+            return 0;
+        }
+
+        int hasAmmoItem = hasItem(player, entry.getAmmoItem());
+        if (hasAmmoItem == 0) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
+            return 0;
+        }
+
+        double cost = entry.getMoney();
+        if (ecoHook != null && cost > 0 && !hasMoney(player, cost)) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- not enough money!"));
+            return 0;
+        }
+        return hasAmmoItem;
+    }
+
+    // HELPER: EXPLOSIVE_ARROW, LIGHTNING_PEARL, FLAME_PARTICLE
+    protected boolean passDamageChecks(Player player, Location location, ItemEntry entry) {
+        boolean passDCPvpLocCheck = true, passGDPvpCheck = true, passGDBuilderCheck = true;
+
+        if (dcHook != null && !passDCPvpLocCheck(location, 4.0)) passDCPvpLocCheck = false;
+        if (gdHook != null) {
+            if (!passGDPvpCheck(location)) passGDPvpCheck = false;
+            else if (!passGDPvpCheck(location)) passGDPvpCheck = false;
+            else if (!passGDBuilderCheck(player, location, 6)) passGDBuilderCheck = false;
+        }
+
+        if (!passDCPvpLocCheck) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- pvp protection!"));
+            return false;
+        } else if (!passGDPvpCheck) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- claim pvp protection!"));
+            return false;
+        } else if (!passGDBuilderCheck && entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- claim block protection!"));
+            return false;
+        }
+        return true;
     }
 }

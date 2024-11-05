@@ -2,18 +2,19 @@ package dev.tbm00.spigot.item64.listener;
 
 import java.util.UUID;
 
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import net.md_5.bungee.api.chat.TextComponent;
 
 import dev.tbm00.spigot.item64.Item64;
 import dev.tbm00.spigot.item64.ConfigHandler;
 
-public class PlayerConnection extends ItemLeader {
+public class PlayerConnection extends UsageHelper implements Listener {
 
     public PlayerConnection(Item64 item64, ConfigHandler configHandler) {
         super(item64, configHandler, null, null, null);
@@ -31,8 +32,6 @@ public class PlayerConnection extends ItemLeader {
                 );
             }
         }.runTaskLater(item64, configHandler.getRewardedBreakingJoinMessageDelay());
-
-        // cooldown handling unnecessary on join
     }
 
     @EventHandler
