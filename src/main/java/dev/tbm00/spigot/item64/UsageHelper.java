@@ -1,10 +1,11 @@
-package dev.tbm00.spigot.item64.listener;
+package dev.tbm00.spigot.item64;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -26,24 +27,21 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
-
-import dev.tbm00.spigot.item64.Item64;
-import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class UsageHelper {
-    protected final Item64 item64;
-    protected final ConfigHandler configHandler;
-    protected final Economy ecoHook;
-    protected final GDHook gdHook;
-    protected final DCHook dcHook;
-    protected static List<ItemEntry> itemEntries = null;
-    protected static final List<Long> cooldowns = new ArrayList<>();
-    protected static final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
-    protected static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
-    protected static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
-    protected static final ArrayList<Projectile> magicPotions = new ArrayList<>();
+    private final Item64 item64;
+    private final ConfigHandler configHandler;
+    private final Economy ecoHook;
+    private final GDHook gdHook;
+    private final DCHook dcHook;
+    private final List<ItemEntry> itemEntries;
+    public static final List<Long> cooldowns = new ArrayList<>();
+    public static final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
+    public static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
+    public static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
+    public static final ArrayList<Projectile> magicPotions = new ArrayList<>();
 
     public UsageHelper(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         this.item64 = item64;
@@ -76,7 +74,7 @@ public class UsageHelper {
         }
     }
 
-    protected ItemEntry getItemEntryByItem(ItemStack item) {
+    public ItemEntry getItemEntryByItem(ItemStack item) {
         if (item == null || !item.hasItemMeta() || item.getType() == Material.AIR)
             return null;
         return itemEntries.stream()
@@ -85,7 +83,7 @@ public class UsageHelper {
             .orElse(null);
     }
 
-    protected void adjustCooldown(Player player, ItemEntry entry) {
+    public void adjustCooldown(Player player, ItemEntry entry) {
         if (entry.getCooldown()<=0) return;
         int index = entry.getID()-1;
         List<Long> playerCooldowns = activeCooldowns.get(player.getUniqueId());
@@ -93,7 +91,7 @@ public class UsageHelper {
         activeCooldowns.put(player.getUniqueId(), playerCooldowns);
     }
 
-    protected void adjustHunger(Player player, ItemEntry entry) {
+    public void adjustHunger(Player player, ItemEntry entry) {
         if (entry.getHunger()<=0) return;
         player.setFoodLevel(Math.max(player.getFoodLevel() - entry.getHunger(), 0));
     }
@@ -101,7 +99,7 @@ public class UsageHelper {
     // 0 - doesnt have ammo & action blocked
     // 1 - doesnt have ammo & action permitted
     // 2 - has ammo & action permitted
-    protected int hasItem(Player player, String itemName) {
+    public int hasItem(Player player, String itemName) {
         if (itemName == null 
             || itemName.equals("none")
             || itemName.isBlank()) return 1;
@@ -119,7 +117,7 @@ public class UsageHelper {
     }
 
     // doesn't require checks as hasItem should always get called before
-    protected boolean removeItem(Player player, String itemName) {
+    public boolean removeItem(Player player, String itemName) {
         Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
         for (ItemStack itemStack : player.getInventory().getContents()) {
             if (itemStack != null && itemStack.getType() == itemMaterial) {
@@ -132,7 +130,7 @@ public class UsageHelper {
     }
 
     // doesn't require checks as passed itemStack should exist
-    protected boolean removeItem(Player player, ItemStack itemStack) {
+    public boolean removeItem(Player player, ItemStack itemStack) {
         for (ItemStack item : player.getInventory().getContents()) {
             if (item != null && item.isSimilar(itemStack))  {
                 if (getItemEntryByItem(item) != null) {
@@ -145,7 +143,7 @@ public class UsageHelper {
         return false;
     }
 
-    protected boolean giveItem(Player player, String itemName) {
+    public boolean giveItem(Player player, String itemName) {
         if (itemName.equals("none")
             || itemName.isBlank()
             || itemName == null) return true;
@@ -162,14 +160,14 @@ public class UsageHelper {
         return true;
     }
 
-    protected boolean hasMoney(Player player, double amount) {
+    public boolean hasMoney(Player player, double amount) {
         if (ecoHook==null) return true;
         double bal = ecoHook.getBalance(player);
         if (bal>=amount) return true;
         else return false;
     }
 
-    protected boolean removeMoney(Player player, double amount) {
+    public boolean removeMoney(Player player, double amount) {
         if (ecoHook==null && amount <= 0) return true;
 
         int iAmount = (int) amount;
@@ -180,7 +178,7 @@ public class UsageHelper {
         } else return false;
     }
 
-    protected boolean giveMoney(Player player, double amount) {
+    public boolean giveMoney(Player player, double amount) {
         if (ecoHook==null || amount <= 0) return true;
 
         int iAmount = (int) amount;
@@ -191,7 +189,7 @@ public class UsageHelper {
         } else return false;
     }
 
-    protected boolean refundPlayer(Player player, ItemEntry entry) {
+    public boolean refundPlayer(Player player, ItemEntry entry) {
         boolean failed = false;
         if (entry.getMoney() > 0){
             if (!giveMoney(player, entry.getMoney())) {
@@ -208,13 +206,13 @@ public class UsageHelper {
         return failed;
     }
 
-    protected void randomizeProjectile(Projectile projectile, double random) {
+    public void randomizeProjectile(Projectile projectile, double random) {
         Vector velocity = projectile.getVelocity();
         randomizeVelocity(velocity, random);
         projectile.setVelocity(velocity);
     }
 
-    protected void randomizeVelocity(Vector velocity, double random) {
+    public void randomizeVelocity(Vector velocity, double random) {
         velocity.add(new Vector(
             ThreadLocalRandom.current().nextDouble(-random, random),
             ThreadLocalRandom.current().nextDouble(-random / 2, random / 2),
@@ -222,7 +220,7 @@ public class UsageHelper {
         ));
     }
 
-    protected void randomizeLocation(Location location, double random) {
+    public void randomizeLocation(Location location, double random) {
         location.add(new Vector(
             ThreadLocalRandom.current().nextDouble(-random, random),
             ThreadLocalRandom.current().nextDouble(-random / 2, random / 2),
@@ -230,13 +228,13 @@ public class UsageHelper {
         ));
     }
 
-    protected boolean passGDPvpCheck(Location location) {
+    public boolean passGDPvpCheck(Location location) {
         if (gdHook==null) return true;
         String regionID = gdHook.getRegionID(location);
         return gdHook.hasPvPEnabled(regionID);
     }
 
-    protected boolean passDCPvpLocCheck(Location location, double radius) {
+    public boolean passDCPvpLocCheck(Location location, double radius) {
         if (dcHook==null) return true;
         return location.getWorld().getNearbyEntities(location, radius, radius, radius).stream()
             .filter(entity -> entity instanceof Player)
@@ -244,13 +242,13 @@ public class UsageHelper {
             .noneMatch(player -> dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player));
     }
     
-    protected boolean passDCPvpPlayerCheck(Player player) {
+    public boolean passDCPvpPlayerCheck(Player player) {
         if (dcHook==null) return true;
         else if (dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player)) return false;
         return true;
     }
 
-    protected boolean passGDBuilderCheck(Player shooter, Location location, int radius) {
+    public boolean passGDBuilderCheck(Player shooter, Location location, int radius) {
         if (gdHook==null) return true;
         String[] ids = new String[9];
         Location loc = location.clone();
@@ -271,7 +269,7 @@ public class UsageHelper {
         return true;
     }
 
-    protected boolean damageEntities(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
+    public boolean damageEntities(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
         Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
         boolean damaged = false;
         int count = 0;
@@ -290,7 +288,7 @@ public class UsageHelper {
     }
 
     // HELPER: CONSUMABLE, USABLE
-    protected boolean applyEffects(Player player, List<String> effects, ItemStack item, boolean removeItem) {
+    public boolean applyEffects(Player player, List<String> effects, ItemStack item, boolean removeItem) {
         for (String line : effects) {
             try {
                 String[] parts = line.split(":");
@@ -314,7 +312,7 @@ public class UsageHelper {
 
     // HELPER: ALL
     // if it doesnt pass, returns 0, if it does, it returns hasAmmoItem
-    protected int passUsageChecks(Player player, ItemEntry entry, Projectile projectile) {
+    public int passUsageChecks(Player player, ItemEntry entry, Projectile projectile) {
         // Do claim-pvp, hunger, cooldown, ammo, and curreny checks & charges
         if (!passGDPvpCheck(player.getLocation())) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim pvp protection!"));
@@ -347,7 +345,7 @@ public class UsageHelper {
     }
 
     // HELPER: EXPLOSIVE_ARROW, LIGHTNING_PEARL, FLAME_PARTICLE
-    protected boolean passDamageChecks(Player player, Location location, ItemEntry entry) {
+    public boolean passDamageChecks(Player player, Location location, ItemEntry entry) {
         boolean passDCPvpLocCheck = true, passGDPvpCheck = true, passGDBuilderCheck = true;
 
         if (dcHook != null && !passDCPvpLocCheck(location, 4.0)) passDCPvpLocCheck = false;
@@ -368,5 +366,29 @@ public class UsageHelper {
             return false;
         }
         return true;
+    }
+
+    public Item64 getItem64() {
+        return item64;
+    }
+
+    public ConfigHandler getConfigHandler() {
+        return configHandler;
+    }
+
+    public Economy getEcoHook() {
+        return ecoHook;
+    }
+
+    public GDHook getGdHook() {
+        return gdHook;
+    }
+
+    public DCHook getDcHook() {
+        return dcHook;
+    }
+
+    public List<ItemEntry> getItemEntries() {
+        return Collections.unmodifiableList(itemEntries);
     }
 }

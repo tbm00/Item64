@@ -34,18 +34,15 @@ import org.bukkit.util.Vector;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-import net.milkbowl.vault.economy.Economy;
-
-import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.Item64;
-import dev.tbm00.spigot.item64.hook.DCHook;
-import dev.tbm00.spigot.item64.hook.GDHook;
+import dev.tbm00.spigot.item64.UsageHelper;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-public class ItemUsage extends UsageHelper implements Listener {
+public class ItemUsage implements Listener {
+    private final UsageHelper usageHelper;
 
-    public ItemUsage(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
-            super(item64, configHandler, ecoHook, gdHook, dcHook);
+    public ItemUsage(Item64 item64, UsageHelper usageHelper) {
+        this.usageHelper = usageHelper;
     }
 
     // USE LISTENER: USABLE, FLAME_PARTICLE, LIGHTNING_PEARL, RANDOM_POTION
@@ -55,7 +52,7 @@ public class ItemUsage extends UsageHelper implements Listener {
         ItemStack item = event.getItem();
         if (item == null || player == null) return;
         
-        ItemEntry entry = getItemEntryByItem(item);
+        ItemEntry entry = usageHelper.getItemEntryByItem(item);
         if (entry == null || !entry.getType().equalsIgnoreCase("USABLE") || !player.hasPermission(entry.getUsePerm()))
             return;
 
@@ -72,7 +69,7 @@ public class ItemUsage extends UsageHelper implements Listener {
         ItemStack item = event.getItem();
         if (item == null || player == null) return;
 
-        ItemEntry entry = getItemEntryByItem(item);
+        ItemEntry entry = usageHelper.getItemEntryByItem(item);
         if (entry == null || !entry.getType().equalsIgnoreCase("CONSUMABLE") || !player.hasPermission(entry.getUsePerm()))
             return;
 
@@ -92,7 +89,7 @@ public class ItemUsage extends UsageHelper implements Listener {
         if (player == null || arrow == null || item == null) return;
 
 
-        ItemEntry entry = getItemEntryByItem(item);
+        ItemEntry entry = usageHelper.getItemEntryByItem(item);
         if (entry == null || !entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW") || !player.hasPermission(entry.getUsePerm()))
             return;
 
@@ -101,7 +98,7 @@ public class ItemUsage extends UsageHelper implements Listener {
 
     // TRIGGER: ALL
     private void triggerUsage(Player player, ItemEntry entry, Action action, ItemStack item, Projectile projectile) {
-        int takeAmmo = passUsageChecks(player, entry, projectile);
+        int takeAmmo = usageHelper.passUsageChecks(player, entry, projectile);
         if (takeAmmo<1) return;
 
         // Use the item
@@ -115,9 +112,9 @@ public class ItemUsage extends UsageHelper implements Listener {
                 break;
             case "EXPLOSIVE_ARROW":
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
-                projectile.setMetadata("Item64-keyString", new FixedMetadataValue(item64, entry.getKeyString()));
-                explosiveArrows.add(projectile);
-                if (random > 0) randomizeProjectile(projectile, random);
+                projectile.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
+                UsageHelper.explosiveArrows.add(projectile);
+                if (random > 0) usageHelper.randomizeProjectile(projectile, random);
                 break;
             case "FLAME_PARTICLE":
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting flames..."));
@@ -126,9 +123,9 @@ public class ItemUsage extends UsageHelper implements Listener {
             case "LIGHTNING_PEARL":
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
                 EnderPearl pearl = player.launchProjectile(EnderPearl.class);
-                pearl.setMetadata("Item64-keyString", new FixedMetadataValue(item64, entry.getKeyString()));
-                lightningPearls.add(pearl);
-                if (random > 0) randomizeProjectile(pearl, random);
+                pearl.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
+                UsageHelper.lightningPearls.add(pearl);
+                if (random > 0) usageHelper.randomizeProjectile(pearl, random);
                 break;
             case "RANDOM_POTION":
                 shootPotion(player, entry, action);
@@ -138,20 +135,20 @@ public class ItemUsage extends UsageHelper implements Listener {
         }
 
         // Remove hunger, ammo, and money
-        if (ecoHook != null && entry.getMoney() > 0 && !removeMoney(player, entry.getMoney()))
-            item64.logRed("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
-        if (takeAmmo == 2) removeItem(player, entry.getAmmoItem());
-        adjustHunger(player, entry);
+        if (usageHelper.getEcoHook() != null && entry.getMoney() > 0 && !usageHelper.removeMoney(player, entry.getMoney()))
+            usageHelper.getItem64().logRed("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
+        if (takeAmmo == 2) usageHelper.removeItem(player, entry.getAmmoItem());
+        usageHelper.adjustHunger(player, entry);
 
         // Set cooldowns
         if (entry.getType().equals("FLAME_PARTICLE")) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    adjustCooldown(player, entry);
+                    usageHelper.adjustCooldown(player, entry);
                 }
-            }.runTaskLater(item64, entry.getCooldown() * 20);
-        } else adjustCooldown(player, entry);
+            }.runTaskLater(usageHelper.getItem64(), entry.getCooldown() * 20);
+        } else usageHelper.adjustCooldown(player, entry);
     }
 
     // USER: CONSUMABLE, USABLE
@@ -168,9 +165,9 @@ public class ItemUsage extends UsageHelper implements Listener {
             }
         }
         if (effects!=null) {
-            boolean appliedEffects = applyEffects(player, effects, item, removeItem);
-            if (appliedEffects && removeItem) removeItem(player, item);
-        } else if (removeItem) removeItem(player, item);
+            boolean appliedEffects = usageHelper.applyEffects(player, effects, item, removeItem);
+            if (appliedEffects && removeItem) usageHelper.removeItem(player, item);
+        } else if (removeItem) usageHelper.removeItem(player, item);
     }
 
     // USER: FLAME_PARTICLE
@@ -195,16 +192,16 @@ public class ItemUsage extends UsageHelper implements Listener {
             if (targetBlock != null && targetBlockAbove != null) {
                 Location location = targetBlockAbove.getLocation();
 
-                if (passDamageChecks(player, location, entry)) {
+                if (usageHelper.passDamageChecks(player, location, entry)) {
                     new BukkitRunnable() {
                         @Override
                         public void run() {
                             if (targetBlock.getType().isBlock() && targetBlockAbove.getType() == Material.AIR)
                                 targetBlockAbove.setType(Material.FIRE);
-                            damageEntities(player, targetBlockAbove.getLocation(), 0.9, 1.5, entry.getDamage(), 60);
+                            usageHelper.damageEntities(player, targetBlockAbove.getLocation(), 0.9, 1.5, entry.getDamage(), 60);
                         }
-                    }.runTaskLater(item64, 12);
-                } else refundPlayer(player, entry);
+                    }.runTaskLater(usageHelper.getItem64(), 12);
+                } else usageHelper.refundPlayer(player, entry);
             }
         }
 
@@ -217,14 +214,14 @@ public class ItemUsage extends UsageHelper implements Listener {
                         Vector offsetPath = playerDirection.clone();
                         Location offsetLocation = particleLocation.clone();
                         if (random > 0) {
-                            randomizeLocation(offsetLocation, random);
-                            randomizeVelocity(offsetPath, random / 2);
+                            usageHelper.randomizeLocation(offsetLocation, random);
+                            usageHelper.randomizeVelocity(offsetPath, random / 2);
                         }
                         offsetLocation.add(0, 0.3, 0);
                         player.getWorld().spawnParticle(Particle.FLAME, offsetLocation, 0, offsetPath.getX(), offsetPath.getY(), offsetPath.getZ(), 0.1);
                     }
                 }
-            }.runTaskLater(item64, i);
+            }.runTaskLater(usageHelper.getItem64(), i);
         }
     }
 
@@ -251,23 +248,23 @@ public class ItemUsage extends UsageHelper implements Listener {
                     thrownPotion.setVelocity(player.getLocation().getDirection().multiply(1.4));
         
                     double random = entry.getRandom();
-                    if (random > 0) randomizeProjectile(thrownPotion, random);
+                    if (random > 0) usageHelper.randomizeProjectile(thrownPotion, random);
                     
                     if (!rightClick) {
                         thrownPotion.setVisualFire(true);
                         if (entry.getDamage() >= 0)
-                            thrownPotion.setMetadata("Item64-randomPotion-left", new FixedMetadataValue(item64, "true"));
+                            thrownPotion.setMetadata("Item64-randomPotion-left", new FixedMetadataValue(usageHelper.getItem64(), "true"));
                     }
-                    thrownPotion.setMetadata("Item64-keyString", new FixedMetadataValue(item64, entry.getKeyString()));
+                    thrownPotion.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
                     thrownPotion.setShooter(player);
-                    magicPotions.add(thrownPotion);
+                    UsageHelper.magicPotions.add(thrownPotion);
                 });
             } else {
-                item64.logRed("Unknown potion effect type: " + parts[0]);
+                usageHelper.getItem64().logRed("Unknown potion effect type: " + parts[0]);
             }
         } catch (Exception e) {
-            item64.logRed("Exception while throwing potion: ");
-            item64.getLogger().warning(e.getMessage());
+            usageHelper.getItem64().logRed("Exception while throwing potion: ");
+            usageHelper.getItem64().getLogger().warning(e.getMessage());
         }
     }
 
@@ -276,23 +273,23 @@ public class ItemUsage extends UsageHelper implements Listener {
     public void onProjectileHit(ProjectileHitEvent event) {
         Projectile projectile = event.getEntity();
         if (projectile instanceof Arrow) {
-            if (!explosiveArrows.remove((Arrow) projectile)) return;
+            if (!UsageHelper.explosiveArrows.remove((Arrow) projectile)) return;
         } else if (projectile instanceof EnderPearl) {
-            if (!lightningPearls.remove((EnderPearl) projectile)) return;
+            if (!UsageHelper.lightningPearls.remove((EnderPearl) projectile)) return;
             event.setCancelled(true);
         } else return;
 
         Location location = projectile.getLocation();
         Player player = (Player) projectile.getShooter();
-        ItemEntry entry = configHandler.getItemEntryByKeyString(projectile.getMetadata("Item64-keyString").get(0).asString());
+        ItemEntry entry = usageHelper.getConfigHandler().getItemEntryByKeyString(projectile.getMetadata("Item64-keyString").get(0).asString());
 
-        if (passDamageChecks(player, location, entry)) {
-            damageEntities(player, location, 1.7, 1.2, entry.getDamage(), 30);
+        if (usageHelper.passDamageChecks(player, location, entry)) {
+            usageHelper.damageEntities(player, location, 1.7, 1.2, entry.getDamage(), 30);
             if (projectile instanceof Arrow) 
                 projectile.getWorld().createExplosion(location, (float)entry.getPower(), true, true, player);
             else if (projectile instanceof EnderPearl)
                 location.getWorld().strikeLightning(location);
-        } else refundPlayer(player, entry);
+        } else usageHelper.refundPlayer(player, entry);
 
         projectile.remove();
     }
@@ -301,20 +298,20 @@ public class ItemUsage extends UsageHelper implements Listener {
     @EventHandler
     public void onPotionSplash(PotionSplashEvent event) {
         ThrownPotion thrownPotion = (ThrownPotion) event.getEntity();
-        if (!magicPotions.contains(thrownPotion)) return;
-        magicPotions.remove(thrownPotion);
+        if (!UsageHelper.magicPotions.contains(thrownPotion)) return;
+        UsageHelper.magicPotions.remove(thrownPotion);
 
         Location location = thrownPotion.getLocation();
         Player player = (Player) thrownPotion.getShooter();
-        ItemEntry entry = configHandler.getItemEntryByKeyString(thrownPotion.getMetadata("Item64-keyString").get(0).asString());
+        ItemEntry entry = usageHelper.getConfigHandler().getItemEntryByKeyString(thrownPotion.getMetadata("Item64-keyString").get(0).asString());
 
-        if (passDamageChecks(player, location, entry)) {
+        if (usageHelper.passDamageChecks(player, location, entry)) {
             if (thrownPotion.hasMetadata("Item64-randomPotion-left"))
-                damageEntities(player, location, 0.9, 1.3, entry.getDamage(), 20);
+                usageHelper.damageEntities(player, location, 0.9, 1.3, entry.getDamage(), 20);
         } else {
             event.setCancelled(true);
             thrownPotion.remove();
-            refundPlayer(player, entry);
+            usageHelper.refundPlayer(player, entry);
         }
     }
 }

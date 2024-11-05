@@ -85,7 +85,7 @@ public class ConfigHandler {
         rewardedBreakingEnabled = eventSection.getBoolean("rewardBlockBreaking.enabled");
         if (rewardedBreakingEnabled) {
             rewardedBreakingJoinMessage = eventSection.getString("rewardBlockBreaking.joinMessage");
-            rewardedBreakingJoinMessageDelay = 20*eventSection.getInt("rewardBlockBreaking.joinMessageDelay");
+            rewardedBreakingJoinMessageDelay = eventSection.getInt("rewardBlockBreaking.joinMessageDelay");
             rewardedBreakingChance = eventSection.getDouble("rewardBlockBreaking.chance");
             List<String> rewardBlockHolder = eventSection.getStringList("rewardBlockBreaking.blocks");
             rewardedBreaking.addAll(rewardBlockHolder);

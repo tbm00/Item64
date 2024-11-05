@@ -35,7 +35,7 @@ public class RewardBreak implements Listener {
     private final boolean enabled;
     private final Set<String> inactiveWorlds;
     private final List<ItemEntry> rewards = new ArrayList<>();
-    private Random rand;
+    private final Random rand = new Random();
 
     public RewardBreak(Item64 item64, ConfigHandler configHandler) {
         this.item64 = item64;
@@ -44,7 +44,6 @@ public class RewardBreak implements Listener {
         console = Bukkit.getServer().getConsoleSender();
         inactiveWorlds = configHandler.getInactiveWorlds();
         if (configHandler.isRewardedBreakingEnabled()) {
-            rand = new Random();
             for (ItemEntry entry : configHandler.getItemEntries()) {
                 if (entry.getRewardChance()>0) rewards.add(entry);
             }

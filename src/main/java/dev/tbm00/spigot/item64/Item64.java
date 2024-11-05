@@ -12,6 +12,7 @@ import dev.tbm00.spigot.item64.listener.*;
 
 public class Item64 extends JavaPlugin {
     private ConfigHandler configHandler;
+    private UsageHelper usageHelper;
     private GDHook gdHook = null;
     private DCHook dcHook = null;
     private Economy ecoHook = null;
@@ -31,10 +32,11 @@ public class Item64 extends JavaPlugin {
             configHandler = new ConfigHandler(this);
             if (configHandler.isEnabled()) {
                 new Hooker(this, configHandler, ecoHook, gdHook, dcHook);
+                usageHelper = new UsageHelper(this, configHandler, ecoHook, gdHook, dcHook);
 
                 getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
-                getServer().getPluginManager().registerEvents(new PlayerConnection(this, configHandler), this);
-                getServer().getPluginManager().registerEvents(new ItemUsage(this, configHandler, ecoHook, gdHook, dcHook), this);
+                getServer().getPluginManager().registerEvents(new ItemUsage(this, usageHelper), this);
+                getServer().getPluginManager().registerEvents(new PlayerConnection(this, usageHelper), this);
                 getServer().getPluginManager().registerEvents(new PreventUsage(this, configHandler, dcHook), this);
                 getServer().getPluginManager().registerEvents(new PreventGrowth(this, configHandler, gdHook), this);
                 getServer().getPluginManager().registerEvents(new RewardBreak(this, configHandler), this);
