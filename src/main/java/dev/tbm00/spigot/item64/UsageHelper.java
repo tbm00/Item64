@@ -37,11 +37,11 @@ public class UsageHelper {
     private final GDHook gdHook;
     private final DCHook dcHook;
     private final List<ItemEntry> itemEntries;
-    public static final List<Long> cooldowns = new ArrayList<>();
-    public static final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
-    public static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
-    public static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
-    public static final ArrayList<Projectile> magicPotions = new ArrayList<>();
+    private static final List<Long> cooldowns = new ArrayList<>();
+    private static final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
+    private static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
+    private static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
+    private static final ArrayList<Projectile> magicPotions = new ArrayList<>();
 
     public UsageHelper(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
         this.item64 = item64;
@@ -269,26 +269,27 @@ public class UsageHelper {
         return true;
     }
 
-    public boolean damageEntities(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
+    public void damageEntities(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
         Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
-        boolean damaged = false;
-        int count = 0;
+        List<String> damagedPlayers = new ArrayList<>(3);
         for (Entity entity : nearbyEntities) {
-            if (count>=4) return damaged;
+            if (damagedPlayers.size()>=3) break;
             if (entity instanceof LivingEntity livingEntity) {
                 livingEntity.damage(damage, shooter);
                 if (ignite>0) livingEntity.setFireTicks(ignite);
-                //player.sendMessage(ChatColor.RED + "hit: " + ChatColor.GRAY + damage + ChatColor.RED + ", by: " + ChatColor.GRAY + shooter);
-                //shooter.sendMessage(ChatColor.RED + "hit: " + ChatColor.GRAY + damage + ChatColor.RED + ", on: " + ChatColor.GRAY + player);
-                damaged = true;
-                count++;
+                if (livingEntity instanceof Player player) 
+                    damagedPlayers.add(player.getDisplayName());
+            }
+
+            if (!damagedPlayers.isEmpty()) {
+                String message = String.join(", ", damagedPlayers);
+                shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN + "Damaged " + message));
             }
         }
-        return damaged;
     }
 
     // HELPER: CONSUMABLE, USABLE
-    public boolean applyEffects(Player player, List<String> effects, ItemStack item, boolean removeItem) {
+    public void applyEffects(Player player, List<String> effects, ItemStack item) {
         for (String line : effects) {
             try {
                 String[] parts = line.split(":");
@@ -299,15 +300,13 @@ public class UsageHelper {
                     player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true));
                 } else {
                     item64.logRed("Unknown potion effect type: " + parts[0]);
-                    return false;
+                    return;
                 }
             } catch (Exception e) {
                 item64.logRed("Error parsing effect: " + line + " - ");
                 item64.getLogger().warning(e.getMessage());
-                return false;
             }
         }
-        return true;
     }
 
     // HELPER: ALL
@@ -330,10 +329,13 @@ public class UsageHelper {
             return 0;
         }
 
-        int hasAmmoItem = hasItem(player, entry.getAmmoItem());
-        if (hasAmmoItem == 0) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
-            return 0;
+        int hasAmmoItem = 1;
+        if (entry.getAmmoItem()!=null && !entry.getAmmoItem().isBlank()) {
+            hasAmmoItem = hasItem(player, entry.getAmmoItem());
+            if (hasAmmoItem == 0) {
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
+                return 0;
+            }
         }
 
         double cost = entry.getMoney();
@@ -351,7 +353,6 @@ public class UsageHelper {
         if (dcHook != null && !passDCPvpLocCheck(location, 4.0)) passDCPvpLocCheck = false;
         if (gdHook != null) {
             if (!passGDPvpCheck(location)) passGDPvpCheck = false;
-            else if (!passGDPvpCheck(location)) passGDPvpCheck = false;
             else if (!passGDBuilderCheck(player, location, 6)) passGDBuilderCheck = false;
         }
 
@@ -391,4 +392,24 @@ public class UsageHelper {
     public List<ItemEntry> getItemEntries() {
         return Collections.unmodifiableList(itemEntries);
     }
+
+    public List<Long> getCooldowns() {
+        return cooldowns;
+    }
+    
+    public Map<UUID, List<Long>> getActiveCooldowns() {
+        return activeCooldowns;
+    }
+    
+    public ArrayList<Projectile> getExplosiveArrows() {
+        return explosiveArrows;
+    }
+    
+    public ArrayList<Projectile> getLightningPearls() {
+        return lightningPearls;
+    }
+    
+    public ArrayList<Projectile> getMagicPotions() {
+        return magicPotions;
+    }    
 }

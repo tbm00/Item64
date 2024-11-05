@@ -46,7 +46,7 @@ public class PlayerConnection implements Listener {
             @Override
             public void run() {
                 if (Bukkit.getPlayer(uuid)==null)
-                    UsageHelper.activeCooldowns.remove(uuid);
+                    usageHelper.getActiveCooldowns().remove(uuid);
             }
         }.runTaskLater(usageHelper.getItem64(), 6000);
     }

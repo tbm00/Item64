@@ -39,7 +39,7 @@ import dev.tbm00.spigot.item64.UsageHelper;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ItemUsage implements Listener {
-    private final UsageHelper usageHelper;
+    private UsageHelper usageHelper;
 
     public ItemUsage(Item64 item64, UsageHelper usageHelper) {
         this.usageHelper = usageHelper;
@@ -53,13 +53,13 @@ public class ItemUsage implements Listener {
         if (item == null || player == null) return;
         
         ItemEntry entry = usageHelper.getItemEntryByItem(item);
-        if (entry == null || !entry.getType().equalsIgnoreCase("USABLE") || !player.hasPermission(entry.getUsePerm()))
+        if (entry == null || entry.getType().equalsIgnoreCase("CONSUMABLE") || !player.hasPermission(entry.getUsePerm()))
             return;
 
         event.setCancelled(true);
 
         Action action = event.getAction();
-        triggerUsage(player, entry, action, null, null);
+        triggerUsage(player, entry, item, action, null);
     }
 
     // USE LISTENER: CONSUMABLE
@@ -75,7 +75,7 @@ public class ItemUsage implements Listener {
 
         event.setCancelled(true);
 
-        triggerUsage(player, entry, null, item, null);
+        triggerUsage(player, entry, item, null, null);
     }
 
     // USE LISTENER: EXPLOSIVE_ARROW
@@ -88,18 +88,18 @@ public class ItemUsage implements Listener {
         ItemStack item = player.getInventory().getItemInMainHand();
         if (player == null || arrow == null || item == null) return;
 
-
         ItemEntry entry = usageHelper.getItemEntryByItem(item);
-        if (entry == null || !entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW") || !player.hasPermission(entry.getUsePerm()))
+        if (entry == null || !player.hasPermission(entry.getUsePerm()) || 
+        (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW") && !entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW") )) 
             return;
 
         triggerUsage(player, entry, null, null, arrow);
     }
 
     // TRIGGER: ALL
-    private void triggerUsage(Player player, ItemEntry entry, Action action, ItemStack item, Projectile projectile) {
-        int takeAmmo = usageHelper.passUsageChecks(player, entry, projectile);
-        if (takeAmmo<1) return;
+    private void triggerUsage(Player player, ItemEntry entry, ItemStack item, Action action, Projectile projectile) {
+        int passChecks = usageHelper.passUsageChecks(player, entry, projectile);
+        if (passChecks==0) return;
 
         // Use the item
         double random = entry.getRandom();
@@ -113,7 +113,7 @@ public class ItemUsage implements Listener {
             case "EXPLOSIVE_ARROW":
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
                 projectile.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
-                UsageHelper.explosiveArrows.add(projectile);
+                usageHelper.getExplosiveArrows().add(projectile);
                 if (random > 0) usageHelper.randomizeProjectile(projectile, random);
                 break;
             case "FLAME_PARTICLE":
@@ -124,7 +124,7 @@ public class ItemUsage implements Listener {
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
                 EnderPearl pearl = player.launchProjectile(EnderPearl.class);
                 pearl.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
-                UsageHelper.lightningPearls.add(pearl);
+                usageHelper.getLightningPearls().add(pearl);
                 if (random > 0) usageHelper.randomizeProjectile(pearl, random);
                 break;
             case "RANDOM_POTION":
@@ -137,7 +137,7 @@ public class ItemUsage implements Listener {
         // Remove hunger, ammo, and money
         if (usageHelper.getEcoHook() != null && entry.getMoney() > 0 && !usageHelper.removeMoney(player, entry.getMoney()))
             usageHelper.getItem64().logRed("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
-        if (takeAmmo == 2) usageHelper.removeItem(player, entry.getAmmoItem());
+        if (entry.getRemoveAmmo()) usageHelper.removeItem(player, entry.getAmmoItem());
         usageHelper.adjustHunger(player, entry);
 
         // Set cooldowns
@@ -157,17 +157,16 @@ public class ItemUsage implements Listener {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.translateAlternateColorCodes('&', entry.getMessage())));
         List<String> effects = entry.getEffects();
         List<String> commands = entry.getCommands();
-        boolean removeItem = entry.getRemoveItem();
-        if (commands!=null) { 
+        if (commands!=null) {
             for (String command : commands) {
                 String cmd = command.replace("<player>", player.getName());
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
             }
         }
-        if (effects!=null) {
-            boolean appliedEffects = usageHelper.applyEffects(player, effects, item, removeItem);
-            if (appliedEffects && removeItem) usageHelper.removeItem(player, item);
-        } else if (removeItem) usageHelper.removeItem(player, item);
+        if (effects!=null)
+            usageHelper.applyEffects(player, effects, item);
+        
+        if (entry.getRemoveItem()) usageHelper.removeItem(player, item);
     }
 
     // USER: FLAME_PARTICLE
@@ -257,7 +256,7 @@ public class ItemUsage implements Listener {
                     }
                     thrownPotion.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
                     thrownPotion.setShooter(player);
-                    UsageHelper.magicPotions.add(thrownPotion);
+                    usageHelper.getMagicPotions().add(thrownPotion);
                 });
             } else {
                 usageHelper.getItem64().logRed("Unknown potion effect type: " + parts[0]);
@@ -273,9 +272,9 @@ public class ItemUsage implements Listener {
     public void onProjectileHit(ProjectileHitEvent event) {
         Projectile projectile = event.getEntity();
         if (projectile instanceof Arrow) {
-            if (!UsageHelper.explosiveArrows.remove((Arrow) projectile)) return;
+            if (!usageHelper.getExplosiveArrows().remove((Arrow) projectile)) return;
         } else if (projectile instanceof EnderPearl) {
-            if (!UsageHelper.lightningPearls.remove((EnderPearl) projectile)) return;
+            if (!usageHelper.getLightningPearls().remove((EnderPearl) projectile)) return;
             event.setCancelled(true);
         } else return;
 
@@ -298,8 +297,8 @@ public class ItemUsage implements Listener {
     @EventHandler
     public void onPotionSplash(PotionSplashEvent event) {
         ThrownPotion thrownPotion = (ThrownPotion) event.getEntity();
-        if (!UsageHelper.magicPotions.contains(thrownPotion)) return;
-        UsageHelper.magicPotions.remove(thrownPotion);
+        if (!usageHelper.getMagicPotions().contains(thrownPotion)) return;
+        usageHelper.getMagicPotions().remove(thrownPotion);
 
         Location location = thrownPotion.getLocation();
         Player player = (Player) thrownPotion.getShooter();
