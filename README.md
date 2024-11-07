@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./icon.png" alt="Item64 Icon" width="400"/>
+  <img src="./logo.png" alt="Item64 Icon" width="400"/>
 </p>
 
 # Item64
