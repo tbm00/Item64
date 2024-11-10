@@ -53,9 +53,13 @@ public class ItemUsage implements Listener {
         if (item == null || player == null) return;
         
         ItemEntry entry = usageHelper.getItemEntryByItem(item);
-        if (entry == null || entry.getType().equalsIgnoreCase("CONSUMABLE") || !player.hasPermission(entry.getUsePerm()))
+        if (entry == null || !player.hasPermission(entry.getUsePerm()))
             return;
 
+        String type = entry.getType();
+        if (type.equalsIgnoreCase("EXPLOSIVE_ARROW") || type.equalsIgnoreCase("CONSUMABLE") || type.equalsIgnoreCase("NO_ITEM"))
+            return;
+        
         event.setCancelled(true);
 
         Action action = event.getAction();
@@ -84,22 +88,23 @@ public class ItemUsage implements Listener {
         if (!(event.getEntity() instanceof Player)) return;
 
         Player player = (Player) event.getEntity();
-        Arrow arrow = (Arrow) event.getProjectile();
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (player == null || arrow == null || item == null) return;
+        if (player == null || item == null) return;
 
         ItemEntry entry = usageHelper.getItemEntryByItem(item);
         if (entry == null || !player.hasPermission(entry.getUsePerm()) || 
-        (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW") && !entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW") )) 
+        (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW"))) 
             return;
+
+        Arrow arrow = (Arrow) event.getProjectile();
+        if (arrow == null) return;
 
         triggerUsage(player, entry, null, null, arrow);
     }
 
     // TRIGGER: ALL
     private void triggerUsage(Player player, ItemEntry entry, ItemStack item, Action action, Projectile projectile) {
-        int passChecks = usageHelper.passUsageChecks(player, entry, projectile);
-        if (passChecks==0) return;
+        if (!usageHelper.passUsageChecks(player, entry)) return;
 
         // Use the item
         double random = entry.getRandom();
@@ -111,16 +116,19 @@ public class ItemUsage implements Listener {
                 runCmdsApplyFX(player, entry, item);
                 break;
             case "EXPLOSIVE_ARROW":
+                if (!usageHelper.passPVPChecks(player, entry)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
                 projectile.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
                 usageHelper.getExplosiveArrows().add(projectile);
                 if (random > 0) usageHelper.randomizeProjectile(projectile, random);
                 break;
             case "FLAME_PARTICLE":
+                if (!usageHelper.passPVPChecks(player, entry)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting flames..."));
                 shootFlames(player, entry);
                 break;
             case "LIGHTNING_PEARL":
+                if (!usageHelper.passPVPChecks(player, entry)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
                 EnderPearl pearl = player.launchProjectile(EnderPearl.class);
                 pearl.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
@@ -128,6 +136,7 @@ public class ItemUsage implements Listener {
                 if (random > 0) usageHelper.randomizeProjectile(pearl, random);
                 break;
             case "RANDOM_POTION":
+                if (!usageHelper.passPVPChecks(player, entry)) return;
                 shootPotion(player, entry, action);
                 break;
             default: 

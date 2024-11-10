@@ -143,8 +143,8 @@ public class ConfigHandler {
 
         String KEY = itemEntrySec.contains("key") ? itemEntrySec.getString("key") : null;
         String type = itemEntrySec.contains("type") ? itemEntrySec.getString("type") : "NULL";
-        String givePerm = itemEntrySec.contains("givePerm") ? itemEntrySec.getString("givePerm") : null;
-        String usePerm = itemEntrySec.contains("usePerm") ? itemEntrySec.getString("usePerm") : null;
+        String givePerm = itemEntrySec.contains("givePerm") ? itemEntrySec.getString("givePerm") : "item64.na";
+        String usePerm = itemEntrySec.contains("usePerm") ? itemEntrySec.getString("usePerm") : "item64.na";
         String material = itemEntrySec.contains("item.mat") ? itemEntrySec.getString("item.mat") : null;
         String name = itemEntrySec.contains("item.name") ? itemEntrySec.getString("item.name") : null;
         List<String> lore = itemEntrySec.contains("item.lore") ? itemEntrySec.getStringList("item.lore") : null;

@@ -1,6 +1,8 @@
 package dev.tbm00.spigot.item64;
 
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.ChatColor;
 
@@ -13,9 +15,9 @@ import dev.tbm00.spigot.item64.listener.*;
 public class Item64 extends JavaPlugin {
     private ConfigHandler configHandler;
     private UsageHelper usageHelper;
-    private GDHook gdHook = null;
-    private DCHook dcHook = null;
-    private Economy ecoHook = null;
+    private GDHook gdHook;
+    private DCHook dcHook;
+    private Economy ecoHook;
 
     @Override
     public void onEnable() {
@@ -31,7 +33,7 @@ public class Item64 extends JavaPlugin {
         if (getConfig().getBoolean("enabled")) {
             configHandler = new ConfigHandler(this);
             if (configHandler.isEnabled()) {
-                new Hooker(this, configHandler, ecoHook, gdHook, dcHook);
+                setupHooks();
                 usageHelper = new UsageHelper(this, configHandler, ecoHook, gdHook, dcHook);
 
                 getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
@@ -49,6 +51,61 @@ public class Item64 extends JavaPlugin {
             disablePlugin();
         }
     }
+
+    private void setupHooks() {
+        if (configHandler.isVaultEnabled() && !setupVault()) {
+            getLogger().severe("Vault hook failed -- disabling plugin!");
+            disablePlugin();
+            return;
+        }
+
+        if (configHandler.isGriefDefenderEnabled() && !setupGriefDefender()) {
+            getLogger().severe("GriefDefender hook failed -- disabling plugin!");
+            disablePlugin();
+            return;
+        }
+
+        if (configHandler.isDeluxeCombatEnabled() && !setupDeluxeCombat()) {
+            getLogger().severe("DeluxeCombat hook failed -- disabling plugin!");
+            disablePlugin();
+            return;
+        }
+    }
+
+    private boolean setupDeluxeCombat() {
+        if (getServer().getPluginManager().getPlugin("DeluxeCombat")==null) return false;
+
+        dcHook = new DCHook();
+        
+        logGreen("DeluxeCombat hooked.");
+        return true;
+    }
+
+    private boolean setupGriefDefender() {
+        if (!isPluginAvailable("GriefDefender")) return false;
+
+        gdHook = new GDHook(this, configHandler.getIgnoredClaims());
+
+        logGreen("GriefDefender hooked.");
+        return true;
+    }
+
+    private boolean setupVault() {
+        if (!isPluginAvailable("Vault")) return false;
+
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) return false;
+        ecoHook = rsp.getProvider();
+        if (ecoHook == null) return false;
+
+        logGreen("Vault hooked.");
+        return true;
+    }
+
+    private boolean isPluginAvailable(String pluginName) {
+		final Plugin plugin = getServer().getPluginManager().getPlugin(pluginName);
+		return plugin != null && plugin.isEnabled();
+	}
 
     public void log(String... strings) {
 		for (String s : strings)

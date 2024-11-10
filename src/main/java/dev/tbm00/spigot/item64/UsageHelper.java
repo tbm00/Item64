@@ -96,24 +96,21 @@ public class UsageHelper {
         player.setFoodLevel(Math.max(player.getFoodLevel() - entry.getHunger(), 0));
     }
 
-    // 0 - doesnt have ammo & action blocked
-    // 1 - doesnt have ammo & action permitted
-    // 2 - has ammo & action permitted
-    public int hasItem(Player player, String itemName) {
+    public boolean hasItem(Player player, String itemName) {
         if (itemName == null 
             || itemName.equals("none")
-            || itemName.isBlank()) return 1;
+            || itemName.isBlank()) return true;
 
         Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
         if (itemMaterial == null) {
             item64.logRed("Error: Poorly defined item " + itemName);
-            return 1;
+            return false;
         }
         for (ItemStack itemStack : player.getInventory().getContents()) {
             if (itemStack != null && itemStack.getType() == itemMaterial && itemStack.getAmount() > 0)
-                return 2;
+                return true;
         }
-        return 0;
+        return false;
     }
 
     // doesn't require checks as hasItem should always get called before
@@ -309,41 +306,41 @@ public class UsageHelper {
         }
     }
 
-    // HELPER: ALL
-    // if it doesnt pass, returns 0, if it does, it returns hasAmmoItem
-    public int passUsageChecks(Player player, ItemEntry entry, Projectile projectile) {
-        // Do claim-pvp, hunger, cooldown, ammo, and curreny checks & charges
+    // HELPER: PVP ITEMS
+    public boolean passPVPChecks(Player player, ItemEntry entry) {
         if (!passGDPvpCheck(player.getLocation())) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim pvp protection!"));
-            return 0;
+            return false;
         }
+        return true;
+    }
 
+    // HELPER: ALL
+    // if it doesnt pass, returns 0, if it does, it returns hasAmmoItem
+    public boolean passUsageChecks(Player player, ItemEntry entry) {
+        // Do hunger, cooldown, ammo, and money check
         if (player.getFoodLevel() < entry.getHunger()) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- you're too hungry!"));
-            return 0;
+            return false;
         }
 
         List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> cooldowns);
         if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- active cooldown!"));
-            return 0;
+            return false;
         }
 
-        int hasAmmoItem = 1;
-        if (entry.getAmmoItem()!=null && !entry.getAmmoItem().isBlank()) {
-            hasAmmoItem = hasItem(player, entry.getAmmoItem());
-            if (hasAmmoItem == 0) {
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
-                return 0;
-            }
+        if (entry.getAmmoItem()!=null && !entry.getAmmoItem().isBlank() && !hasItem(player, entry.getAmmoItem())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
+            return false;
         }
 
         double cost = entry.getMoney();
         if (ecoHook != null && cost > 0 && !hasMoney(player, cost)) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- not enough money!"));
-            return 0;
+            return false;
         }
-        return hasAmmoItem;
+        return true;
     }
 
     // HELPER: EXPLOSIVE_ARROW, LIGHTNING_PEARL, FLAME_PARTICLE
