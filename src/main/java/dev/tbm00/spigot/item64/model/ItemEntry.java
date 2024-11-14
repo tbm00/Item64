@@ -53,6 +53,7 @@ public class ItemEntry {
         this.random = random;
         this.damage = damage;
         this.ammoItem = ammoItem;
+        this.removeAmmo = removeAmmo;
         this.material = material;
         this.name = name;
         this.lore = lore;
