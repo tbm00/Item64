@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -106,7 +105,7 @@ public class ItmCommand implements TabExecutor {
 
         ItemEntry entry = getItemEntryByKey(argument);
         if (entry == null || !hasPermission(sender, entry)) return false;
-        if (entry.getMaterial()==null || entry.getMaterial().isBlank() || entry.getType().equalsIgnoreCase("NO_ITEM"))
+        if (entry.getMaterial()==null || entry.getType().equalsIgnoreCase("NO_ITEM"))
             return false;
         
         int quantity = 1;
@@ -145,7 +144,7 @@ public class ItmCommand implements TabExecutor {
 
     private void giveItemToPlayer(Player player, ItemEntry entry, int quantity) {
         try {
-            ItemStack item = new ItemStack(Material.valueOf(entry.getMaterial()));
+            ItemStack item = new ItemStack(entry.getMaterial());
             ItemMeta meta = item.getItemMeta();
     
             if (meta != null) {

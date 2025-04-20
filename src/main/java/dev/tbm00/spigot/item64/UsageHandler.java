@@ -9,18 +9,34 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.ThrownPotion;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.LocalPlayer;
@@ -31,15 +47,10 @@ import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
-
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.economy.EconomyResponse;
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-public class UsageHelper {
+public class UsageHandler {
     private final Item64 item64;
     private final ConfigHandler configHandler;
     private final Economy ecoHook;
@@ -47,22 +58,22 @@ public class UsageHelper {
     private final DCHook dcHook;
     private final WorldGuard wgHook;
     private final List<ItemEntry> itemEntries;
-    private static final List<Long> cooldowns = new ArrayList<>();
-    private static final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
-    private static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
-    private static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
-    private static final ArrayList<Projectile> magicPotions = new ArrayList<>();
-    private static final int[][] CHECK_DIRECTIONS = {
-        { 1, 0,  0},
-        { -1, 0,  0},
-        { 0, 0,  1}, 
-        { 0, 0,  -1},
-        {0, 1,  0},
+    private final List<Long> cooldowns = new ArrayList<>();
+    private final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
+    private final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
+    private final ArrayList<Projectile> lightningPearls = new ArrayList<>();
+    private final ArrayList<Projectile> magicPotions = new ArrayList<>();
+    private final int[][] CHECK_DIRECTIONS = {
+        {1, 0, 0},
+        {-1, 0, 0},
+        {0, 0, 1}, 
+        {0, 0, -1},
+        {0, 1, 0},
         {0, -1, 0},
         {0, 0, 0}
     };
 
-    public UsageHelper(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook, WorldGuard wgHook) {
+    public UsageHandler(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook, WorldGuard wgHook) {
         this.item64 = item64;
         this.configHandler = configHandler;
         this.ecoHook = ecoHook;
@@ -83,7 +94,7 @@ public class UsageHelper {
             for (int i = 0; i<cooldownSize; ++i) {
                 if (cooldowns.size()<cooldownSize)
                     cooldowns.add(0L);
-                else return;
+                else break;
             }
 
             // load `cooldowns`
@@ -94,19 +105,207 @@ public class UsageHelper {
         }
     }
 
+    // TRIGGER: ALL
+    public void triggerUsage(Player player, ItemEntry entry, ItemStack item, Action action, Projectile projectile) {
+        if (!passUsageChecks(player, entry)) return;
+
+        // Use the item
+        switch (entry.getType()) {
+            case "USABLE":
+                runCmdsApplyFX(player, entry, item);
+                break;
+            case "CONSUMABLE":
+                runCmdsApplyFX(player, entry, item);
+                break;
+            case "EXPLOSIVE_ARROW":
+                if (!passShootingChecks(player, entry)) return;
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
+                shootExplosiveArrow(player, entry, projectile);
+                break;
+            case "LIGHTNING_PEARL":
+                if (!passShootingChecks(player, entry)) return;
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
+                shootLightningPearl(player, entry);
+                break;
+            case "FLAME_PARTICLE":
+                if (!passShootingChecks(player, entry)) return;
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting flames..."));
+                shootFlameParticles(player, entry);
+                break;
+            case "RANDOM_POTION":
+                boolean leftClick = (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
+                if (leftClick && !passShootingChecks(player, entry)) return;
+                if (!shootRandomPotion(player, entry, leftClick)) return;
+                break;
+            default: 
+                break;
+        }
+
+        // Remove hunger, ammo, and money
+        if (getEcoHook() != null && entry.getMoney() > 0 && !removeMoney(player, entry.getMoney()))
+            getItem64().logRed("Error: failed to remove money for " + player.getName() + "'s " + entry.getKeyString() + " usage!");
+        if (entry.getRemoveAmmo()) removeItem(player, entry.getAmmoItem());
+        adjustHunger(player, entry);
+
+        // Set cooldowns
+        if (entry.getType().equals("FLAME_PARTICLE")) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    adjustCooldown(player, entry);
+                }
+            }.runTaskLater(getItem64(), entry.getCooldown() * 20);
+        } else adjustCooldown(player, entry);
+    }
+
+    // USER: CONSUMABLE, USABLE
+    private void runCmdsApplyFX(Player player, ItemEntry entry, ItemStack item) {
+        if (!entry.getMessage().isBlank() && !entry.getMessage().isEmpty())
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.translateAlternateColorCodes('&', entry.getMessage())));
+        List<String> effects = entry.getEffects();
+        List<String> commands = entry.getCommands();
+        if (commands!=null) {
+            for (String command : commands) {
+                String cmd = command.replace("<player>", player.getName());
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            }
+        }
+        if (effects!=null)
+            applyEffects(player, effects, item);
+        
+        if (entry.getRemoveItem()) removeItem(player, item);
+    }
+
+    // USER: EXPLOSIVE_ARROW
+    private void shootExplosiveArrow(Player player, ItemEntry entry, Projectile projectile) {
+        double random = entry.getRandom();
+        projectile.setMetadata("Item64-keyString", new FixedMetadataValue(getItem64(), entry.getKeyString()));
+        getExplosiveArrows().add(projectile);
+        if (random > 0) randomizeProjectile(projectile, random);
+    }
+
+    // USER: LIGHTNING_PEARL
+    private void shootLightningPearl(Player player, ItemEntry entry) {
+        double random = entry.getRandom();
+        EnderPearl pearl = player.launchProjectile(EnderPearl.class);
+        pearl.setMetadata("Item64-keyString", new FixedMetadataValue(getItem64(), entry.getKeyString()));
+        getLightningPearls().add(pearl);
+        if (random > 0) randomizeProjectile(pearl, random);
+    }
+
+    // USER: FLAME_PARTICLE
+    private void shootFlameParticles(Player player, ItemEntry entry) {
+        double random = entry.getRandom();
+
+        // Initialize particle direction
+        Vector playerDirection = player.getLocation().getDirection();
+        Vector particleVector = playerDirection.clone();
+        playerDirection.multiply(16);
+        double temp = particleVector.getX();
+        particleVector.setX(-particleVector.getZ());
+        particleVector.setZ(temp);
+        particleVector.divide(new Vector(3, 3, 3));
+        Location particleLocation = particleVector.toLocation(player.getWorld()).add(player.getLocation()).add(0, 1.05, 0);
+
+        // Shoot flame damage & set blocks on fire
+        if (Math.random() < 0.64) {
+            Block targetBlock = player.getTargetBlock(null, 24);
+            Block targetBlockAbove = targetBlock.getRelative(BlockFace.UP);
+
+            if (targetBlock != null && targetBlockAbove != null) {
+                Location location = targetBlockAbove.getLocation();
+
+                if (passDamageChecks(player, location, entry)) {
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (targetBlock.getType().isBlock() && targetBlockAbove.getType() == Material.AIR)
+                                targetBlockAbove.setType(Material.FIRE);
+                            damageEntities(player, targetBlockAbove.getLocation(), 0.9, 1.5, entry.getDamage(), 60);
+                        }
+                    }.runTaskLater(getItem64(), 12);
+                } else refundPlayer(player, entry);
+            }
+        }
+
+        // Shot flame visuals 
+        for (int i = 0; i < 5; i++) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    for (int i=0; i<3; ++i) {
+                        Vector offsetPath = playerDirection.clone();
+                        Location offsetLocation = particleLocation.clone();
+                        if (random > 0) {
+                            randomizeLocation(offsetLocation, random);
+                            randomizeVelocity(offsetPath, random / 2);
+                        }
+                        offsetLocation.add(0, 0.3, 0);
+                        player.getWorld().spawnParticle(Particle.FLAME, offsetLocation, 0, offsetPath.getX(), offsetPath.getY(), offsetPath.getZ(), 0.1);
+                    }
+                }
+            }.runTaskLater(getItem64(), i);
+        }
+    }
+
+    // USER: RANDOM_POTION
+    private boolean shootRandomPotion(Player player, ItemEntry entry, boolean leftClick) {
+        ItemStack potion = new ItemStack(Material.SPLASH_POTION);
+        PotionMeta potionMeta = (PotionMeta) potion.getItemMeta();
+        String effectLine = leftClick ? entry.getLEffects().get(ThreadLocalRandom.current().nextInt(entry.getLEffects().size()))
+                                      : entry.getREffects().get(ThreadLocalRandom.current().nextInt(entry.getREffects().size()));
+        try {
+            String[] parts = effectLine.split(":");
+            PotionEffectType effectType = PotionEffectType.getByName(parts[0].toUpperCase());
+            int amplifier = Integer.parseInt(parts[1]);
+            int duration = Integer.parseInt(parts[2])*20;
+            if (effectType != null) {
+                potionMeta.addCustomEffect(new PotionEffect(effectType, duration, amplifier), true);
+                potion.setItemMeta(potionMeta);
+        
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting " + effectType.getName().toLowerCase() + "..."));
+                player.getWorld().spawn(player.getLocation().add(0, 1.5, 0), ThrownPotion.class, thrownPotion -> {
+                    thrownPotion.setItem(potion);
+                    thrownPotion.setBounce(false);
+                    thrownPotion.setVelocity(player.getLocation().getDirection().multiply(1.4));
+        
+                    double random = entry.getRandom();
+                    if (random > 0) randomizeProjectile(thrownPotion, random);
+                    
+                    if (leftClick) {
+                        thrownPotion.setVisualFire(true);
+                        if (entry.getDamage() >= 0)
+                            thrownPotion.setMetadata("Item64-randomPotion-left", new FixedMetadataValue(getItem64(), "true"));
+                    }
+                    thrownPotion.setMetadata("Item64-keyString", new FixedMetadataValue(getItem64(), entry.getKeyString()));
+                    thrownPotion.setShooter(player);
+                    getMagicPotions().add(thrownPotion);
+                });
+                return true;
+            } else {
+                getItem64().logRed("Unknown potion effect type: " + parts[0]);
+                return false;
+            }
+        } catch (Exception e) {
+            getItem64().logRed("Exception while throwing potion: ");
+            getItem64().getLogger().warning(e.getMessage());
+            return false;
+        }
+    }
+
     // HELPER: ALL ITEMS
     public boolean passUsageChecks(Player player, ItemEntry entry) {
         if (player.getFoodLevel() < entry.getHunger()) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- you're too hungry!"));
             return false;
         }
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> cooldowns);
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>(cooldowns));
         if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- active cooldown!"));
             return false;
         }
-        if (entry.getAmmoItem()!=null && !entry.getAmmoItem().isBlank() && !hasItem(player, entry.getAmmoItem())) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
+        if (entry.getAmmoItem()!=null && !hasItem(player, entry.getAmmoItem())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toString().toLowerCase()));
             return false;
         }
         double cost = entry.getMoney();
@@ -297,45 +496,25 @@ public class UsageHelper {
             .orElse(null);
     }
 
-    public boolean giveItem(Player player, String itemName) {
-        if (itemName.equals("none")
-            || itemName.isBlank()
-            || itemName == null) return true;
-
-        Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
-        if (itemMaterial == null) {
-            item64.logRed("Error: Unknown item " + itemMaterial);
-            return false;
-        }
-
-        ItemStack item = new ItemStack(itemMaterial);
+    public boolean giveItem(Player player, Material material) {
+        ItemStack item = new ItemStack(material);
         item.setAmount(1);
         player.getInventory().addItem(item);
         return true;
     }
 
-    public boolean hasItem(Player player, String itemName) {
-        if (itemName == null 
-            || itemName.equals("none")
-            || itemName.isBlank()) return true;
-
-        Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
-        if (itemMaterial == null) {
-            item64.logRed("Error: Poorly defined item " + itemName);
-            return false;
-        }
+    public boolean hasItem(Player player, Material material) {
         for (ItemStack itemStack : player.getInventory().getContents()) {
-            if (itemStack != null && itemStack.getType() == itemMaterial && itemStack.getAmount() > 0)
+            if (itemStack != null && itemStack.getType() == material && itemStack.getAmount() > 0)
                 return true;
         }
         return false;
     }
 
     // doesn't require checks as hasItem should always get called before
-    public boolean removeItem(Player player, String itemName) {
-        Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
+    public boolean removeItem(Player player, Material material) {
         for (ItemStack itemStack : player.getInventory().getContents()) {
-            if (itemStack != null && itemStack.getType() == itemMaterial) {
+            if (itemStack != null && itemStack.getType() == material) {
                 if (itemStack.getAmount() <= 1) player.getInventory().remove(itemStack);
                 else itemStack.setAmount(Math.max(itemStack.getAmount() - 1, 0));
                 return true;
@@ -395,7 +574,7 @@ public class UsageHelper {
                 failed = true;
             }
         }
-        if (entry.getRemoveAmmo() && !entry.getAmmoItem().isBlank() && entry.getAmmoItem()!=null) {
+        if (entry.getRemoveAmmo() && entry.getAmmoItem()!=null) {
             if (!giveItem(player, entry.getAmmoItem())) {
                 player.sendMessage(ChatColor.RED + "Ammo refund failed!");
                 failed = true;
@@ -468,5 +647,5 @@ public class UsageHelper {
     
     public ArrayList<Projectile> getMagicPotions() {
         return magicPotions;
-    }    
+    } 
 }

@@ -4,11 +4,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import com.sk89q.worldguard.WorldGuard;
-
 import org.bukkit.ChatColor;
 
+import com.sk89q.worldguard.WorldGuard;
 import net.milkbowl.vault.economy.Economy;
 
 import dev.tbm00.spigot.item64.command.ItmCommand;
@@ -17,7 +15,7 @@ import dev.tbm00.spigot.item64.listener.*;
 
 public class Item64 extends JavaPlugin {
     private ConfigHandler configHandler;
-    private UsageHelper usageHelper;
+    private UsageHandler usageHandler;
     private GDHook gdHook;
     private DCHook dcHook;
     private Economy ecoHook;
@@ -38,11 +36,11 @@ public class Item64 extends JavaPlugin {
             configHandler = new ConfigHandler(this);
             if (configHandler.isEnabled()) {
                 setupHooks();
-                usageHelper = new UsageHelper(this, configHandler, ecoHook, gdHook, dcHook, wgHook);
+                usageHandler = new UsageHandler(this, configHandler, ecoHook, gdHook, dcHook, wgHook);
 
                 getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
-                getServer().getPluginManager().registerEvents(new ItemUsage(this, usageHelper), this);
-                getServer().getPluginManager().registerEvents(new PlayerConnection(this, usageHelper), this);
+                getServer().getPluginManager().registerEvents(new ItemUsage(this, usageHandler), this);
+                getServer().getPluginManager().registerEvents(new PlayerConnection(this, usageHandler), this);
                 getServer().getPluginManager().registerEvents(new PreventUsage(this, configHandler, dcHook), this);
                 getServer().getPluginManager().registerEvents(new PreventGrowth(this, configHandler, gdHook), this);
                 getServer().getPluginManager().registerEvents(new RewardBreak(this, configHandler), this);

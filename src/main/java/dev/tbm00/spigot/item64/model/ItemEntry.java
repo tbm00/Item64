@@ -2,6 +2,7 @@ package dev.tbm00.spigot.item64.model;
 
 import java.util.List;
 
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 
 import dev.tbm00.spigot.item64.Item64;
@@ -19,9 +20,9 @@ public class ItemEntry {
     private boolean removeItem;
     private double random;
     private double damage;
-    private String ammoItem;
+    private Material ammoItem;
     private boolean removeAmmo;
-    private String material;
+    private Material material;
     private String name;
     private List<String> lore;
     private boolean hideEnchants;
@@ -38,7 +39,7 @@ public class ItemEntry {
     private List<String> rewardCommands;
     
     public ItemEntry(Item64 item64, int id, String givePerm, String usePerm, String type, String KEY, double money, int hunger, 
-                        int cooldown, double random, double damage, String ammoItem, boolean removeAmmo, String material, String name, List<String> lore, 
+                        int cooldown, double random, double damage, Material ammoItem, boolean removeAmmo, Material material, String name, List<String> lore, 
                         boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands, String message, List<String> effects, List<String> rEffects, 
                         List<String> lEffects, double power, double rewardChance, String rewardMessage, boolean giveItem, List<String> rewardCommands) {
         this.id = id;
@@ -152,11 +153,11 @@ public class ItemEntry {
         this.damage = damage;
     }
 
-    public String getAmmoItem() {
+    public Material getAmmoItem() {
         return ammoItem;
     }
 
-    public void setAmmoItem(String ammoItem) {
+    public void setAmmoItem(Material ammoItem) {
         this.ammoItem = ammoItem;
     }
 
@@ -169,11 +170,11 @@ public class ItemEntry {
     }
 
 
-    public String getMaterial() {
+    public Material getMaterial() {
         return material;
     }
 
-    public void setMaterial(String material) {
+    public void setMaterial(Material material) {
         this.material = material;
     }
 

@@ -93,8 +93,8 @@ public class RewardBreak implements Listener {
                     Bukkit.dispatchCommand(console, cmd);
                     rewarded = true;
                 }
-            } if (entry.getGiveItem() && !(entry.getMaterial()==null || entry.getMaterial().isBlank())) {
-                ItemStack item = new ItemStack(Material.valueOf(entry.getMaterial()));
+            } if (entry.getGiveItem() && entry.getMaterial()!=null) {
+                ItemStack item = new ItemStack(entry.getMaterial());
                 ItemMeta meta = item.getItemMeta();
                 if (meta == null) return;
                 if (!entry.getLore().isEmpty())

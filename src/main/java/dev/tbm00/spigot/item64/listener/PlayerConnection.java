@@ -13,13 +13,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.md_5.bungee.api.chat.TextComponent;
 
 import dev.tbm00.spigot.item64.Item64;
-import dev.tbm00.spigot.item64.UsageHelper;
+import dev.tbm00.spigot.item64.UsageHandler;
 
 public class PlayerConnection implements Listener {
-    private final UsageHelper usageHelper;
+    private final UsageHandler usageHandler;
 
-    public PlayerConnection(Item64 item64, UsageHelper usageHelper) {
-        this.usageHelper = usageHelper;
+    public PlayerConnection(Item64 item64, UsageHandler usageHandler) {
+        this.usageHandler = usageHandler;
     }
 
     @EventHandler
@@ -31,12 +31,12 @@ public class PlayerConnection implements Listener {
                 if (Bukkit.getPlayer(uuid)!=null) {
                     Bukkit.getPlayer(uuid).spigot().sendMessage(
                         new TextComponent(ChatColor.translateAlternateColorCodes('&', 
-                            usageHelper.getConfigHandler().getRewardedBreakingJoinMessage())
+                            usageHandler.getConfigHandler().getRewardedBreakingJoinMessage())
                         )
                     );
                 }
             }
-        }.runTaskLater(usageHelper.getItem64(), 20*usageHelper.getConfigHandler().getRewardedBreakingJoinMessageDelay());
+        }.runTaskLater(usageHandler.getItem64(), 20*usageHandler.getConfigHandler().getRewardedBreakingJoinMessageDelay());
     }
 
     @EventHandler
@@ -46,8 +46,8 @@ public class PlayerConnection implements Listener {
             @Override
             public void run() {
                 if (Bukkit.getPlayer(uuid)==null)
-                    usageHelper.getActiveCooldowns().remove(uuid);
+                    usageHandler.getActiveCooldowns().remove(uuid);
             }
-        }.runTaskLater(usageHelper.getItem64(), 6000);
+        }.runTaskLater(usageHandler.getItem64(), 6000);
     }
 }

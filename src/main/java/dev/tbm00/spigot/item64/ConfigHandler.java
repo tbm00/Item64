@@ -5,13 +5,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ConfigHandler {
     private final Item64 item64;
-    private static boolean enabled = false;
+    private boolean enabled = false;
     
     private boolean vaultEnabled = false;
     private boolean deluxeCombatEnabled = false;
@@ -35,7 +36,7 @@ public class ConfigHandler {
     private Set<String> preventedGrowing = new HashSet<>();
     
 
-    private static List<ItemEntry> itemEntries = new ArrayList<>();
+    private List<ItemEntry> itemEntries = new ArrayList<>();
 
     public ConfigHandler(Item64 item64) {
         this.item64 = item64;
@@ -150,7 +151,12 @@ public class ConfigHandler {
         String type = itemEntrySec.contains("type") ? itemEntrySec.getString("type") : "NULL";
         String givePerm = itemEntrySec.contains("givePerm") ? itemEntrySec.getString("givePerm") : "item64.na";
         String usePerm = itemEntrySec.contains("usePerm") ? itemEntrySec.getString("usePerm") : "item64.na";
-        String material = itemEntrySec.contains("item.mat") ? itemEntrySec.getString("item.mat") : null;
+        String materialStr = itemEntrySec.contains("item.mat") ? itemEntrySec.getString("item.mat") : null;
+        Material material = Material.getMaterial(materialStr);
+        if (material == null) {
+            item64.logRed("Error loading item: Unknown material: " + materialStr);
+            return;
+        }
         String name = itemEntrySec.contains("item.name") ? itemEntrySec.getString("item.name") : null;
         List<String> lore = itemEntrySec.contains("item.lore") ? itemEntrySec.getStringList("item.lore") : null;
         boolean hideEnchants = itemEntrySec.contains("item.hideEnchants") ? itemEntrySec.getBoolean("item.hideEnchants") : false;
@@ -158,7 +164,12 @@ public class ConfigHandler {
         double money = itemEntrySec.contains("usage.moneyCost") ? itemEntrySec.getDouble("usage.moneyCost") : 0.0;
         int hunger = itemEntrySec.contains("usage.hungerCost") ? itemEntrySec.getInt("usage.hungerCost") : 0;
         int cooldown = itemEntrySec.contains("usage.cooldown") ? itemEntrySec.getInt("usage.cooldown") : 0;
-        String ammoItem = itemEntrySec.contains("usage.ammoItem.mat") ? itemEntrySec.getString("usage.ammoItem.mat") : null;
+        String ammoItemStr = itemEntrySec.contains("usage.ammoItem.mat") ? itemEntrySec.getString("usage.ammoItem.mat") : null;
+        Material ammoItem = Material.getMaterial(ammoItemStr);
+        if (ammoItem == null) {
+            item64.logRed("Error loading item: Unknown material: " + ammoItemStr);
+            return;
+        }
         boolean removeAmmo = itemEntrySec.contains("usage.ammoItem.removeAmmoItemOnUse") ? itemEntrySec.getBoolean("usage.ammoItem.removeAmmoItemOnUse") : false;
         double random = itemEntrySec.contains("usage.projectile.shotRandomness") ? itemEntrySec.getDouble("usage.projectile.shotRandomness") : 0.0;
         double damage = itemEntrySec.contains("usage.projectile.extraPlayerDamage") ? itemEntrySec.getDouble("usage.projectile.extraPlayerDamage") : 0.0;
