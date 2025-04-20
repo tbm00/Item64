@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.swing.undo.StateEditable;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -45,6 +47,8 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.flags.StateFlag.State;
 
 import dev.tbm00.spigot.item64.hook.*;
 import dev.tbm00.spigot.item64.model.ItemEntry;
@@ -232,19 +236,20 @@ public class UsageHandler {
         }
 
         // Shot flame visuals 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    for (int i=0; i<3; ++i) {
+                    for (int i=0; i<6; ++i) {
                         Vector offsetPath = playerDirection.clone();
                         Location offsetLocation = particleLocation.clone();
                         if (random > 0) {
                             randomizeLocation(offsetLocation, random);
                             randomizeVelocity(offsetPath, random / 2);
                         }
+                        Particle particle = getRandomFireParticle();
                         offsetLocation.add(0, 0.3, 0);
-                        player.getWorld().spawnParticle(Particle.FLAME, offsetLocation, 0, offsetPath.getX(), offsetPath.getY(), offsetPath.getZ(), 0.1);
+                        player.getWorld().spawnParticle(particle, offsetLocation, 0, offsetPath.getX(), offsetPath.getY(), offsetPath.getZ(), 0.1);
                     }
                 }
             }.runTaskLater(getItem64(), i);
@@ -413,7 +418,11 @@ public class UsageHandler {
             com.sk89q.worldedit.util.Location wgLocation = BukkitAdapter.adapt(loc);
             ApplicableRegionSet set = regionQuery.getApplicableRegions(wgLocation);
 
-            if (set.isVirtual() || set.testState(localPlayer, Flags.BUILD)) continue;
+            if (set.isVirtual()) continue;
+
+            State state = set.queryState(localPlayer, Flags.BUILD);
+            if (state==null || state.equals(State.ALLOW)) continue;
+
             return false;
         }
         return true;
@@ -427,7 +436,9 @@ public class UsageHandler {
         LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(shooter);
 
         if (set.isVirtual()) return true;
-        if (set.testState(localPlayer, Flags.PVP)) return true;
+        
+        State state = set.queryState(localPlayer, Flags.BUILD);
+        if (state==null || state.equals(State.ALLOW)) return true;;
     
         return false;
     }
@@ -602,6 +613,23 @@ public class UsageHandler {
             ThreadLocalRandom.current().nextDouble(-random / 2, random / 2),
             ThreadLocalRandom.current().nextDouble(-random, random)
         ));
+    }
+
+    public Particle getRandomFireParticle() {
+        int rInt = ThreadLocalRandom.current().nextInt(0, 3);
+
+        switch (rInt%4) {
+            case 0:
+                return Particle.FLAME;
+            case 1:
+                return Particle.SMOKE_NORMAL;
+            case 2:
+                return Particle.SMOKE_LARGE;
+            case 3:
+                return Particle.FLAME;
+            default:
+                return Particle.FLAME;
+        }
     }
 
     public Item64 getItem64() {

@@ -152,7 +152,7 @@ public class ConfigHandler {
         String usePerm = itemEntrySec.contains("usePerm") ? itemEntrySec.getString("usePerm") : "item64.na";
         String materialStr = itemEntrySec.contains("item.mat") ? itemEntrySec.getString("item.mat") : null;
         Material material = Material.getMaterial(materialStr);
-        if (material == null) {
+        if (material == null && !type.equalsIgnoreCase("NO_ITEM")) {
             item64.logRed("Error loading item: Unknown material: " + materialStr);
             return;
         }
@@ -165,10 +165,6 @@ public class ConfigHandler {
         int cooldown = itemEntrySec.contains("usage.cooldown") ? itemEntrySec.getInt("usage.cooldown") : 0;
         String ammoItemStr = itemEntrySec.contains("usage.ammoItem.mat") ? itemEntrySec.getString("usage.ammoItem.mat") : null;
         Material ammoItem = Material.getMaterial(ammoItemStr);
-        if (ammoItem == null) {
-            item64.logRed("Error loading item: Unknown material: " + ammoItemStr);
-            return;
-        }
         boolean removeAmmo = itemEntrySec.contains("usage.ammoItem.removeAmmoItemOnUse") ? itemEntrySec.getBoolean("usage.ammoItem.removeAmmoItemOnUse") : false;
         double random = itemEntrySec.contains("usage.projectile.shotRandomness") ? itemEntrySec.getDouble("usage.projectile.shotRandomness") : 0.0;
         double damage = itemEntrySec.contains("usage.projectile.extraPlayerDamage") ? itemEntrySec.getDouble("usage.projectile.extraPlayerDamage") : 0.0;
