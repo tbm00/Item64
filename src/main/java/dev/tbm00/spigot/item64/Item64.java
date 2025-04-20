@@ -4,6 +4,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.sk89q.worldguard.WorldGuard;
+
 import org.bukkit.ChatColor;
 
 import net.milkbowl.vault.economy.Economy;
@@ -18,6 +21,7 @@ public class Item64 extends JavaPlugin {
     private GDHook gdHook;
     private DCHook dcHook;
     private Economy ecoHook;
+    private WorldGuard wgHook;
 
     @Override
     public void onEnable() {
@@ -34,7 +38,7 @@ public class Item64 extends JavaPlugin {
             configHandler = new ConfigHandler(this);
             if (configHandler.isEnabled()) {
                 setupHooks();
-                usageHelper = new UsageHelper(this, configHandler, ecoHook, gdHook, dcHook);
+                usageHelper = new UsageHelper(this, configHandler, ecoHook, gdHook, dcHook, wgHook);
 
                 getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
                 getServer().getPluginManager().registerEvents(new ItemUsage(this, usageHelper), this);
@@ -70,6 +74,12 @@ public class Item64 extends JavaPlugin {
             disablePlugin();
             return;
         }
+
+        if (configHandler.isWorldGuardEnabled() && !setupWorldGuard()) {
+            getLogger().severe("WorldGuard hook failed -- disabling plugin!");
+            disablePlugin();
+            return;
+        }
     }
 
     private boolean setupDeluxeCombat() {
@@ -78,6 +88,15 @@ public class Item64 extends JavaPlugin {
         dcHook = new DCHook();
         
         logGreen("DeluxeCombat hooked.");
+        return true;
+    }
+
+    private boolean setupWorldGuard() {
+        if (!isPluginAvailable("WorldGuard")) return false;
+
+        wgHook = WorldGuard.getInstance();
+
+        logGreen("WorldGuard hooked.");
         return true;
     }
 

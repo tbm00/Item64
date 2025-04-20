@@ -45,69 +45,11 @@ public class ItemUsage implements Listener {
         this.usageHelper = usageHelper;
     }
 
-    // USE LISTENER: USABLE, FLAME_PARTICLE, LIGHTNING_PEARL, RANDOM_POTION
-    @EventHandler
-    public void onItemUse(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack item = event.getItem();
-        if (item == null || player == null) return;
-        
-        ItemEntry entry = usageHelper.getItemEntryByItem(item);
-        if (entry == null || !player.hasPermission(entry.getUsePerm()))
-            return;
-
-        String type = entry.getType();
-        if (type.equalsIgnoreCase("EXPLOSIVE_ARROW") || type.equalsIgnoreCase("CONSUMABLE") || type.equalsIgnoreCase("NO_ITEM"))
-            return;
-        
-        event.setCancelled(true);
-
-        Action action = event.getAction();
-        triggerUsage(player, entry, item, action, null);
-    }
-
-    // USE LISTENER: CONSUMABLE
-    @EventHandler
-    public void onItemConsume(PlayerItemConsumeEvent event) {
-        Player player = event.getPlayer();
-        ItemStack item = event.getItem();
-        if (item == null || player == null) return;
-
-        ItemEntry entry = usageHelper.getItemEntryByItem(item);
-        if (entry == null || !entry.getType().equalsIgnoreCase("CONSUMABLE") || !player.hasPermission(entry.getUsePerm()))
-            return;
-
-        event.setCancelled(true);
-
-        triggerUsage(player, entry, item, null, null);
-    }
-
-    // USE LISTENER: EXPLOSIVE_ARROW
-    @EventHandler
-    public void onBowShoot(EntityShootBowEvent event) {
-        if (!(event.getEntity() instanceof Player)) return;
-
-        Player player = (Player) event.getEntity();
-        ItemStack item = player.getInventory().getItemInMainHand();
-        if (player == null || item == null) return;
-
-        ItemEntry entry = usageHelper.getItemEntryByItem(item);
-        if (entry == null || !player.hasPermission(entry.getUsePerm()) || 
-        (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW"))) 
-            return;
-
-        Arrow arrow = (Arrow) event.getProjectile();
-        if (arrow == null) return;
-
-        triggerUsage(player, entry, null, null, arrow);
-    }
-
     // TRIGGER: ALL
     private void triggerUsage(Player player, ItemEntry entry, ItemStack item, Action action, Projectile projectile) {
         if (!usageHelper.passUsageChecks(player, entry)) return;
 
         // Use the item
-        double random = entry.getRandom();
         switch (entry.getType()) {
             case "USABLE":
                 runCmdsApplyFX(player, entry, item);
@@ -116,28 +58,24 @@ public class ItemUsage implements Listener {
                 runCmdsApplyFX(player, entry, item);
                 break;
             case "EXPLOSIVE_ARROW":
-                if (!usageHelper.passPVPChecks(player, entry)) return;
+                if (!usageHelper.passShootingChecks(player, entry)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
-                projectile.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
-                usageHelper.getExplosiveArrows().add(projectile);
-                if (random > 0) usageHelper.randomizeProjectile(projectile, random);
-                break;
-            case "FLAME_PARTICLE":
-                if (!usageHelper.passPVPChecks(player, entry)) return;
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting flames..."));
-                shootFlames(player, entry);
+                shootExplosiveArrow(player, entry, projectile);
                 break;
             case "LIGHTNING_PEARL":
-                if (!usageHelper.passPVPChecks(player, entry)) return;
+                if (!usageHelper.passShootingChecks(player, entry)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
-                EnderPearl pearl = player.launchProjectile(EnderPearl.class);
-                pearl.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
-                usageHelper.getLightningPearls().add(pearl);
-                if (random > 0) usageHelper.randomizeProjectile(pearl, random);
+                shootLightningPearl(player, entry);
+                break;
+            case "FLAME_PARTICLE":
+                if (!usageHelper.passShootingChecks(player, entry)) return;
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting flames..."));
+                shootFlameParticles(player, entry);
                 break;
             case "RANDOM_POTION":
-                if (!usageHelper.passPVPChecks(player, entry)) return;
-                shootPotion(player, entry, action);
+                boolean leftClick = (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
+                if (leftClick && !usageHelper.passShootingChecks(player, entry)) return;
+                if (!shootRandomPotion(player, entry, leftClick)) return;
                 break;
             default: 
                 break;
@@ -178,8 +116,25 @@ public class ItemUsage implements Listener {
         if (entry.getRemoveItem()) usageHelper.removeItem(player, item);
     }
 
+    // USER: EXPLOSIVE_ARROW
+    private void shootExplosiveArrow(Player player, ItemEntry entry, Projectile projectile) {
+        double random = entry.getRandom();
+        projectile.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
+        usageHelper.getExplosiveArrows().add(projectile);
+        if (random > 0) usageHelper.randomizeProjectile(projectile, random);
+    }
+
+    // USER: LIGHTNING_PEARL
+    private void shootLightningPearl(Player player, ItemEntry entry) {
+        double random = entry.getRandom();
+        EnderPearl pearl = player.launchProjectile(EnderPearl.class);
+        pearl.setMetadata("Item64-keyString", new FixedMetadataValue(usageHelper.getItem64(), entry.getKeyString()));
+        usageHelper.getLightningPearls().add(pearl);
+        if (random > 0) usageHelper.randomizeProjectile(pearl, random);
+    }
+
     // USER: FLAME_PARTICLE
-    private void shootFlames(Player player, ItemEntry entry) {
+    private void shootFlameParticles(Player player, ItemEntry entry) {
         double random = entry.getRandom();
 
         // Initialize particle direction
@@ -234,12 +189,11 @@ public class ItemUsage implements Listener {
     }
 
     // USER: RANDOM_POTION
-    private void shootPotion(Player player, ItemEntry entry, Action action) {
-        boolean rightClick = !(action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
+    private boolean shootRandomPotion(Player player, ItemEntry entry, boolean leftClick) {
         ItemStack potion = new ItemStack(Material.SPLASH_POTION);
         PotionMeta potionMeta = (PotionMeta) potion.getItemMeta();
-        String effectLine = rightClick ? entry.getREffects().get(ThreadLocalRandom.current().nextInt(entry.getREffects().size()))
-                                        : entry.getLEffects().get(ThreadLocalRandom.current().nextInt(entry.getLEffects().size()));
+        String effectLine = leftClick ? entry.getLEffects().get(ThreadLocalRandom.current().nextInt(entry.getLEffects().size()))
+                                      : entry.getREffects().get(ThreadLocalRandom.current().nextInt(entry.getREffects().size()));
         try {
             String[] parts = effectLine.split(":");
             PotionEffectType effectType = PotionEffectType.getByName(parts[0].toUpperCase());
@@ -258,7 +212,7 @@ public class ItemUsage implements Listener {
                     double random = entry.getRandom();
                     if (random > 0) usageHelper.randomizeProjectile(thrownPotion, random);
                     
-                    if (!rightClick) {
+                    if (leftClick) {
                         thrownPotion.setVisualFire(true);
                         if (entry.getDamage() >= 0)
                             thrownPotion.setMetadata("Item64-randomPotion-left", new FixedMetadataValue(usageHelper.getItem64(), "true"));
@@ -267,13 +221,73 @@ public class ItemUsage implements Listener {
                     thrownPotion.setShooter(player);
                     usageHelper.getMagicPotions().add(thrownPotion);
                 });
+                return true;
             } else {
                 usageHelper.getItem64().logRed("Unknown potion effect type: " + parts[0]);
+                return false;
             }
         } catch (Exception e) {
             usageHelper.getItem64().logRed("Exception while throwing potion: ");
             usageHelper.getItem64().getLogger().warning(e.getMessage());
+            return false;
         }
+    }
+
+    // USE LISTENER: CONSUMABLE
+    @EventHandler
+    public void onItemConsume(PlayerItemConsumeEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+        if (item == null || player == null) return;
+
+        ItemEntry entry = usageHelper.getItemEntryByItem(item);
+        if (entry == null || !entry.getType().equalsIgnoreCase("CONSUMABLE") || !player.hasPermission(entry.getUsePerm()))
+            return;
+
+        event.setCancelled(true);
+
+        triggerUsage(player, entry, item, null, null);
+    }
+
+    // USE LISTENER: USABLE, FLAME_PARTICLE, LIGHTNING_PEARL, RANDOM_POTION
+    @EventHandler
+    public void onItemUse(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+        if (item == null || player == null) return;
+        
+        ItemEntry entry = usageHelper.getItemEntryByItem(item);
+        if (entry == null || !player.hasPermission(entry.getUsePerm()))
+            return;
+
+        String type = entry.getType();
+        if (type.equalsIgnoreCase("EXPLOSIVE_ARROW") || type.equalsIgnoreCase("CONSUMABLE") || type.equalsIgnoreCase("NO_ITEM"))
+            return;
+        
+        event.setCancelled(true);
+
+        Action action = event.getAction();
+        triggerUsage(player, entry, item, action, null);
+    }
+
+    // USE LISTENER: EXPLOSIVE_ARROW
+    @EventHandler
+    public void onBowShoot(EntityShootBowEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+
+        Player player = (Player) event.getEntity();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (player == null || item == null) return;
+
+        ItemEntry entry = usageHelper.getItemEntryByItem(item);
+        if (entry == null || !player.hasPermission(entry.getUsePerm()) || 
+        (!entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW"))) 
+            return;
+
+        Arrow arrow = (Arrow) event.getProjectile();
+        if (arrow == null) return;
+
+        triggerUsage(player, entry, null, null, arrow);
     }
 
     // LANDING LISTENER: EXPLOSIVE_ARROW, LIGHTNING_PEARL

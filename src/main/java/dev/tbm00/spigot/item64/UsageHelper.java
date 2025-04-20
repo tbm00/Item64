@@ -22,6 +22,15 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.LocalPlayer;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.Flags;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.sk89q.worldguard.protection.regions.RegionQuery;
+
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -36,19 +45,30 @@ public class UsageHelper {
     private final Economy ecoHook;
     private final GDHook gdHook;
     private final DCHook dcHook;
+    private final WorldGuard wgHook;
     private final List<ItemEntry> itemEntries;
     private static final List<Long> cooldowns = new ArrayList<>();
     private static final Map<UUID, List<Long>> activeCooldowns = new HashMap<>();
     private static final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
     private static final ArrayList<Projectile> lightningPearls = new ArrayList<>();
     private static final ArrayList<Projectile> magicPotions = new ArrayList<>();
+    private static final int[][] CHECK_DIRECTIONS = {
+        { 1, 0,  0},
+        { -1, 0,  0},
+        { 0, 0,  1}, 
+        { 0, 0,  -1},
+        {0, 1,  0},
+        {0, -1, 0},
+        {0, 0, 0}
+    };
 
-    public UsageHelper(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook) {
+    public UsageHelper(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook, WorldGuard wgHook) {
         this.item64 = item64;
         this.configHandler = configHandler;
         this.ecoHook = ecoHook;
         this.gdHook = gdHook;
         this.dcHook = dcHook;
+        this.wgHook = wgHook;
         itemEntries = configHandler.getItemEntries();
 
         // only set cooldowns on first initization of ListenerLeader
@@ -74,13 +94,185 @@ public class UsageHelper {
         }
     }
 
-    public ItemEntry getItemEntryByItem(ItemStack item) {
-        if (item == null || !item.hasItemMeta() || item.getType() == Material.AIR)
-            return null;
-        return itemEntries.stream()
-            .filter(entry -> item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING))
-            .findFirst()
-            .orElse(null);
+    // HELPER: ALL ITEMS
+    public boolean passUsageChecks(Player player, ItemEntry entry) {
+        if (player.getFoodLevel() < entry.getHunger()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- you're too hungry!"));
+            return false;
+        }
+        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> cooldowns);
+        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- active cooldown!"));
+            return false;
+        }
+        if (entry.getAmmoItem()!=null && !entry.getAmmoItem().isBlank() && !hasItem(player, entry.getAmmoItem())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
+            return false;
+        }
+        double cost = entry.getMoney();
+        if (ecoHook != null && cost > 0 && !hasMoney(player, cost)) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- not enough money!"));
+            return false;
+        }
+        return true;
+    }
+
+    // HELPER: PVP ITEMS
+    public boolean passShootingChecks(Player player, ItemEntry entry) {
+        if (!passGDClaimPvpCheck(player.getLocation())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim pvp protection!"));
+            return false;
+        }
+        if (!passWGRegionPvpCheck(player, player.getLocation())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- region pvp protection!"));
+            return false;
+        }
+        if (!passGDClaimBuildCheck(player, player.getLocation(), 6)) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim block/entity protection!"));
+            return false;
+        }
+        if (!passWGRegionBuildCheck(player, player.getLocation(), 6)) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- region block/entity protection!"));
+            return false;
+        }
+        return true;
+    }
+
+    // HELPER: PVP ITEMS
+    public boolean passDamageChecks(Player shooter, Location location, ItemEntry entry) {
+        if (!passDCPvpLocCheck(shooter, location, 6)) {
+            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- pvp protection!"));
+            return false;
+        }
+        if (!passGDClaimPvpCheck(location)) {
+            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- claim pvp protection!"));
+            return false;
+        }
+        if (!passWGRegionPvpCheck(shooter, location)) {
+            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- region pvp protection!"));
+            return false;
+        }
+        if (!passGDClaimBuildCheck(shooter, location, 6)) {
+            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- claim block/entity protection!"));
+            return false;
+        }
+        if (!passWGRegionBuildCheck(shooter, location, 6)) {
+            shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- region block/entity protection!"));
+            return false;
+        }
+        return true;
+    }
+
+    public boolean passDCPvpLocCheck(Player shooter, Location location, double radius) {
+        if (dcHook==null) return true;
+
+        boolean shooterEnabled = passDCPvpToggleCheck(shooter);
+
+        return location.getWorld().getNearbyEntities(location, radius, radius, radius).stream()
+            .filter(entity -> entity instanceof Player)
+            .map(entity -> (Player) entity)
+            .noneMatch(player -> !passDCPvpToggleCheck(player) || !shooterEnabled);
+    }
+    
+    public boolean passDCPvpToggleCheck(Player player) {
+        if (dcHook==null) return true;
+        else if (dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player)) return false;
+        return true;
+    }
+
+    public boolean passGDClaimPvpCheck(Location location) {
+        if (gdHook==null) return true;
+        String regionID = gdHook.getRegionID(location);
+        return gdHook.hasPvPEnabled(regionID);
+    }
+
+    public boolean passGDClaimBuildCheck(Player shooter, Location center, int radius) {
+        if (gdHook==null) return true;
+
+        for (int i = 0; i < CHECK_DIRECTIONS.length; ++i) {
+            Location loc = center.clone().add(radius*CHECK_DIRECTIONS[i][0], radius*CHECK_DIRECTIONS[i][1], radius*CHECK_DIRECTIONS[i][2]);
+
+            String claimId = gdHook.getRegionID(loc);
+            if (claimId == null) continue;
+            if (!gdHook.hasBuilderTrust(shooter, claimId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean passWGRegionBuildCheck(Player shooter, Location center, int radius) {
+        if (wgHook==null) return true;
+
+        RegionContainer container = wgHook.getPlatform().getRegionContainer();
+        RegionQuery query = container.createQuery();
+        LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(shooter);
+
+        for (int[] offset : CHECK_DIRECTIONS) {
+            Location loc = center.clone().add(radius*offset[0], radius*offset[1], radius*offset[2]);
+            com.sk89q.worldedit.util.Location wgLocation = BukkitAdapter.adapt(loc);
+            ApplicableRegionSet set = query.getApplicableRegions(wgLocation);
+
+            if (set.isVirtual() || set.testState(localPlayer, Flags.BUILD)) continue;
+            return false;
+        }
+        return true;
+    }
+
+    public boolean passWGRegionPvpCheck(Player shooter, Location location) {
+        if (wgHook==null) return true;
+
+        com.sk89q.worldedit.util.Location wgLocation = BukkitAdapter.adapt(location);
+        RegionContainer container = wgHook.getPlatform().getRegionContainer();
+        RegionQuery query = container.createQuery();
+        ApplicableRegionSet set = query.getApplicableRegions(wgLocation);
+        LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(shooter);
+
+        if (set.isVirtual()) return true;
+        if (set.testState(localPlayer, Flags.PVP)) return true;
+    
+        return false;
+    }
+
+    // HELPER: PVP ITEMS
+    public void damageEntities(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
+        Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
+        List<String> damagedPlayers = new ArrayList<>(3);
+        for (Entity entity : nearbyEntities) {
+            if (damagedPlayers.size()>=3) break;
+            if (entity instanceof LivingEntity livingEntity) {
+                livingEntity.damage(damage, shooter);
+                if (ignite>0) livingEntity.setFireTicks(ignite);
+                if (livingEntity instanceof Player player) 
+                    damagedPlayers.add(player.getDisplayName());
+            }
+
+            if (!damagedPlayers.isEmpty()) {
+                String message = String.join(", ", damagedPlayers);
+                shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN + "Damaged " + message));
+            }
+        }
+    }
+
+    // HELPER: CONSUMABLE, USABLE
+    public void applyEffects(Player player, List<String> effects, ItemStack item) {
+        for (String line : effects) {
+            try {
+                String[] parts = line.split(":");
+                PotionEffectType effectType = PotionEffectType.getByName(parts[0].toUpperCase());
+                int amplifier = Integer.parseInt(parts[1]);
+                int duration = Integer.parseInt(parts[2])*20;
+                if (effectType != null) {
+                    player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true));
+                } else {
+                    item64.logRed("Unknown potion effect type: " + parts[0]);
+                    return;
+                }
+            } catch (Exception e) {
+                item64.logRed("Error parsing effect: " + line + " - ");
+                item64.getLogger().warning(e.getMessage());
+            }
+        }
     }
 
     public void adjustCooldown(Player player, ItemEntry entry) {
@@ -94,6 +286,32 @@ public class UsageHelper {
     public void adjustHunger(Player player, ItemEntry entry) {
         if (entry.getHunger()<=0) return;
         player.setFoodLevel(Math.max(player.getFoodLevel() - entry.getHunger(), 0));
+    }
+
+    public ItemEntry getItemEntryByItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta() || item.getType() == Material.AIR)
+            return null;
+        return itemEntries.stream()
+            .filter(entry -> item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING))
+            .findFirst()
+            .orElse(null);
+    }
+
+    public boolean giveItem(Player player, String itemName) {
+        if (itemName.equals("none")
+            || itemName.isBlank()
+            || itemName == null) return true;
+
+        Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
+        if (itemMaterial == null) {
+            item64.logRed("Error: Unknown item " + itemMaterial);
+            return false;
+        }
+
+        ItemStack item = new ItemStack(itemMaterial);
+        item.setAmount(1);
+        player.getInventory().addItem(item);
+        return true;
     }
 
     public boolean hasItem(Player player, String itemName) {
@@ -138,23 +356,6 @@ public class UsageHelper {
             }
         }
         return false;
-    }
-
-    public boolean giveItem(Player player, String itemName) {
-        if (itemName.equals("none")
-            || itemName.isBlank()
-            || itemName == null) return true;
-
-        Material itemMaterial = Material.getMaterial(itemName.toUpperCase());
-        if (itemMaterial == null) {
-            item64.logRed("Error: Unknown item " + itemMaterial);
-            return false;
-        }
-
-        ItemStack item = new ItemStack(itemMaterial);
-        item.setAmount(1);
-        player.getInventory().addItem(item);
-        return true;
     }
 
     public boolean hasMoney(Player player, double amount) {
@@ -223,147 +424,6 @@ public class UsageHelper {
             ThreadLocalRandom.current().nextDouble(-random / 2, random / 2),
             ThreadLocalRandom.current().nextDouble(-random, random)
         ));
-    }
-
-    public boolean passGDPvpCheck(Location location) {
-        if (gdHook==null) return true;
-        String regionID = gdHook.getRegionID(location);
-        return gdHook.hasPvPEnabled(regionID);
-    }
-
-    public boolean passDCPvpLocCheck(Location location, double radius) {
-        if (dcHook==null) return true;
-        return location.getWorld().getNearbyEntities(location, radius, radius, radius).stream()
-            .filter(entity -> entity instanceof Player)
-            .map(entity -> (Player) entity)
-            .noneMatch(player -> dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player));
-    }
-    
-    public boolean passDCPvpPlayerCheck(Player player) {
-        if (dcHook==null) return true;
-        else if (dcHook.hasProtection(player) || !dcHook.hasPvPEnabled(player)) return false;
-        return true;
-    }
-
-    public boolean passGDBuilderCheck(Player shooter, Location location, int radius) {
-        if (gdHook==null) return true;
-        String[] ids = new String[9];
-        Location loc = location.clone();
-    
-        ids[0] = gdHook.getRegionID(loc);
-        ids[1] = gdHook.getRegionID(loc.add(radius, radius, radius));
-        ids[2] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
-        ids[3] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
-        ids[4] = gdHook.getRegionID(loc.add(0, 0, (2*radius)));
-        ids[5] = gdHook.getRegionID(loc.add(0, (-2*radius), 0));
-        ids[6] = gdHook.getRegionID(loc.add((2*radius), 0, 0));
-        ids[7] = gdHook.getRegionID(loc.add(0, 0, (-2*radius)));
-        ids[8] = gdHook.getRegionID(loc.add((-2*radius), 0, 0));
-
-        for (String id : ids) {
-            if (!gdHook.hasBuilderTrust(shooter, id)) return false;
-        }
-        return true;
-    }
-
-    public void damageEntities(Player shooter, Location location, double hRadius, double vRadius, double damage, int ignite) {
-        Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
-        List<String> damagedPlayers = new ArrayList<>(3);
-        for (Entity entity : nearbyEntities) {
-            if (damagedPlayers.size()>=3) break;
-            if (entity instanceof LivingEntity livingEntity) {
-                livingEntity.damage(damage, shooter);
-                if (ignite>0) livingEntity.setFireTicks(ignite);
-                if (livingEntity instanceof Player player) 
-                    damagedPlayers.add(player.getDisplayName());
-            }
-
-            if (!damagedPlayers.isEmpty()) {
-                String message = String.join(", ", damagedPlayers);
-                shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN + "Damaged " + message));
-            }
-        }
-    }
-
-    // HELPER: CONSUMABLE, USABLE
-    public void applyEffects(Player player, List<String> effects, ItemStack item) {
-        for (String line : effects) {
-            try {
-                String[] parts = line.split(":");
-                PotionEffectType effectType = PotionEffectType.getByName(parts[0].toUpperCase());
-                int amplifier = Integer.parseInt(parts[1]);
-                int duration = Integer.parseInt(parts[2])*20;
-                if (effectType != null) {
-                    player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true));
-                } else {
-                    item64.logRed("Unknown potion effect type: " + parts[0]);
-                    return;
-                }
-            } catch (Exception e) {
-                item64.logRed("Error parsing effect: " + line + " - ");
-                item64.getLogger().warning(e.getMessage());
-            }
-        }
-    }
-
-    // HELPER: PVP ITEMS
-    public boolean passPVPChecks(Player player, ItemEntry entry) {
-        if (!passGDPvpCheck(player.getLocation())) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim pvp protection!"));
-            return false;
-        }
-        return true;
-    }
-
-    // HELPER: ALL
-    // if it doesnt pass, returns 0, if it does, it returns hasAmmoItem
-    public boolean passUsageChecks(Player player, ItemEntry entry) {
-        // Do hunger, cooldown, ammo, and money check
-        if (player.getFoodLevel() < entry.getHunger()) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- you're too hungry!"));
-            return false;
-        }
-
-        List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> cooldowns);
-        if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- active cooldown!"));
-            return false;
-        }
-
-        if (entry.getAmmoItem()!=null && !entry.getAmmoItem().isBlank() && !hasItem(player, entry.getAmmoItem())) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toLowerCase()));
-            return false;
-        }
-
-        double cost = entry.getMoney();
-        if (ecoHook != null && cost > 0 && !hasMoney(player, cost)) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- not enough money!"));
-            return false;
-        }
-        return true;
-    }
-
-    // HELPER: EXPLOSIVE_ARROW, LIGHTNING_PEARL, FLAME_PARTICLE
-    public boolean passDamageChecks(Player player, Location location, ItemEntry entry) {
-        boolean passDCPvpLocCheck = true, passGDPvpCheck = true, passGDBuilderCheck = true;
-
-        if (dcHook != null && !passDCPvpLocCheck(location, 4.0)) passDCPvpLocCheck = false;
-        if (gdHook != null) {
-            if (!passGDPvpCheck(location)) passGDPvpCheck = false;
-            else if (!passGDBuilderCheck(player, location, 6)) passGDBuilderCheck = false;
-        }
-
-        if (!passDCPvpLocCheck) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- pvp protection!"));
-            return false;
-        } else if (!passGDPvpCheck) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- claim pvp protection!"));
-            return false;
-        } else if (!passGDBuilderCheck && entry.getType().equalsIgnoreCase("EXPLOSIVE_ARROW")) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- claim block protection!"));
-            return false;
-        }
-        return true;
     }
 
     public Item64 getItem64() {

@@ -16,6 +16,8 @@ public class ConfigHandler {
     private boolean vaultEnabled = false;
     private boolean deluxeCombatEnabled = false;
     private boolean griefDefenderEnabled = false;
+    private boolean worldGuardEnabled = false;
+
     private boolean checkAnchorExplosions = false;
     private List<String> ignoredClaims = null;
 
@@ -73,6 +75,9 @@ public class ConfigHandler {
         if (hookSection.getBoolean("GriefDefender.enabled")) {
             griefDefenderEnabled = true;
             ignoredClaims = hookSection.getStringList("GriefDefender.ignoredClaims");
+        }
+        if (hookSection.getBoolean("WorldGuard.enabled")) {
+            worldGuardEnabled = true;
         }
     }
 
@@ -199,6 +204,10 @@ public class ConfigHandler {
     
     public boolean isGriefDefenderEnabled() {
         return griefDefenderEnabled;
+    }
+
+    public boolean isWorldGuardEnabled() {
+        return worldGuardEnabled;
     }
     
     public boolean getCheckAnchorExplosions() {
