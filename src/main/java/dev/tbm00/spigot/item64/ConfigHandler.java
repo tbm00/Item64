@@ -35,7 +35,6 @@ public class ConfigHandler {
     private boolean preventedGrowingLog = false;
     private Set<String> preventedGrowing = new HashSet<>();
     
-
     private List<ItemEntry> itemEntries = new ArrayList<>();
 
     public ConfigHandler(Item64 item64) {

@@ -44,7 +44,6 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.Flags;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 
 import dev.tbm00.spigot.item64.hook.*;
@@ -73,6 +72,8 @@ public class UsageHandler {
         {0, 0, 0}
     };
 
+    private RegionQuery regionQuery;
+
     public UsageHandler(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook, WorldGuard wgHook) {
         this.item64 = item64;
         this.configHandler = configHandler;
@@ -81,6 +82,8 @@ public class UsageHandler {
         this.dcHook = dcHook;
         this.wgHook = wgHook;
         itemEntries = configHandler.getItemEntries();
+
+        regionQuery = wgHook.getPlatform().getRegionContainer().createQuery();
 
         // only set cooldowns on first initization of ListenerLeader
         if (cooldowns.size()==0) {
@@ -295,6 +298,10 @@ public class UsageHandler {
 
     // HELPER: ALL ITEMS
     public boolean passUsageChecks(Player player, ItemEntry entry) {
+        if (entry.getAmmoItem()!=null && !hasItem(player, entry.getAmmoItem())) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toString().toLowerCase()));
+            return false;
+        }
         if (player.getFoodLevel() < entry.getHunger()) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- you're too hungry!"));
             return false;
@@ -302,10 +309,6 @@ public class UsageHandler {
         List<Long> playerCooldowns = activeCooldowns.computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>(cooldowns));
         if (((System.currentTimeMillis() / 1000) - playerCooldowns.get(entry.getID()-1)) < entry.getCooldown()) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- active cooldown!"));
-            return false;
-        }
-        if (entry.getAmmoItem()!=null && !hasItem(player, entry.getAmmoItem())) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "No ammo: " + entry.getAmmoItem().toString().toLowerCase()));
             return false;
         }
         double cost = entry.getMoney();
@@ -403,14 +406,12 @@ public class UsageHandler {
     public boolean passWGRegionBuildCheck(Player shooter, Location center, int radius) {
         if (wgHook==null) return true;
 
-        RegionContainer container = wgHook.getPlatform().getRegionContainer();
-        RegionQuery query = container.createQuery();
         LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(shooter);
 
         for (int[] offset : CHECK_DIRECTIONS) {
             Location loc = center.clone().add(radius*offset[0], radius*offset[1], radius*offset[2]);
             com.sk89q.worldedit.util.Location wgLocation = BukkitAdapter.adapt(loc);
-            ApplicableRegionSet set = query.getApplicableRegions(wgLocation);
+            ApplicableRegionSet set = regionQuery.getApplicableRegions(wgLocation);
 
             if (set.isVirtual() || set.testState(localPlayer, Flags.BUILD)) continue;
             return false;
@@ -422,9 +423,7 @@ public class UsageHandler {
         if (wgHook==null) return true;
 
         com.sk89q.worldedit.util.Location wgLocation = BukkitAdapter.adapt(location);
-        RegionContainer container = wgHook.getPlatform().getRegionContainer();
-        RegionQuery query = container.createQuery();
-        ApplicableRegionSet set = query.getApplicableRegions(wgLocation);
+        ApplicableRegionSet set = regionQuery.getApplicableRegions(wgLocation);
         LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(shooter);
 
         if (set.isVirtual()) return true;
