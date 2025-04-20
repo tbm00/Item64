@@ -6,7 +6,7 @@
 
     <groupId>dev.tbm00</groupId>
     <artifactId>Item64</artifactId>
-    <version>0.2.19-beta</version>
+    <version>0.2.20-beta</version>
     <packaging>jar</packaging>
 
     <name>Item64</name>
