@@ -12,29 +12,29 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
 import dev.tbm00.spigot.item64.ConfigHandler;
+import dev.tbm00.spigot.item64.UsageHandler;
 import dev.tbm00.spigot.item64.hook.*;
-import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class PreventUsage implements Listener {
+    private final UsageHandler usageHandler;
     private final ConfigHandler configHandler;
     private final DCHook dcHook;
     private final boolean checkAnchorExplosions;
     private final Set<String> preventedBlocks;
     private final Set<String> inactiveWorlds;
 
-    public PreventUsage(JavaPlugin javaPlugin, ConfigHandler configHandler, DCHook dcHook) {
+    public PreventUsage(JavaPlugin javaPlugin, UsageHandler usageHandler, DCHook dcHook) {
+        this.usageHandler = usageHandler;
+        configHandler = usageHandler.getConfigHandler();
         preventedBlocks = configHandler.getPreventedPlacing();
         checkAnchorExplosions = configHandler.getCheckAnchorExplosions();
         inactiveWorlds = configHandler.getInactiveWorlds();
-        this.configHandler = configHandler;
         this.dcHook = dcHook;
     }
 
@@ -52,14 +52,9 @@ public class PreventUsage implements Listener {
             }
         }
 
-        // check if block is an active item entry
-        ItemStack item = event.getItemInHand();
-        if (!item.hasItemMeta()) return;
-        for (ItemEntry entry : configHandler.getItemEntries()) {
-            if (item.getItemMeta().getPersistentDataContainer().has(entry.getKey(), PersistentDataType.STRING)) {
-                event.setCancelled(true);
-                return;
-            }
+        // check if block is an active item entry, if so cancel it
+        if (usageHandler.getItemEntryByItem(event.getItemInHand()) != null) {
+            event.setCancelled(true);
         }
     }
 

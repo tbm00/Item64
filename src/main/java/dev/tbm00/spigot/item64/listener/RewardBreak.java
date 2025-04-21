@@ -8,18 +8,13 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -94,19 +89,7 @@ public class RewardBreak implements Listener {
                     rewarded = true;
                 }
             } if (entry.getGiveItem() && entry.getMaterial()!=null) {
-                ItemStack item = new ItemStack(entry.getMaterial());
-                ItemMeta meta = item.getItemMeta();
-                if (meta == null) return;
-                if (!entry.getLore().isEmpty())
-                    meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
-                if (entry.getHideEnchants())
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                addEnchantments(meta, entry);
-                if (entry.getName()!=null && !entry.getName().isBlank())
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
-                if (entry.getKeyString()!=null && !entry.getKeyString().isBlank())
-                    meta.getPersistentDataContainer().set(new NamespacedKey(item64, entry.getKeyString()), PersistentDataType.STRING, "true");
-                item.setItemMeta(meta);
+                ItemStack item = configHandler.getConfiguredItemStack(entry);
                 item.setAmount(1);
                 block.getWorld().dropItem(block.getLocation(), item);
                 rewarded = true;
@@ -121,23 +104,6 @@ public class RewardBreak implements Listener {
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.translateAlternateColorCodes('&', entry.getRewardMessage())));
             }
             item64.logYellow(player.getDisplayName() + " found reward: " + entry.getKeyString());
-        }
-    }
-
-    private void addEnchantments(ItemMeta meta, ItemEntry entry) {
-        if (entry.getEnchants().isEmpty()) return;
-
-        for (String line : entry.getEnchants()) {
-            String[] parts = line.split(":");
-            String name = parts[0];
-            int level = Integer.parseInt(parts[1]);
-
-            Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(name.toLowerCase()));
-            if (enchantment != null) {
-                meta.addEnchant(enchantment, level, true);
-            } else {
-                item64.logRed("Unknown enchantment '" + name + "' in " + entry.getKeyString());
-            }
         }
     }
 }

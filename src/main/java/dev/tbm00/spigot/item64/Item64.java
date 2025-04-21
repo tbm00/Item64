@@ -41,7 +41,7 @@ public class Item64 extends JavaPlugin {
                 getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
                 getServer().getPluginManager().registerEvents(new ItemUsage(this, usageHandler), this);
                 getServer().getPluginManager().registerEvents(new PlayerConnection(this, usageHandler), this);
-                getServer().getPluginManager().registerEvents(new PreventUsage(this, configHandler, dcHook), this);
+                getServer().getPluginManager().registerEvents(new PreventUsage(this, usageHandler, dcHook), this);
                 getServer().getPluginManager().registerEvents(new PreventGrowth(this, configHandler, gdHook), this);
                 getServer().getPluginManager().registerEvents(new RewardBreak(this, configHandler), this);
             } else {

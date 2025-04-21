@@ -5,8 +5,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
@@ -194,6 +201,53 @@ public class ConfigHandler {
         } else {
             item64.logRed("Errored itemEntry: " + id + ") " + KEY + ", " + type + ", " + rewardChance + "%");
         }
+    }
+
+    public ItemStack getConfiguredItemStack(ItemEntry entry) {
+        if (entry.getMaterial()==null) return null;
+
+        ItemStack item = new ItemStack(entry.getMaterial());
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta == null) return null;
+
+        // Apply key
+        if (entry.getKeyString()!=null && !entry.getKeyString().isBlank()) {
+            meta.getPersistentDataContainer().set(new NamespacedKey(item64, entry.getKeyString()), PersistentDataType.STRING, "true");
+        } else return null;
+        
+        // Apply name
+        if (entry.getName()!=null && !entry.getName().isBlank()) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
+        }
+
+        // Apply lore
+        if (!entry.getLore().isEmpty()) {
+            meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
+        }
+        
+        // Apply enchanctments
+        if (entry.getHideEnchants()) {
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        }
+        if (!entry.getEnchants().isEmpty() && entry.getEnchants()!=null) {
+            for (String line : entry.getEnchants()) {
+                String[] parts = line.split(":");
+                String name = parts[0];
+                int level = Integer.parseInt(parts[1]);
+    
+                Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(name.toLowerCase()));
+                if (enchantment != null) {
+                    meta.addEnchant(enchantment, level, true);
+                } else {
+                    item64.logRed("Unknown enchantment '" + name + "' in " + entry.getKeyString());
+                }
+            }
+        }
+
+        // Apply meta and return
+        item.setItemMeta(meta);
+        return item;
     }
 
     public boolean isEnabled() {

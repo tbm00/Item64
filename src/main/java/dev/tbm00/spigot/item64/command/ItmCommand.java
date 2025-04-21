@@ -5,17 +5,12 @@ import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -144,22 +139,8 @@ public class ItmCommand implements TabExecutor {
 
     private void giveItemToPlayer(Player player, ItemEntry entry, int quantity) {
         try {
-            ItemStack item = new ItemStack(entry.getMaterial());
-            ItemMeta meta = item.getItemMeta();
-    
-            if (meta != null) {
-                if (!entry.getLore().isEmpty())
-                    meta.setLore(entry.getLore().stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
-                if (entry.getHideEnchants())
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                addEnchantments(meta, entry);
-                if (entry.getName()!=null && !entry.getName().isBlank())
-                    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
-                if (entry.getKeyString()!=null && !entry.getKeyString().isBlank())
-                    meta.getPersistentDataContainer().set(new NamespacedKey(item64, entry.getKeyString()), PersistentDataType.STRING, "true");
-                item.setItemMeta(meta);
-                item.setAmount(quantity);
-            }
+            ItemStack item = configHandler.getConfiguredItemStack(entry);
+            item.setAmount(quantity);
             player.getInventory().addItem(item);
             player.sendMessage(ChatColor.GREEN + "You have been given the " + entry.getKeyString());
             item64.logGreen(player.getDisplayName() + " has been given the " + entry.getKeyString());
@@ -167,23 +148,6 @@ public class ItmCommand implements TabExecutor {
             item64.logRed("Error when giving an item: ");
             item64.getLogger().warning(e.getMessage());
             player.sendMessage(ChatColor.RED + "There was an error giving the item.");
-        }
-    }
-
-    private void addEnchantments(ItemMeta meta, ItemEntry entry) {
-        if (entry.getEnchants().isEmpty() || entry.getEnchants()==null) return;
-
-        for (String line : entry.getEnchants()) {
-            String[] parts = line.split(":");
-            String name = parts[0];
-            int level = Integer.parseInt(parts[1]);
-
-            Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(name.toLowerCase()));
-            if (enchantment != null) {
-                meta.addEnchant(enchantment, level, true);
-            } else {
-                item64.logRed("Unknown enchantment '" + name + "' in " + entry.getKeyString());
-            }
         }
     }
 
