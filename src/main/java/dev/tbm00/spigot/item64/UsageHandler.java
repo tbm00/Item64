@@ -122,28 +122,28 @@ public class UsageHandler {
                 runCmdsApplyFX(player, entry, item);
                 break;
             case "EXPLOSIVE_ARROW":
-                if (!passUsagePVPChecks(player, entry) || !passUsageBuildChecks(player, entry, configHandler.PROTECTION_RADIUS)) return;
+                if (!passUsagePVPChecks(player) || !passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
                 shootExplosiveArrow(player, entry, projectile);
                 break;
             case "LIGHTNING_PEARL":
-                if (!passUsagePVPChecks(player, entry) || !passUsageBuildChecks(player, entry, configHandler.PROTECTION_RADIUS)) return;
+                if (!passUsagePVPChecks(player) || !passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
                 shootLightningPearl(player, entry);
                 break;
             case "FLAME_PARTICLE":
-                if (!passUsagePVPChecks(player, entry) || !passUsageBuildChecks(player, entry, configHandler.PROTECTION_RADIUS)) return;
+                if (!passUsagePVPChecks(player) || !passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting flames..."));
                 shootFlameParticles(player, entry);
                 break;
             case "RANDOM_POTION":
-                if (!passUsageBuildChecks(player, entry, configHandler.PROTECTION_RADIUS)) return;
+                if (!passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
                 boolean leftClick = (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
-                if (leftClick && !passUsagePVPChecks(player, entry)) return;
+                if (leftClick && !passUsagePVPChecks(player)) return;
                 if (!shootRandomPotion(player, entry, leftClick)) return;
                 break;
             case "AREA_BREAK":
-                if (!passUsageBuildChecks(player, entry, configHandler.PROTECTION_RADIUS)) return;
+                if (!passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Breaking blocks..."));
                 breakBlocks(player, entry, block);
                 break;
@@ -225,7 +225,7 @@ public class UsageHandler {
             if (targetBlock != null && targetBlockAbove != null) {
                 Location location = targetBlockAbove.getLocation();
 
-                if (passDamageChecks(player, location, entry, configHandler.PROTECTION_RADIUS)) {
+                if (passDamageChecks(player, location, configHandler.PROTECTION_RADIUS)) {
                     new BukkitRunnable() {
                         @Override
                         public void run() {
@@ -344,7 +344,7 @@ public class UsageHandler {
     }
 
     // HELPER: PVP ITEMS & BREAK ITEMS
-    public boolean passUsageBuildChecks(Player player, ItemEntry entry, int radius) {
+    public boolean passUsageBuildChecks(Player player, int radius) {
         if (!passGDClaimBuildCheck(player, player.getLocation(), radius)) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim block/entity protection!"));
             return false;
@@ -357,7 +357,7 @@ public class UsageHandler {
     }
 
     // HELPER: PVP ITEMS
-    public boolean passUsagePVPChecks(Player player, ItemEntry entry) {
+    public boolean passUsagePVPChecks(Player player) {
         if (!passGDClaimPvpCheck(player.getLocation())) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim pvp protection!"));
             return false;
@@ -370,7 +370,7 @@ public class UsageHandler {
     }
 
     // HELPER: PVP ITEMS
-    public boolean passDamageChecks(Player shooter, Location location, ItemEntry entry, int radius) {
+    public boolean passDamageChecks(Player shooter, Location location, int radius) {
         if (!passDCPvpLocCheck(shooter, location, radius)) {
             shooter.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Damage blocked -- pvp protection!"));
             return false;
