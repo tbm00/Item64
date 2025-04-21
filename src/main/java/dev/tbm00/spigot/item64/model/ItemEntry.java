@@ -37,11 +37,13 @@ public class ItemEntry {
     private String rewardMessage;
     private boolean giveItem;
     private List<String> rewardCommands;
+    private int radius;
+    private String breakType;
     
     public ItemEntry(Item64 item64, int id, String givePerm, String usePerm, String type, String KEY, double money, int hunger, 
                         int cooldown, double random, double damage, Material ammoItem, boolean removeAmmo, Material material, String name, List<String> lore, 
                         boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands, String message, List<String> effects, List<String> rEffects, 
-                        List<String> lEffects, double power, double rewardChance, String rewardMessage, boolean giveItem, List<String> rewardCommands) {
+                        List<String> lEffects, double power, double rewardChance, String rewardMessage, boolean giveItem, List<String> rewardCommands, int radius, String breakType) {
         this.id = id;
         this.givePerm = givePerm;
         this.usePerm = usePerm;
@@ -71,6 +73,8 @@ public class ItemEntry {
         this.rewardMessage = rewardMessage;
         this.giveItem = giveItem;
         this.rewardCommands = rewardCommands;
+        this.radius = radius;
+        this.breakType = breakType;
     }
     
     public int getID() {
@@ -296,5 +300,21 @@ public class ItemEntry {
 
     public void setRewardCommands(List<String> rewardCommands) {
         this.rewardCommands = rewardCommands;
+    }
+
+    public int getRadius() {
+        return radius;
+    }
+
+    public void setRadius(int radius) {
+        this.radius = radius;
+    }
+
+    public String getBreakType() {
+        return breakType;
+    }
+
+    public void setBreakType(String breakType) {
+        this.breakType = breakType;
     }
 }

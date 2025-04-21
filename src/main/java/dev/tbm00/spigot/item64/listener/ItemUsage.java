@@ -100,11 +100,14 @@ public class ItemUsage implements Listener {
         
         // check if block is an active item entry
         Player player = event.getPlayer();
-        ItemEntry entry = usageHandler.getItemEntryByItem(player.getItemInUse());
-        if (entry == null || !player.hasPermission(entry.getUsePerm())
-            || !entry.getType().equalsIgnoreCase("AREA_BREAK")) {
+        ItemEntry entry = usageHandler.getItemEntryByItem(player.getItemInHand());
+        if (entry == null) {
             return;
-        }
+        } else if (!player.hasPermission(entry.getUsePerm())) {
+            return;
+        } else if (!entry.getType().equalsIgnoreCase("AREA_BREAK")) {
+            return;
+        } 
 
         if (event.getBlock()==null) return;
 

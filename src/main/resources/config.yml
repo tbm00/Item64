@@ -203,20 +203,20 @@ itemEntries:
       mat: "DIAMOND_PICKAXE"
       name: "&63x3 Pickaxe"
       lore:
-        - "&8&oRequires Gun Powder"
+        - "&8&oRequires TNT"
       hideEnchants: false
       enchantments:
-        - "UNBREAKING:4"
-        - "MENDING:1"
+        - "DIG_SPEED:3"
     usage:
       moneyCost: 0.00
       hungerCost: 0
       cooldown: 0
       ammoItem:
-        mat: "GUN_POWDER"
+        mat: "TNT"
         removeAmmoItemOnUse: true
       breakage:
         radius: 1
+        type: "2D"
   "7":
     key: "HEALING_HONEY"
     type: "CONSUMABLE"

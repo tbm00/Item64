@@ -3,9 +3,12 @@ package dev.tbm00.spigot.item64;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -63,6 +66,7 @@ public class UsageHandler {
     private final ArrayList<Projectile> explosiveArrows = new ArrayList<>();
     private final ArrayList<Projectile> lightningPearls = new ArrayList<>();
     private final ArrayList<Projectile> magicPotions = new ArrayList<>();
+    private final RegionQuery regionQuery;
     private final int[][] CHECK_DIRECTIONS = {
         {1, 0, 0},
         {-1, 0, 0},
@@ -72,8 +76,13 @@ public class UsageHandler {
         {0, -1, 0},
         {0, 0, 0}
     };
-
-    private RegionQuery regionQuery;
+    private static final Set<Material> MATERIALS_TO_IGNORE = EnumSet.of(
+        Material.BEDROCK,
+        Material.BARRIER,
+        Material.STRUCTURE_BLOCK,
+        Material.END_PORTAL_FRAME,
+        Material.LIGHT
+    );
 
     public UsageHandler(Item64 item64, ConfigHandler configHandler, Economy ecoHook, GDHook gdHook, DCHook dcHook, WorldGuard wgHook) {
         this.item64 = item64;
@@ -83,29 +92,25 @@ public class UsageHandler {
         this.dcHook = dcHook;
         this.wgHook = wgHook;
         itemEntries = configHandler.getItemEntries();
-
         regionQuery = wgHook.getPlatform().getRegionContainer().createQuery();
 
-        // only set cooldowns on first initization of ListenerLeader
-        if (cooldowns.size()==0) {
-            // get cooldown size
-            int cooldownSize = 0;
-            for (ItemEntry entry : itemEntries) {
-                if (entry.getID()>cooldownSize) cooldownSize = entry.getID();
-            }
+        // get cooldown size
+        int cooldownSize = 0;
+        for (ItemEntry entry : itemEntries) {
+            if (entry.getID()>cooldownSize) cooldownSize = entry.getID();
+        }
 
-            // initialize `cooldowns`
-            for (int i = 0; i<cooldownSize; ++i) {
-                if (cooldowns.size()<cooldownSize)
-                    cooldowns.add(0L);
-                else break;
-            }
+        // initialize `cooldowns`
+        for (int i = 0; i<cooldownSize; ++i) {
+            if (cooldowns.size()<cooldownSize)
+                cooldowns.add(0L);
+            else break;
+        }
 
-            // load `cooldowns`
-            for (ItemEntry entry : itemEntries) {
-                int index = entry.getID()-1;
-                cooldowns.set(index, Long.valueOf(entry.getCooldown()));
-            }
+        // load `cooldowns`
+        for (ItemEntry entry : itemEntries) {
+            int index = entry.getID()-1;
+            cooldowns.set(index, Long.valueOf(entry.getCooldown()));
         }
     }
 
@@ -122,28 +127,28 @@ public class UsageHandler {
                 runCmdsApplyFX(player, entry, item);
                 break;
             case "EXPLOSIVE_ARROW":
-                if (!passUsagePVPChecks(player) || !passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
+                if (!passUsagePVPChecks(player) || !passUsageBuildChecks(player, player.getLocation(), configHandler.PROTECTION_RADIUS)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting explosive arrow..."));
                 shootExplosiveArrow(player, entry, projectile);
                 break;
             case "LIGHTNING_PEARL":
-                if (!passUsagePVPChecks(player) || !passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
+                if (!passUsagePVPChecks(player) || !passUsageBuildChecks(player, player.getLocation(), configHandler.PROTECTION_RADIUS)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting lightning pearl..."));
                 shootLightningPearl(player, entry);
                 break;
             case "FLAME_PARTICLE":
-                if (!passUsagePVPChecks(player) || !passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
+                if (!passUsagePVPChecks(player) || !passUsageBuildChecks(player, player.getLocation(), configHandler.PROTECTION_RADIUS)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Shooting flames..."));
                 shootFlameParticles(player, entry);
                 break;
             case "RANDOM_POTION":
-                if (!passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
+                if (!passUsageBuildChecks(player, player.getLocation(), configHandler.PROTECTION_RADIUS)) return;
                 boolean leftClick = (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
                 if (leftClick && !passUsagePVPChecks(player)) return;
                 if (!shootRandomPotion(player, entry, leftClick)) return;
                 break;
             case "AREA_BREAK":
-                if (!passUsageBuildChecks(player, configHandler.PROTECTION_RADIUS)) return;
+                //if (!passUsageBuildChecks(player, player.getLocation(), entry.getRadius()+1)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Breaking blocks..."));
                 breakBlocks(player, entry, block);
                 break;
@@ -305,19 +310,46 @@ public class UsageHandler {
     }
 
     // USER: AREA_BREAK
-    private boolean breakBlocks(Player player, ItemEntry entry, Block brokenBlock) {
+    private void breakBlocks(Player player, ItemEntry entry, Block brokenBlock) {
+        HashSet<Block> blocksToBreak = new HashSet<Block>();
+        int radius = entry.getRadius();
 
+        if (entry.getBreakType().equalsIgnoreCase("3D")) {
+            for (int x = -radius; x <= radius; ++x) {
+                for (int y = -radius; y <= radius; ++y) {
+                    for (int z = -radius; z <= radius; ++z) {
+                        Block relativeBlock = brokenBlock.getRelative(x, y, z);
+                        if (MATERIALS_TO_IGNORE.contains(relativeBlock.getType())) continue;
+                        else blocksToBreak.add(relativeBlock);
+                    }
+                }
+            }
+        } else {
+            Vector direction = player.getLocation().getDirection();
+            boolean vertical = Math.abs(direction.getY()) > 0.8;
+            for (int x = -radius; x <= radius; ++x) {
+                for (int y = -radius; y <= radius; ++y) {
+                    for (int z = -radius; z <= radius; ++z) {
+                        Block relativeBlock;
+                        if (vertical)
+                            relativeBlock = brokenBlock.getRelative(x, 0, z);
+                        else if (Math.abs(direction.getX()) > Math.abs(direction.getZ()))
+                            relativeBlock = brokenBlock.getRelative(0, y, z);
+                        else 
+                            relativeBlock = brokenBlock.getRelative(x, y, 0);
 
-
-        try {
-
-        } catch (Exception e) {
-            getItem64().logRed("Exception while breaking blocks: ");
-            getItem64().getLogger().warning(e.getMessage());
-            return false;
+                        if (MATERIALS_TO_IGNORE.contains(relativeBlock.getType())) continue;
+                        else blocksToBreak.add(relativeBlock);
+                    }
+                }
+            }
         }
 
-        return true;
+        for (Block block : blocksToBreak) {
+            if (block.getLocation().equals(brokenBlock.getLocation())) continue;
+            if (!passBuildChecks(player, block.getLocation(), entry.getRadius())) continue;
+            block.breakNaturally(player.getInventory().getItemInMainHand());
+        }
     }
 
     // HELPER: ALL ITEMS
@@ -343,13 +375,24 @@ public class UsageHandler {
         return true;
     }
 
-    // HELPER: PVP ITEMS & BREAK ITEMS
-    public boolean passUsageBuildChecks(Player player, int radius) {
-        if (!passGDClaimBuildCheck(player, player.getLocation(), radius)) {
+    // HELPER: BREAK ITEMS
+    public boolean passBuildChecks(Player player, Location location, int radius) {
+        if (!passGDClaimBuildCheck(player, location, radius)) {
+            return false;
+        }
+        if (!passWGRegionBuildCheck(player, location, radius)) {
+            return false;
+        }
+        return true;
+    }
+
+    // HELPER: PVP ITEMS
+    public boolean passUsageBuildChecks(Player player, Location location, int radius) {
+        if (!passGDClaimBuildCheck(player, location, radius)) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim block/entity protection!"));
             return false;
         }
-        if (!passWGRegionBuildCheck(player, player.getLocation(), radius)) {
+        if (!passWGRegionBuildCheck(player, location, radius)) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- region block/entity protection!"));
             return false;
         }
