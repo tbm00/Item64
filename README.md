@@ -11,7 +11,7 @@ Created by tbm00 for play.mc64.wtf.
 ## Features
 
 ### **Custom PVP & non-PVP Items**
-*Explosive bows, crossbows, flamethrowers, magic wands, lightning guns, candy, and an endless possibilities of items designed by you!*
+*Explosive bows, crossbows, flamethrowers, magic wands, lightning guns, 3x3 pickaxes, candy, and an endless possibilities of items designed by you!*
 
 Pre-Defined Items:
   - **Flamethrower** Shoots flames and causes fires.
@@ -19,6 +19,7 @@ Pre-Defined Items:
   - **Explosive Bow** Shoots extremely powerful explosive arrows.
   - **Lightning Gun** Shoots ender pearls that summon lightning.
   - **Magic Wand** Shoots random potion/beacon effects. Left-click for an offensive effect, right-click for a positive effect.
+  - **3x3 Pickaxe** Breaks all blocks in a three by three radius.
   - **Various Candies** Applies enhanced effects to players when they consume/use the item.
 
 ### **Block Breaking Event**
@@ -30,7 +31,7 @@ The default config uses this feature for a Halloween event that gives custom can
 *The default config is safe to use on SMP servers.*
 
   - Configure ammo, cooldowns, hunger costs, money costs, randomness, and chance to find a better balance on your server.
-  - Respects claims and PVP; hooks into GriefDefender and DeluxeCombat to make sure the player doesn't bypass PVP-toggled-off or destroy claimed land.
+  - Respects claims and PVP; hooks into **WorldGuard**, **GriefDefender** and **DeluxeCombat** to make sure the player doesn't bypass PVP-toggled-off or destroy claimed land.
   - Listeners to prevent players from exploiting the block breaking event.
 
 ### **Very Simple but Very Configurable**
@@ -80,46 +81,52 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 **`EXPLOSIVE_ARROW`**
 - Summons an explosion on arrow impact.
 - Applicable to bows and crossbows.
-- Has GriefDefender check that prevents block damage if user doesn't have builder trust in affected claims.
-- Has GriefDefender check that prevents explosions entirely if PVP is toggled off in any affected claims.
+- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms in affected area.
+- Has WorldGuard & GriefDefender checks that prevents player damage if user doesn't have PVP ability in affected area.
 - Has DeluxeCombat check that prevents explosions entirely if PVP is toggled off for any affected players.
 
 **`LIGHTNING_PEARL`** 
 - Shoots an ender pearl that summons a lightning strike on impact.
 - Applicable to most items.
-- Has GriefDefender check that prevents lightning entirely if PVP is toggled off in any affected claims.
-- Has DeluxeCombat check that prevents lightning entirely if PVP is toggled off for any affected players.
+- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms in affected area.
+- Has WorldGuard & GriefDefender checks that prevents player damage if user doesn't have PVP ability in affected area.
+- Has DeluxeCombat check that prevents explosions entirely if PVP is toggled off for any affected players.
 
 **`RANDOM_POTION`** 
 - Shoots a random splash potion.
 - Applicable to most items.
 - extraDamage is only applied to potions shot via left-clicking.
-- Has GriefDefender check that prevents potion shots entirely if PVP is toggled off in any affected claims.
-- Has DeluxeCombat check that prevents potion shots entirely if PVP is toggled off for any affected players.
+- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms in affected area.
+- Has WorldGuard & GriefDefender checks that prevents player damage if user doesn't have PVP ability in affected area.
+- Has DeluxeCombat check that prevents explosions entirely if PVP is toggled off for any affected players.
 
 **`FLAME_PARTICLE`** 
 - Shoots flame particles that make fires.
 - Applicable to most items.
 - Particles don't deal any damage, so be sure to use extraDamage.
 - Cooldown works differently; it's the maximum number of seconds a player can repetitively use the item.
-- Has GriefDefender check that prevents flames entirely if PVP is toggled off in any affected claims.
-- Has DeluxeCombat check that prevents flames entirely if PVP is toggled off for any affected players.
+- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms in affected area.
+- Has WorldGuard & GriefDefender checks that prevents player damage if user doesn't have PVP ability in affected area.
+- Has DeluxeCombat check that prevents explosions entirely if PVP is toggled off for any affected players.
+
+**`AREA_BREAK`** 
+- Breaks items in a defined radius.
+- Applicable to pickaxes, axes, and shovels.
+- Type `3D` will break a cube, `2D` will break a plane.
+- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have buil perms in affected area.
 
 **`CONSUMABLE`** 
 - Runs commands and/or gives potion effects on item consumption.
 - Applicable to food, potions, milk, etc.
 - moneyCost, hungerCost, cooldown, & ammoItem are applicable but not necessary; the default config excludes them for these types.
-- Doesn't have any GriefDefender or DeluxeCombat checks.
 
 **`USABLE`** 
 - Runs commands and/or gives potion effects on item use.
 - Applicable to all items/blocks.
-- Doesn't have any GriefDefender or DeluxeCombat checks.
 
 **`NO_ITEM`** 
 - NOT AN ITEM -- use to simply run commands for a BreakEvent reward.
 - Not applicable on any items/blocks.
-- Doesn't have any GriefDefender or DeluxeCombat checks.
 
 ### ItemEntry Specification
 
@@ -130,7 +137,7 @@ Required for *all ItemEntries*. Since listeners only apply to items with enabled
 </details>
 <details><summary>-- type: (STRING)</summary>
 
-Required for *all ItemEntries*. Must be `EXPLOSIVE_ARROW`, `LIGHTNING_PEARL`, `RANDOM_POTION`, `FLAME_PARTICLE`, `CONSUMABLE`, `USABLE`, or `NO_ITEM`.
+Required for *all ItemEntries*. Must be `EXPLOSIVE_ARROW`, `LIGHTNING_PEARL`, `RANDOM_POTION`, `FLAME_PARTICLE`, `AREA_BREAK`, `CONSUMABLE`, `USABLE`, or `NO_ITEM`.
 </details>
 <details><summary>-- enabled: (BOOLEAN)</summary>
 
@@ -233,6 +240,16 @@ Only applicable on `CONSUMABLE` & `USABLE`. Format: `effect-name:amplifier:time-
 Only applicable on `CONSUMABLE` & `USABLE`.
 </details>
 </details>
+<details><summary>-- -- breakage:</summary>
+<details><summary>-- -- -- radius: (INTEGER)</summary>
+
+Only applicable on `AREA_BREAK`.
+</details>
+<details><summary>-- -- -- type: (STRING)</summary>
+
+Only applicable on `AREA_BREAK`. Must be `3D` or `2D`.
+</details>
+</details>
 </details>
 <details><summary>-- breakEvent:</summary>
 <details><summary>-- -- rewardChance: (DOUBLE)</summary>
@@ -258,7 +275,7 @@ Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.e
 ## Default Config
 
 ```
-# Item64 v0.2.20-beta by @tbm00
+# Item64 v0.2.21-beta by @tbm00
 # https://github.com/tbm00/Item64
 
 enabled: true
@@ -454,6 +471,30 @@ itemEntries:
             - "LEVITATION:2:45"
             - "GLOWING:0:30"
   "6":
+    key: "AREA_PICK_3"
+    type: "AREA_BREAK"
+    enabled: true
+    givePerm: "item64.give.area_pick_3"
+    usePerm: "item64.use.area_pick_3"
+    item:
+      mat: "DIAMOND_PICKAXE"
+      name: "&63x3 Pickaxe"
+      lore:
+        - "&8&oRequires TNT"
+      hideEnchants: false
+      enchantments:
+        - "DIG_SPEED:3"
+    usage:
+      moneyCost: 0.00
+      hungerCost: 0
+      cooldown: 0
+      ammoItem:
+        mat: "TNT"
+        removeAmmoItemOnUse: true
+      breakage:
+        radius: 1
+        type: "2D"
+  "7":
     key: "HEALING_HONEY"
     type: "CONSUMABLE"
     enabled: true
@@ -480,7 +521,7 @@ itemEntries:
       rewardMessage: "&6You found some healing honey!"
       giveRewardItem: true
       rewardCommands: []
-  "7":
+  "8":
     key: "SUPERAPPLE"
     type: "CONSUMABLE"
     enabled: true
@@ -522,7 +563,7 @@ itemEntries:
       rewardMessage: "&6You found a superapple!"
       giveRewardItem: true
       rewardCommands: []
-  "8":
+  "9":
     key: "KIT_KAT"
     type: "USABLE"
     enabled: true
@@ -551,7 +592,7 @@ itemEntries:
       rewardMessage: "&6You found some kit-kit!"
       giveRewardItem: true
       rewardCommands: []
-  "9":
+  "10":
     key: "JOLLY_RANCHER"
     type: "USABLE"
     enabled: true
@@ -584,7 +625,7 @@ itemEntries:
       rewardMessage: "&6You found a jolly rancher!"
       giveRewardItem: true
       rewardCommands: []
-  "10":
+  "11":
     key: "CANDY_CARROT"
     type: "CONSUMABLE"
     enabled: true
@@ -613,7 +654,7 @@ itemEntries:
       rewardMessage: "&6You found a candy carrot!"
       giveRewardItem: true
       rewardCommands: []
-  "11":
+  "12":
     key: "MOONLIGHT_MUNCH"
     type: "CONSUMABLE"
     enabled: true
@@ -644,7 +685,7 @@ itemEntries:
       rewardMessage: "&6You found a moonlight munch!"
       giveRewardItem: true
       rewardCommands: []
-  "12":
+  "13":
     key: "PHANTOM_FRUIT"
     type: "CONSUMABLE"
     enabled: true
@@ -677,7 +718,7 @@ itemEntries:
       rewardMessage: "&6You found a phantom fruit!"
       giveRewardItem: true
       rewardCommands: []
-  "13":
+  "14":
     key: "SPIDER_WEB_TAFFY"
     type: "USABLE"
     enabled: true
@@ -708,7 +749,7 @@ itemEntries:
       rewardMessage: "&6You found some spider web taffy!"
       giveRewardItem: true
       rewardCommands: []
-  "14":
+  "15":
     key: "BROOMSTICK"
     type: "USABLE"
     enabled: true
@@ -741,7 +782,7 @@ itemEntries:
       rewardMessage: "&6You found a broomstick!"
       giveRewardItem: true
       rewardCommands: []
-  "15":
+  "16":
     key: "GHOSTLY_GUMMY"
     type: "USABLE"
     enabled: true
@@ -772,7 +813,7 @@ itemEntries:
       rewardMessage: "&6You found a ghostly gummy!"
       giveRewardItem: true
       rewardCommands: []
-  "16":
+  "17":
     key: "ZOMBIE_KUSH"
     type: "USABLE"
     enabled: true
@@ -803,7 +844,7 @@ itemEntries:
       rewardMessage: "&6You found some zombie kush!"
       giveRewardItem: true
       rewardCommands: []
-  "17":
+  "18":
     key: "BEER"
     type: "CONSUMABLE"
     enabled: true
@@ -840,7 +881,7 @@ itemEntries:
       rewardMessage: "&6You found a bottle of beer!"
       giveRewardItem: true
       rewardCommands: []
-  "18":
+  "19":
     key: "COKE"
     type: "USABLE"
     enabled: true
@@ -869,7 +910,7 @@ itemEntries:
       rewardMessage: "&6You found some sugar!"
       giveRewardItem: true
       rewardCommands: []
-  "19":
+  "20":
     key: "CRATE_KEY_REWARD"
     type: "NO_ITEM"
     enabled: false
