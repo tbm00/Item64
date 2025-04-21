@@ -557,7 +557,7 @@ public class UsageHandler {
         int iAmount = (int) amount;
         EconomyResponse r = ecoHook.withdrawPlayer(player, amount);
         if (r.transactionSuccess()) {
-            player.sendMessage(ChatColor.DARK_GREEN + "$$$: " + ChatColor.YELLOW + "Charged $" + iAmount + "");
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Charged $" + iAmount));
             return true;
         } else return false;
     }
@@ -565,10 +565,8 @@ public class UsageHandler {
     public boolean giveMoney(Player player, double amount) {
         if (ecoHook==null || amount <= 0) return true;
 
-        int iAmount = (int) amount;
         EconomyResponse r = ecoHook.depositPlayer(player, amount);
         if (r.transactionSuccess()) {
-            player.sendMessage(ChatColor.DARK_GREEN + "$$$: " + ChatColor.YELLOW + "Refunded $" + iAmount + "");
             return true;
         } else return false;
     }
@@ -577,13 +575,14 @@ public class UsageHandler {
         boolean failed = false;
         if (entry.getMoney() > 0){
             if (!giveMoney(player, entry.getMoney())) {
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Money refund failed!"));
                 player.sendMessage(ChatColor.RED + "Money refund failed!");
                 failed = true;
             }
         }
         if (entry.getRemoveAmmo() && entry.getAmmoItem()!=null) {
             if (!giveItem(player, entry.getAmmoItem())) {
-                player.sendMessage(ChatColor.RED + "Ammo refund failed!");
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Ammo refund failed!"));
                 failed = true;
             }
         }
