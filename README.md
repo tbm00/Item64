@@ -233,6 +233,12 @@ Only applicable on `CONSUMABLE` & `USABLE`. Format: `effect-name:amplifier:time-
 Only applicable on `CONSUMABLE` & `USABLE`.
 </details>
 </details>
+<details><summary>-- -- breakage:</summary>
+<details><summary>-- -- -- radius: (FLOAT)</summary>
+
+Only applicable on `AREA_BREAK`.
+</details>
+</details>
 </details>
 <details><summary>-- breakEvent:</summary>
 <details><summary>-- -- rewardChance: (DOUBLE)</summary>

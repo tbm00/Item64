@@ -110,6 +110,7 @@ public class UsageHandler {
     }
 
     // TRIGGER: ALL
+    public void triggerUsage(Player player, ItemEntry entry, ItemStack item, Action action, Projectile projectile, Block block) {
         if (!passUsageInitialChecks(player, entry)) return;
 
         // Use the item
@@ -140,6 +141,11 @@ public class UsageHandler {
                 boolean leftClick = (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK);
                 if (leftClick && !passUsagePVPChecks(player, entry)) return;
                 if (!shootRandomPotion(player, entry, leftClick)) return;
+                break;
+            case "AREA_BREAK":
+                if (!passUsageBuildChecks(player, entry, configHandler.PROTECTION_RADIUS)) return;
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Breaking blocks..."));
+                breakBlocks(player, entry, block);
                 break;
             default: 
                 break;
@@ -219,7 +225,6 @@ public class UsageHandler {
             if (targetBlock != null && targetBlockAbove != null) {
                 Location location = targetBlockAbove.getLocation();
 
-                if (passDamageChecks(player, location, entry)) {
                 if (passDamageChecks(player, location, entry, configHandler.PROTECTION_RADIUS)) {
                     new BukkitRunnable() {
                         @Override
@@ -299,6 +304,22 @@ public class UsageHandler {
         }
     }
 
+    // USER: AREA_BREAK
+    private boolean breakBlocks(Player player, ItemEntry entry, Block brokenBlock) {
+
+
+
+        try {
+
+        } catch (Exception e) {
+            getItem64().logRed("Exception while breaking blocks: ");
+            getItem64().getLogger().warning(e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
     // HELPER: ALL ITEMS
     public boolean passUsageInitialChecks(Player player, ItemEntry entry) {
         if (entry.getAmmoItem()!=null && !hasItem(player, entry.getAmmoItem())) {
@@ -322,7 +343,7 @@ public class UsageHandler {
         return true;
     }
 
-    // HELPER: PVP ITEMS
+    // HELPER: PVP ITEMS & BREAK ITEMS
     public boolean passUsageBuildChecks(Player player, ItemEntry entry, int radius) {
         if (!passGDClaimBuildCheck(player, player.getLocation(), radius)) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Usage blocked -- claim block/entity protection!"));

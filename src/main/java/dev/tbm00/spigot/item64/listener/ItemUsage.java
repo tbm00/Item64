@@ -9,6 +9,7 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -40,7 +41,7 @@ public class ItemUsage implements Listener {
 
         event.setCancelled(true);
 
-        usageHandler.triggerUsage(player, entry, item, null, null);
+        usageHandler.triggerUsage(player, entry, item, null, null, null);
     }
 
     // USE LISTENER: USABLE, FLAME_PARTICLE, LIGHTNING_PEARL, RANDOM_POTION
@@ -59,6 +60,7 @@ public class ItemUsage implements Listener {
             return;
         switch (type) {
             case "EXPLOSIVE_ARROW":
+            case "AREA_BREAK":
             case "NO_ITEM":
             case "CONSUMABLE":
                 return;
@@ -69,7 +71,7 @@ public class ItemUsage implements Listener {
         event.setCancelled(true);
 
         Action action = event.getAction();
-        usageHandler.triggerUsage(player, entry, item, action, null);
+        usageHandler.triggerUsage(player, entry, item, action, null, null);
     }
 
     // USE LISTENER: EXPLOSIVE_ARROW
@@ -89,7 +91,24 @@ public class ItemUsage implements Listener {
         Arrow arrow = (Arrow) event.getProjectile();
         if (arrow == null) return;
 
-        usageHandler.triggerUsage(player, entry, null, null, arrow);
+        usageHandler.triggerUsage(player, entry, null, null, arrow, null);
+    }
+
+    // USE LISTENER: AREA PICKAXE
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        
+        // check if block is an active item entry
+        Player player = event.getPlayer();
+        ItemEntry entry = usageHandler.getItemEntryByItem(player.getItemInUse());
+        if (entry == null || !player.hasPermission(entry.getUsePerm())
+            || !entry.getType().equalsIgnoreCase("AREA_BREAK")) {
+            return;
+        }
+
+        if (event.getBlock()==null) return;
+
+        usageHandler.triggerUsage(player, entry, null, null, null, event.getBlock());
     }
 
     // LANDING LISTENER: EXPLOSIVE_ARROW, LIGHTNING_PEARL
@@ -107,7 +126,6 @@ public class ItemUsage implements Listener {
         Player player = (Player) projectile.getShooter();
         ItemEntry entry = usageHandler.getConfigHandler().getItemEntryByKeyString(projectile.getMetadata("Item64-keyString").get(0).asString());
 
-        if (usageHandler.passDamageChecks(player, location, entry)) {
         if (usageHandler.passDamageChecks(player, location, entry, usageHandler.getConfigHandler().PROTECTION_RADIUS)) {
             usageHandler.damageEntities(player, location, 1.7, 1.2, entry.getDamage(), 30);
             if (projectile instanceof Arrow) 
@@ -130,7 +148,6 @@ public class ItemUsage implements Listener {
         Player player = (Player) thrownPotion.getShooter();
         ItemEntry entry = usageHandler.getConfigHandler().getItemEntryByKeyString(thrownPotion.getMetadata("Item64-keyString").get(0).asString());
 
-        if (usageHandler.passDamageChecks(player, location, entry)) {
         if (usageHandler.passDamageChecks(player, location, entry, usageHandler.getConfigHandler().PROTECTION_RADIUS)) {
             if (thrownPotion.hasMetadata("Item64-randomPotion-left"))
                 usageHandler.damageEntities(player, location, 0.9, 1.3, entry.getDamage(), 20);
