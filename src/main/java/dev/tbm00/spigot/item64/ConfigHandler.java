@@ -150,8 +150,9 @@ public class ConfigHandler {
     private void loadEntry(ConfigurationSection itemEntrySec, int id) {
         List<String> rEffects = null, lEffects = null, commands = null, effects = null;
         double power = 0.0;
+        int radius = 0;
         boolean removeItem = false;
-        String message = null;
+        String message = null, breakType = null;
 
         String KEY = itemEntrySec.contains("key") ? itemEntrySec.getString("key") : null;
         String type = itemEntrySec.contains("type") ? itemEntrySec.getString("type") : "NULL";
@@ -185,7 +186,10 @@ public class ConfigHandler {
             commands = itemEntrySec.contains("usage.triggers.consoleCommands") ? itemEntrySec.getStringList("usage.triggers.consoleCommands") : null;
             effects = itemEntrySec.contains("usage.triggers.effects") ? itemEntrySec.getStringList("usage.triggers.effects") : null;
             message = itemEntrySec.contains("usage.triggers.actionBarMessage") ? itemEntrySec.getString("usage.triggers.actionBarMessage") : null;
-        }
+        } else if (type.equals("AREA_BREAK")) {
+            radius = itemEntrySec.contains("usage.breakage.radius") ? itemEntrySec.getInt("usage.breakage.radius") : 0;
+            breakType = itemEntrySec.contains("usage.breakage.type") ? itemEntrySec.getString("usage.breakage.type") : "2D";
+        } 
         double rewardChance = itemEntrySec.contains("breakEvent.rewardChance") ? itemEntrySec.getDouble("breakEvent.rewardChance") : 0.0;
         String rewardMessage = itemEntrySec.contains("breakEvent.rewardMessage") ? itemEntrySec.getString("breakEvent.rewardMessage") : null;
         boolean giveItem = itemEntrySec.contains("breakEvent.giveRewardItem") ? itemEntrySec.getBoolean("breakEvent.giveRewardItem") : false;
@@ -195,7 +199,7 @@ public class ConfigHandler {
         if (type != null && KEY != null) {
             ItemEntry entry = new ItemEntry(item64, id, givePerm, usePerm, type, KEY, money, hunger, cooldown, random, damage, 
                                         ammoItem, removeAmmo, material, name, lore, hideEnchants, enchants, removeItem, commands, message, effects, 
-                                        rEffects, lEffects, power, rewardChance, rewardMessage, giveItem, rewardCommands);
+                                        rEffects, lEffects, power, rewardChance, rewardMessage, giveItem, rewardCommands, radius, breakType);
             itemEntries.add(entry);
             item64.logGreen("Loaded itemEntry: " + id + ") " + KEY + ", " + type + ", " + rewardChance + "%");
         } else {
@@ -211,11 +215,6 @@ public class ConfigHandler {
 
         if (meta == null) return null;
 
-        // Apply key
-        if (entry.getKeyString()!=null && !entry.getKeyString().isBlank()) {
-            meta.getPersistentDataContainer().set(new NamespacedKey(item64, entry.getKeyString()), PersistentDataType.STRING, "true");
-        } else return null;
-        
         // Apply name
         if (entry.getName()!=null && !entry.getName().isBlank()) {
             meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', entry.getName()));
@@ -244,6 +243,11 @@ public class ConfigHandler {
                 }
             }
         }
+
+        // Apply key
+        if (entry.getKeyString()!=null && !entry.getKeyString().isBlank()) {
+            meta.getPersistentDataContainer().set(new NamespacedKey(item64, entry.getKeyString()), PersistentDataType.STRING, "true");
+        } else return null;
 
         // Apply meta and return
         item.setItemMeta(meta);

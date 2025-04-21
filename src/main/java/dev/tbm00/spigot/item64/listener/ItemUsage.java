@@ -9,6 +9,7 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -40,7 +41,7 @@ public class ItemUsage implements Listener {
 
         event.setCancelled(true);
 
-        usageHandler.triggerUsage(player, entry, item, null, null);
+        usageHandler.triggerUsage(player, entry, item, null, null, null);
     }
 
     // USE LISTENER: USABLE, FLAME_PARTICLE, LIGHTNING_PEARL, RANDOM_POTION
@@ -55,8 +56,11 @@ public class ItemUsage implements Listener {
             return;
 
         String type = entry.getType();
+        if (type.equalsIgnoreCase("EXPLOSIVE_ARROW") || type.equalsIgnoreCase("CONSUMABLE") || type.equalsIgnoreCase("NO_ITEM"))
+            return;
         switch (type) {
             case "EXPLOSIVE_ARROW":
+            case "AREA_BREAK":
             case "NO_ITEM":
             case "CONSUMABLE":
                 return;
@@ -67,7 +71,7 @@ public class ItemUsage implements Listener {
         event.setCancelled(true);
 
         Action action = event.getAction();
-        usageHandler.triggerUsage(player, entry, item, action, null);
+        usageHandler.triggerUsage(player, entry, item, action, null, null);
     }
 
     // USE LISTENER: EXPLOSIVE_ARROW
@@ -87,7 +91,27 @@ public class ItemUsage implements Listener {
         Arrow arrow = (Arrow) event.getProjectile();
         if (arrow == null) return;
 
-        usageHandler.triggerUsage(player, entry, null, null, arrow);
+        usageHandler.triggerUsage(player, entry, null, null, arrow, null);
+    }
+
+    // USE LISTENER: AREA PICKAXE
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        
+        // check if block is an active item entry
+        Player player = event.getPlayer();
+        ItemEntry entry = usageHandler.getItemEntryByItem(player.getInventory().getItemInMainHand());
+        if (entry == null) {
+            return;
+        } else if (!player.hasPermission(entry.getUsePerm())) {
+            return;
+        } else if (!entry.getType().equalsIgnoreCase("AREA_BREAK")) {
+            return;
+        } 
+
+        if (event.getBlock()==null) return;
+
+        usageHandler.triggerUsage(player, entry, null, null, null, event.getBlock());
     }
 
     // LANDING LISTENER: EXPLOSIVE_ARROW, LIGHTNING_PEARL
