@@ -105,7 +105,7 @@ public class ItemUsage implements Listener {
         Player player = (Player) projectile.getShooter();
         ItemEntry entry = usageHandler.getConfigHandler().getItemEntryByKeyString(projectile.getMetadata("Item64-keyString").get(0).asString());
 
-        if (usageHandler.passDamageChecks(player, location, entry, usageHandler.getConfigHandler().PROTECTION_RADIUS)) {
+        if (usageHandler.passDamageChecks(player, location, usageHandler.getConfigHandler().PROTECTION_RADIUS)) {
             usageHandler.damageEntities(player, location, 1.7, 1.2, entry.getDamage(), 30);
             if (projectile instanceof Arrow) 
                 projectile.getWorld().createExplosion(location, (float)entry.getPower(), true, true, player);
@@ -127,7 +127,7 @@ public class ItemUsage implements Listener {
         Player player = (Player) thrownPotion.getShooter();
         ItemEntry entry = usageHandler.getConfigHandler().getItemEntryByKeyString(thrownPotion.getMetadata("Item64-keyString").get(0).asString());
 
-        if (usageHandler.passDamageChecks(player, location, entry, usageHandler.getConfigHandler().PROTECTION_RADIUS)) {
+        if (usageHandler.passDamageChecks(player, location, usageHandler.getConfigHandler().PROTECTION_RADIUS)) {
             if (thrownPotion.hasMetadata("Item64-randomPotion-left"))
                 usageHandler.damageEntities(player, location, 0.9, 1.3, entry.getDamage(), 20);
         } else {
