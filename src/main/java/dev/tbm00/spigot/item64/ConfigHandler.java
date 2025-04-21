@@ -26,7 +26,8 @@ public class ConfigHandler {
     private boolean griefDefenderEnabled = false;
     private boolean worldGuardEnabled = false;
 
-    private boolean checkAnchorExplosions = false;
+    public final int PROTECTION_RADIUS = 6;
+
     private List<String> ignoredClaims = null;
 
     private Set<String> inactiveWorlds = new HashSet<>();
@@ -77,7 +78,6 @@ public class ConfigHandler {
         }
         if (hookSection.getBoolean("DeluxeCombat.enabled")) {
             deluxeCombatEnabled = true;
-            checkAnchorExplosions = hookSection.getBoolean("DeluxeCombat.anchorExplosionPvpCheck");
         }
         if (hookSection.getBoolean("GriefDefender.enabled")) {
             griefDefenderEnabled = true;
@@ -268,10 +268,6 @@ public class ConfigHandler {
 
     public boolean isWorldGuardEnabled() {
         return worldGuardEnabled;
-    }
-    
-    public boolean getCheckAnchorExplosions() {
-        return checkAnchorExplosions;
     }
     
     public List<String> getIgnoredClaims() {
