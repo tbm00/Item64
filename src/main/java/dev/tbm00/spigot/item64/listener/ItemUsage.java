@@ -100,7 +100,7 @@ public class ItemUsage implements Listener {
         
         // check if block is an active item entry
         Player player = event.getPlayer();
-        ItemEntry entry = usageHandler.getItemEntryByItem(player.getItemInHand());
+        ItemEntry entry = usageHandler.getItemEntryByItem(player.getInventory().getItemInMainHand());
         if (entry == null) {
             return;
         } else if (!player.hasPermission(entry.getUsePerm())) {
