@@ -271,7 +271,8 @@ hooks:
     ignoredClaims: []
   DeluxeCombat:
     enabled: false
-    anchorExplosionPvpCheck: false # temporary fix that blocks respawn anchor usage if player or nearby players have pvp disabled
+  WorldGuard:
+    enabled: false
 
 breakEvent:
   inactiveWorlds:
