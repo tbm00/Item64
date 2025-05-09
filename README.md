@@ -281,7 +281,7 @@ Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.e
 ## Default Config
 
 ```
-# Item64 v0.2.22-beta by @tbm00
+# Item64 v0.2.23-beta by @tbm00
 # https://github.com/tbm00/Item64
 
 enabled: true
@@ -489,10 +489,10 @@ itemEntries:
         - "&8&oRequires TNT"
       hideEnchants: false
       enchantments:
-        - "DIG_SPEED:3"
+        - "EFFICIENCY:3"
     usage:
       moneyCost: 0.00
-      hungerCost: 0
+      hungerCost: 1
       cooldown: 0
       ammoItem:
         mat: "TNT"
@@ -501,6 +501,24 @@ itemEntries:
         radius: 1
         type: "2D"
   "7":
+    key: "SMITH_PICK"
+    type: "SMITH_BREAK"
+    enabled: true
+    givePerm: "item64.give.smith_pick"
+    usePerm: "item64.use.smith_pick"
+    item:
+      mat: "DIAMOND_PICKAXE"
+      name: "&6Smithing Pickaxe"
+      lore: []
+      hideEnchants: false
+      enchantments:
+        - "EFFICIENCY:3"
+    usage:
+      moneyCost: 0.00
+      hungerCost: 1
+      cooldown: 0
+      ammoItem: []
+  "8":
     key: "HEALING_HONEY"
     type: "CONSUMABLE"
     enabled: true
@@ -527,7 +545,7 @@ itemEntries:
       rewardMessage: "&6You found some healing honey!"
       giveRewardItem: true
       rewardCommands: []
-  "8":
+  "9":
     key: "SUPERAPPLE"
     type: "CONSUMABLE"
     enabled: true
@@ -569,7 +587,7 @@ itemEntries:
       rewardMessage: "&6You found a superapple!"
       giveRewardItem: true
       rewardCommands: []
-  "9":
+  "10":
     key: "KIT_KAT"
     type: "USABLE"
     enabled: true
@@ -598,7 +616,7 @@ itemEntries:
       rewardMessage: "&6You found some kit-kit!"
       giveRewardItem: true
       rewardCommands: []
-  "10":
+  "11":
     key: "JOLLY_RANCHER"
     type: "USABLE"
     enabled: true
@@ -631,7 +649,7 @@ itemEntries:
       rewardMessage: "&6You found a jolly rancher!"
       giveRewardItem: true
       rewardCommands: []
-  "11":
+  "12":
     key: "CANDY_CARROT"
     type: "CONSUMABLE"
     enabled: true
@@ -660,7 +678,7 @@ itemEntries:
       rewardMessage: "&6You found a candy carrot!"
       giveRewardItem: true
       rewardCommands: []
-  "12":
+  "13":
     key: "MOONLIGHT_MUNCH"
     type: "CONSUMABLE"
     enabled: true
@@ -691,7 +709,7 @@ itemEntries:
       rewardMessage: "&6You found a moonlight munch!"
       giveRewardItem: true
       rewardCommands: []
-  "13":
+  "14":
     key: "PHANTOM_FRUIT"
     type: "CONSUMABLE"
     enabled: true
@@ -724,7 +742,7 @@ itemEntries:
       rewardMessage: "&6You found a phantom fruit!"
       giveRewardItem: true
       rewardCommands: []
-  "14":
+  "15":
     key: "SPIDER_WEB_TAFFY"
     type: "USABLE"
     enabled: true
@@ -755,7 +773,7 @@ itemEntries:
       rewardMessage: "&6You found some spider web taffy!"
       giveRewardItem: true
       rewardCommands: []
-  "15":
+  "16":
     key: "BROOMSTICK"
     type: "USABLE"
     enabled: true
@@ -788,7 +806,7 @@ itemEntries:
       rewardMessage: "&6You found a broomstick!"
       giveRewardItem: true
       rewardCommands: []
-  "16":
+  "17":
     key: "GHOSTLY_GUMMY"
     type: "USABLE"
     enabled: true
@@ -819,7 +837,7 @@ itemEntries:
       rewardMessage: "&6You found a ghostly gummy!"
       giveRewardItem: true
       rewardCommands: []
-  "17":
+  "18":
     key: "ZOMBIE_KUSH"
     type: "USABLE"
     enabled: true
@@ -850,7 +868,7 @@ itemEntries:
       rewardMessage: "&6You found some zombie kush!"
       giveRewardItem: true
       rewardCommands: []
-  "18":
+  "19":
     key: "BEER"
     type: "CONSUMABLE"
     enabled: true
@@ -887,7 +905,7 @@ itemEntries:
       rewardMessage: "&6You found a bottle of beer!"
       giveRewardItem: true
       rewardCommands: []
-  "19":
+  "20":
     key: "COKE"
     type: "USABLE"
     enabled: true
@@ -916,7 +934,7 @@ itemEntries:
       rewardMessage: "&6You found some sugar!"
       giveRewardItem: true
       rewardCommands: []
-  "20":
+  "21":
     key: "CRATE_KEY_REWARD"
     type: "NO_ITEM"
     enabled: false
