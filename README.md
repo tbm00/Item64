@@ -11,7 +11,7 @@ Created by tbm00 for play.mc64.wtf.
 ## Features
 
 ### **Custom PVP & non-PVP Items**
-*Explosive bows, crossbows, flamethrowers, magic wands, lightning guns, 3x3 pickaxes, candy, and an endless possibilities of items designed by you!*
+*Explosive bows, crossbows, flamethrowers, magic wands, lightning guns, custom pickaxes, candy, and an endless possibilities of items designed by you!*
 
 Pre-Defined Items:
   - **Flamethrower** Shoots flames and causes fires.
@@ -20,6 +20,7 @@ Pre-Defined Items:
   - **Lightning Gun** Shoots ender pearls that summon lightning.
   - **Magic Wand** Shoots random potion/beacon effects. Left-click for an offensive effect, right-click for a positive effect.
   - **3x3 Pickaxe** Breaks all blocks in a three by three radius.
+  - **Smithing Pickaxe** Breaks ore and smiths it.
   - **Various Candies** Applies enhanced effects to players when they consume/use the item.
 
 ### **Block Breaking Event**
@@ -110,10 +111,15 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 - Has DeluxeCombat check that prevents explosions entirely if PVP is toggled off for any affected players.
 
 **`AREA_BREAK`** 
-- Breaks items in a defined radius.
+- Breaks blocks in a defined radius.
 - Applicable to pickaxes, axes, and shovels.
 - Type `3D` will break a cube, `2D` will break a plane.
-- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have buil perms in affected area.
+- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms in affected area.
+
+**`SMITH_BREAK`** 
+- Breaks block and cooks it if its stone, iron ore, copper ore, gold ore, or ancient debris.
+- Applicable to pickaxes.
+- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms on affected block.
 
 **`CONSUMABLE`** 
 - Runs commands and/or gives potion effects on item consumption.
@@ -275,7 +281,7 @@ Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.e
 ## Default Config
 
 ```
-# Item64 v0.2.21-beta by @tbm00
+# Item64 v0.2.22-beta by @tbm00
 # https://github.com/tbm00/Item64
 
 enabled: true
