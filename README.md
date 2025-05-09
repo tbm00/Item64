@@ -20,7 +20,7 @@ Pre-Defined Items:
   - **Lightning Gun** Shoots ender pearls that summon lightning.
   - **Magic Wand** Shoots random potion/beacon effects. Left-click for an offensive effect, right-click for a positive effect.
   - **3x3 Pickaxe** Breaks all blocks in a three by three radius.
-  - **Smithing Pickaxe** Breaks ore and smiths it.
+  - **Smelting Pickaxe** Breaks ore and smelts it.
   - **Various Candies** Applies enhanced effects to players when they consume/use the item.
 
 ### **Block Breaking Event**
@@ -116,7 +116,7 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 - Type `3D` will break a cube, `2D` will break a plane.
 - Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms in affected area.
 
-**`SMITH_BREAK`** 
+**`SMELT_BREAK`** 
 - Breaks block and cooks it if its stone, iron ore, copper ore, gold ore, or ancient debris.
 - Applicable to pickaxes.
 - Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms on affected block.
@@ -501,14 +501,14 @@ itemEntries:
         radius: 1
         type: "2D"
   "7":
-    key: "SMITH_PICK"
-    type: "SMITH_BREAK"
+    key: "SMELT_PICK"
+    type: "SMELT_BREAK"
     enabled: true
-    givePerm: "item64.give.smith_pick"
-    usePerm: "item64.use.smith_pick"
+    givePerm: "item64.give.smelt_pick"
+    usePerm: "item64.use.smelt_pick"
     item:
       mat: "DIAMOND_PICKAXE"
-      name: "&6Smithing Pickaxe"
+      name: "&6Smelting Pickaxe"
       lore: []
       hideEnchants: false
       enchantments:
