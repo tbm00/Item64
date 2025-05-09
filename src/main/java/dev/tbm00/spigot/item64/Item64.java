@@ -5,6 +5,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.sk89q.worldguard.WorldGuard;
 import net.milkbowl.vault.economy.Economy;
@@ -24,6 +25,7 @@ public class Item64 extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        getConfig().setDefaults(new YamlConfiguration());
         final PluginDescriptionFile pdf = getDescription();
 
 		log(
