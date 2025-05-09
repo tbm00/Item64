@@ -94,7 +94,7 @@ public class ItemUsage implements Listener {
         usageHandler.triggerUsage(player, entry, null, null, arrow, null);
     }
 
-    // USE LISTENER: AREA PICKAXE
+    // USE LISTENER: AREA BREAK, SMELT BREAK
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         
@@ -105,7 +105,7 @@ public class ItemUsage implements Listener {
             return;
         } else if (!player.hasPermission(entry.getUsePerm())) {
             return;
-        } else if (!entry.getType().equalsIgnoreCase("AREA_BREAK")) {
+        } else if (!entry.getType().equalsIgnoreCase("AREA_BREAK") && !entry.getType().equalsIgnoreCase("SMELT_BREAK")) {
             return;
         } 
 

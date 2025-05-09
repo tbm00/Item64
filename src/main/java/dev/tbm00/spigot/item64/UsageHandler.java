@@ -152,6 +152,11 @@ public class UsageHandler {
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Breaking blocks..."));
                 breakBlocks(player, entry, block);
                 break;
+            case "SMELT_BREAK":
+                if (!passUsageBuildChecks(player, player.getLocation(), 0)) return;
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Smelting block..."));
+                if (!breakBlockAndSmith(player, entry, block)) return;
+                break;
             default: 
                 break;
         }
@@ -350,6 +355,18 @@ public class UsageHandler {
             if (!passBuildChecks(player, block.getLocation(), entry.getRadius())) continue;
             block.breakNaturally(player.getInventory().getItemInMainHand());
         }
+    }
+
+    // USER: SMITH_BREAK
+    private boolean breakBlockAndSmith(Player player, ItemEntry entry, Block brokenBlock) {
+        if (!passBuildChecks(player, brokenBlock.getLocation(), entry.getRadius())) return false;
+
+        Material drop = getSmeltedDrop(brokenBlock.getType());
+        if (drop == null || drop == Material.AIR) return false;
+
+        brokenBlock.setType(Material.AIR);
+        brokenBlock.getWorld().dropItemNaturally(brokenBlock.getLocation(), new ItemStack(drop));
+        return true;
     }
 
     // HELPER: ALL ITEMS
@@ -696,6 +713,17 @@ public class UsageHandler {
             default:
                 return Particle.FLAME;
         }
+    }
+
+    private Material getSmeltedDrop(Material input) {
+        return switch (input) {
+            case IRON_ORE, DEEPSLATE_IRON_ORE -> Material.IRON_INGOT;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> Material.GOLD_INGOT;
+            case COPPER_ORE, DEEPSLATE_COPPER_ORE -> Material.COPPER_INGOT;
+            case ANCIENT_DEBRIS -> Material.NETHERITE_SCRAP;
+            case STONE -> Material.STONE;
+            default -> null;
+        };
     }
 
     public Item64 getItem64() {
