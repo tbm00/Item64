@@ -218,14 +218,14 @@ itemEntries:
         radius: 1
         type: "2D"
   "7":
-    key: "SMITH_PICK"
-    type: "SMITH_BREAK"
+    key: "SMELT_PICK"
+    type: "SMELT_BREAK"
     enabled: true
-    givePerm: "item64.give.smith_pick"
-    usePerm: "item64.use.smith_pick"
+    givePerm: "item64.give.smelt_pick"
+    usePerm: "item64.use.smelt_pick"
     item:
       mat: "DIAMOND_PICKAXE"
-      name: "&6Smithing Pickaxe"
+      name: "&6Smelting Pickaxe"
       lore: []
       hideEnchants: false
       enchantments:

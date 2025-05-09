@@ -153,9 +153,10 @@ public class UsageHandler {
                 breakBlocks(player, entry, block);
                 break;
             case "SMELT_BREAK":
+                if (getSmeltedDrop(block.getType())==null) return;
                 if (!passUsageBuildChecks(player, player.getLocation(), 0)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Smelting block..."));
-                if (!breakBlockAndSmith(player, entry, block)) return;
+                if (!breakBlockAndSmelt(player, entry, block)) return;
                 break;
             default: 
                 break;
@@ -357,8 +358,8 @@ public class UsageHandler {
         }
     }
 
-    // USER: SMITH_BREAK
-    private boolean breakBlockAndSmith(Player player, ItemEntry entry, Block brokenBlock) {
+    // USER: SMELT_BREAK
+    private boolean breakBlockAndSmelt(Player player, ItemEntry entry, Block brokenBlock) {
         if (!passBuildChecks(player, brokenBlock.getLocation(), entry.getRadius())) return false;
 
         Material drop = getSmeltedDrop(brokenBlock.getType());
