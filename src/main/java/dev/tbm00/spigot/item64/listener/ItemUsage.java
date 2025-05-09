@@ -22,9 +22,11 @@ import dev.tbm00.spigot.item64.UsageHandler;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
 public class ItemUsage implements Listener {
+    private Item64 item64;
     private UsageHandler usageHandler;
 
     public ItemUsage(Item64 item64, UsageHandler usageHandler) {
+        this.item64 = item64;
         this.usageHandler = usageHandler;
     }
 
@@ -61,6 +63,7 @@ public class ItemUsage implements Listener {
         switch (type) {
             case "EXPLOSIVE_ARROW":
             case "AREA_BREAK":
+            case "SMELT_BREAK":
             case "NO_ITEM":
             case "CONSUMABLE":
                 return;
@@ -109,7 +112,13 @@ public class ItemUsage implements Listener {
             return;
         } 
 
-        if (event.getBlock()==null) return;
+        if (entry.getType().equalsIgnoreCase("SMELT_BREAK")) {
+            if (item64.getSmeltedDrop(event.getBlock().getType())==null) {
+                return;
+            } else {
+                event.setCancelled(true);
+            }
+        }
 
         usageHandler.triggerUsage(player, entry, null, null, null, event.getBlock());
     }
