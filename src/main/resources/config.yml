@@ -206,7 +206,7 @@ itemEntries:
         - "&8&oRequires TNT"
       hideEnchants: false
       enchantments:
-        - "DIG_SPEED:3"
+        - "EFFICIENCY:3"
     usage:
       moneyCost: 0.00
       hungerCost: 1
@@ -229,7 +229,7 @@ itemEntries:
       lore: []
       hideEnchants: false
       enchantments:
-        - "DIG_SPEED:3"
+        - "EFFICIENCY:3"
     usage:
       moneyCost: 0.00
       hungerCost: 1
