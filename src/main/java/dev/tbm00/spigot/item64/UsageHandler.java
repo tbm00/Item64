@@ -153,7 +153,6 @@ public class UsageHandler {
                 breakBlocks(player, entry, block);
                 break;
             case "SMELT_BREAK":
-                if (getSmeltedDrop(block.getType())==null) return;
                 if (!passUsageBuildChecks(player, player.getLocation(), 0)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Smelting block..."));
                 if (!breakBlockAndSmelt(player, entry, block)) return;
@@ -362,11 +361,11 @@ public class UsageHandler {
     private boolean breakBlockAndSmelt(Player player, ItemEntry entry, Block brokenBlock) {
         if (!passBuildChecks(player, brokenBlock.getLocation(), entry.getRadius())) return false;
 
-        Material drop = getSmeltedDrop(brokenBlock.getType());
+        Material drop = item64.getSmeltedDrop(brokenBlock.getType());
         if (drop == null || drop == Material.AIR) return false;
 
         brokenBlock.setType(Material.AIR);
-        brokenBlock.getWorld().dropItemNaturally(brokenBlock.getLocation(), new ItemStack(drop));
+        brokenBlock.getWorld().dropItemNaturally(brokenBlock.getLocation().add(0.5, 0.5, 0.5), new ItemStack(drop));
         return true;
     }
 
@@ -714,17 +713,6 @@ public class UsageHandler {
             default:
                 return Particle.FLAME;
         }
-    }
-
-    private Material getSmeltedDrop(Material input) {
-        return switch (input) {
-            case IRON_ORE, DEEPSLATE_IRON_ORE -> Material.IRON_INGOT;
-            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> Material.GOLD_INGOT;
-            case COPPER_ORE, DEEPSLATE_COPPER_ORE -> Material.COPPER_INGOT;
-            case ANCIENT_DEBRIS -> Material.NETHERITE_SCRAP;
-            case STONE -> Material.STONE;
-            default -> null;
-        };
     }
 
     public Item64 getItem64() {

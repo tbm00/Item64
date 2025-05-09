@@ -5,6 +5,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.sk89q.worldguard.WorldGuard;
@@ -145,6 +146,17 @@ public class Item64 extends JavaPlugin {
 		for (String s : strings)
             getServer().getConsoleSender().sendMessage("[Item64] " + ChatColor.RED + s);
 	}
+
+    public Material getSmeltedDrop(Material input) {
+        return switch (input) {
+            case IRON_ORE, DEEPSLATE_IRON_ORE -> Material.IRON_INGOT;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> Material.GOLD_INGOT;
+            case COPPER_ORE, DEEPSLATE_COPPER_ORE -> Material.COPPER_INGOT;
+            case ANCIENT_DEBRIS -> Material.NETHERITE_SCRAP;
+            case STONE -> Material.STONE;
+            default -> null;
+        };
+    }
 
     private void disablePlugin() {
         getServer().getPluginManager().disablePlugin(this);
