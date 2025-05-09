@@ -54,7 +54,7 @@ public class RewardBreak implements Listener {
 
         if (!inactiveWorlds.contains(block.getWorld().getName()) 
         && configHandler.getRewardedBreaking().contains(block.getType().name())) {
-            int chance = rand.nextInt(100);
+            double chance = rand.nextDouble(100.0);
 
             if (chance < configHandler.getRewardedBreakingChance()) {
                 // algorithm to *fairly* pick the reward based on chance.
