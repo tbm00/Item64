@@ -24,6 +24,7 @@ public class PlayerConnection implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
+        if (usageHandler.getConfigHandler().getRewardedBreakingJoinMessage()==null || usageHandler.getConfigHandler().getRewardedBreakingJoinMessage().isBlank()) return;
         UUID uuid = event.getPlayer().getUniqueId();
         new BukkitRunnable() {
             @Override
