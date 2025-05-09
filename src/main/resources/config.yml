@@ -209,7 +209,7 @@ itemEntries:
         - "DIG_SPEED:3"
     usage:
       moneyCost: 0.00
-      hungerCost: 0
+      hungerCost: 1
       cooldown: 0
       ammoItem:
         mat: "TNT"

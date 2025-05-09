@@ -148,7 +148,7 @@ public class UsageHandler {
                 if (!shootRandomPotion(player, entry, leftClick)) return;
                 break;
             case "AREA_BREAK":
-                //if (!passUsageBuildChecks(player, player.getLocation(), entry.getRadius()+1)) return;
+                if (!passUsageBuildChecks(player, player.getLocation(), ((entry.getRadius()*2)+1)*3)) return;
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.YELLOW + "Breaking blocks..."));
                 breakBlocks(player, entry, block);
                 break;
