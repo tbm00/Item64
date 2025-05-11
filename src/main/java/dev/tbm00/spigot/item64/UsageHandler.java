@@ -583,10 +583,8 @@ public class UsageHandler {
 
         double random = ThreadLocalRandom.current().nextDouble(0, 100);
         if (random < entry.getHungerChance()) {
-            return;
+            player.setFoodLevel(Math.max(player.getFoodLevel() - entry.getHunger(), 0));
         }
-
-        player.setFoodLevel(Math.max(player.getFoodLevel() - entry.getHunger(), 0));
     }
 
     public ItemEntry getItemEntryByItem(ItemStack item) {
