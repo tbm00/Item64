@@ -169,6 +169,7 @@ public class ConfigHandler {
         boolean hideEnchants = itemEntrySec.contains("item.hideEnchants") ? itemEntrySec.getBoolean("item.hideEnchants") : false;
         List<String> enchants = itemEntrySec.contains("item.enchantments") ? itemEntrySec.getStringList("item.enchantments") : null;
         double money = itemEntrySec.contains("usage.moneyCost") ? itemEntrySec.getDouble("usage.moneyCost") : 0.0;
+        double hungerChance = itemEntrySec.contains("usage.hungerChance") ? itemEntrySec.getDouble("usage.hungerChance") : 0.0;
         int hunger = itemEntrySec.contains("usage.hungerCost") ? itemEntrySec.getInt("usage.hungerCost") : 0;
         int cooldown = itemEntrySec.contains("usage.cooldown") ? itemEntrySec.getInt("usage.cooldown") : 0;
         String ammoItemStr = itemEntrySec.contains("usage.ammoItem.mat") ? itemEntrySec.getString("usage.ammoItem.mat") : null;
@@ -197,7 +198,7 @@ public class ConfigHandler {
 
         //item64.logYellow("entries["+ (id-1) + "] -> " + KEY + " @ " + rewardChance);
         if (type != null && KEY != null) {
-            ItemEntry entry = new ItemEntry(item64, id, givePerm, usePerm, type, KEY, money, hunger, cooldown, random, damage, 
+            ItemEntry entry = new ItemEntry(item64, id, givePerm, usePerm, type, KEY, money, hunger, hungerChance, cooldown, random, damage, 
                                         ammoItem, removeAmmo, material, name, lore, hideEnchants, enchants, removeItem, commands, message, effects, 
                                         rEffects, lEffects, power, rewardChance, rewardMessage, giveItem, rewardCommands, radius, breakType);
             itemEntries.add(entry);
