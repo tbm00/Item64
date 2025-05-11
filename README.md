@@ -79,6 +79,25 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 
 ### ItemEntry Types
 
+**`CONSUMABLE`** 
+- Runs commands and/or gives potion effects on item consumption.
+- Applicable to food, potions, milk, etc.
+
+**`USABLE`** 
+- Runs commands and/or gives potion effects on item use.
+- Applicable to all items.
+
+**`AREA_BREAK`** 
+- Breaks blocks in a admin-defined radius.
+- Applicable to pickaxes, axes, and shovels.
+- Type `3D` will break a cuboid, `2D` will break a plane.
+- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms in affected area.
+
+**`SMELT_BREAK`** 
+- Breaks block and cooks it if its stone, iron ore, copper ore, gold ore, or ancient debris.
+- Applicable to pickaxes.
+- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms on affected block.
+
 **`EXPLOSIVE_ARROW`**
 - Summons an explosion on arrow impact.
 - Applicable to bows and crossbows.
@@ -110,29 +129,9 @@ Each item has configurable permissions (in `config.yml`) that must be fulfilled 
 - Has WorldGuard & GriefDefender checks that prevents player damage if user doesn't have PVP ability in affected area.
 - Has DeluxeCombat check that prevents explosions entirely if PVP is toggled off for any affected players.
 
-**`AREA_BREAK`** 
-- Breaks blocks in a defined radius.
-- Applicable to pickaxes, axes, and shovels.
-- Type `3D` will break a cube, `2D` will break a plane.
-- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms in affected area.
-
-**`SMELT_BREAK`** 
-- Breaks block and cooks it if its stone, iron ore, copper ore, gold ore, or ancient debris.
-- Applicable to pickaxes.
-- Has WorldGuard & GriefDefender checks that prevents block damage if user doesn't have build perms on affected block.
-
-**`CONSUMABLE`** 
-- Runs commands and/or gives potion effects on item consumption.
-- Applicable to food, potions, milk, etc.
-- moneyCost, hungerCost, cooldown, & ammoItem are applicable but not necessary; the default config excludes them for these types.
-
-**`USABLE`** 
-- Runs commands and/or gives potion effects on item use.
-- Applicable to all items/blocks.
-
 **`NO_ITEM`** 
-- NOT AN ITEM -- use to simply run commands for a BreakEvent reward.
-- Not applicable on any items/blocks.
+- NOT AN ITEM -- the only intended use case is to simply run commands for a BreakEvent reward.
+- Not applicable on any items.
 
 ### ItemEntry Specification
 
@@ -184,9 +183,13 @@ Applicable on *all types except `NO_ITEM`*. Format: `enchant-name:level`
 
 Applicable on *all types except `NO_ITEM`*. Requires Vault dependency to use this; leave empty/null if not using Vault.
 </details>
+<details><summary>-- -- hungerChance: (DOUBLE)</summary>
+
+Applicable on *all types except `NO_ITEM`*. In range [0.0,100.0]. Defaults to 100.0, but never used is hungerCost==0.
+</details>
 <details><summary>-- -- hungerCost: (INTEGER)</summary>
 
-Applicable on *all types except `NO_ITEM`*. In range 0-20.
+Applicable on *all types except `NO_ITEM`*. In range [0,20].
 </details>
 <details><summary>-- -- cooldown: (INTEGER)</summary>
 
@@ -281,7 +284,7 @@ Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.e
 ## Default Config
 
 ```
-# Item64 v0.2.24-beta by @tbm00
+# Item64 v0.2.25-beta by @tbm00
 # https://github.com/tbm00/Item64
 
 enabled: true
@@ -492,6 +495,7 @@ itemEntries:
         - "EFFICIENCY:3"
     usage:
       moneyCost: 0.00
+      hungerChance: 33.3
       hungerCost: 1
       cooldown: 0
       ammoItem:
@@ -515,6 +519,7 @@ itemEntries:
         - "EFFICIENCY:3"
     usage:
       moneyCost: 0.00
+      hungerChance: 33.3
       hungerCost: 1
       cooldown: 0
       ammoItem: []
