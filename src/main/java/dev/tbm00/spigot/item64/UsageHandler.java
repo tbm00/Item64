@@ -577,7 +577,15 @@ public class UsageHandler {
     }
 
     public void adjustHunger(Player player, ItemEntry entry) {
-        if (entry.getHunger()<=0) return;
+
+        int entryHungerCost = entry.getHunger();
+        if (entryHungerCost<=0) return;
+
+        double random = ThreadLocalRandom.current().nextDouble(0, 100);
+        if (random < entry.getHungerChance()) {
+            return;
+        }
+
         player.setFoodLevel(Math.max(player.getFoodLevel() - entry.getHunger(), 0));
     }
 

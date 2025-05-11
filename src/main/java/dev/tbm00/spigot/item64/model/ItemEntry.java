@@ -17,6 +17,7 @@ public class ItemEntry {
     private double money;
     private int cooldown;
     private int hunger;
+    private double hungerChance;
     private boolean removeItem;
     private double random;
     private double damage;
@@ -40,7 +41,7 @@ public class ItemEntry {
     private int radius;
     private String breakType;
     
-    public ItemEntry(Item64 item64, int id, String givePerm, String usePerm, String type, String KEY, double money, int hunger, 
+    public ItemEntry(Item64 item64, int id, String givePerm, String usePerm, String type, String KEY, double money, int hunger, double hungerChance,
                         int cooldown, double random, double damage, Material ammoItem, boolean removeAmmo, Material material, String name, List<String> lore, 
                         boolean hideEnchants, List<String> enchants, boolean removeItem, List<String> commands, String message, List<String> effects, List<String> rEffects, 
                         List<String> lEffects, double power, double rewardChance, String rewardMessage, boolean giveItem, List<String> rewardCommands, int radius, String breakType) {
@@ -51,6 +52,7 @@ public class ItemEntry {
         this.key = new NamespacedKey(item64, KEY);
         this.keyString = KEY;
         this.money = money;
+        this.hungerChance = hungerChance;
         this.hunger = hunger;
         this.cooldown = cooldown;
         this.random = random;
@@ -123,6 +125,14 @@ public class ItemEntry {
 
     public void setMoney(int money) {
         this.money = money;
+    }
+
+    public double getHungerChance() {
+        return hungerChance;
+    }
+
+    public void setHungerChance(double hungerChance) {
+        this.hungerChance = hungerChance;
     }
 
     public int getHunger() {

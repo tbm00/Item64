@@ -209,6 +209,7 @@ itemEntries:
         - "EFFICIENCY:3"
     usage:
       moneyCost: 0.00
+      hungerChance: 33.3
       hungerCost: 1
       cooldown: 0
       ammoItem:
@@ -232,6 +233,7 @@ itemEntries:
         - "EFFICIENCY:3"
     usage:
       moneyCost: 0.00
+      hungerChance: 33.3
       hungerCost: 1
       cooldown: 0
       ammoItem: []
