@@ -169,7 +169,7 @@ public class ConfigHandler {
         boolean hideEnchants = itemEntrySec.contains("item.hideEnchants") ? itemEntrySec.getBoolean("item.hideEnchants") : false;
         List<String> enchants = itemEntrySec.contains("item.enchantments") ? itemEntrySec.getStringList("item.enchantments") : null;
         double money = itemEntrySec.contains("usage.moneyCost") ? itemEntrySec.getDouble("usage.moneyCost") : 0.0;
-        double hungerChance = itemEntrySec.contains("usage.hungerChance") ? itemEntrySec.getDouble("usage.hungerChance") : 0.0;
+        double hungerChance = itemEntrySec.contains("usage.hungerChance") ? itemEntrySec.getDouble("usage.hungerChance") : 100.0;
         int hunger = itemEntrySec.contains("usage.hungerCost") ? itemEntrySec.getInt("usage.hungerCost") : 0;
         int cooldown = itemEntrySec.contains("usage.cooldown") ? itemEntrySec.getInt("usage.cooldown") : 0;
         String ammoItemStr = itemEntrySec.contains("usage.ammoItem.mat") ? itemEntrySec.getString("usage.ammoItem.mat") : null;
