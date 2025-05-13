@@ -31,11 +31,17 @@ public class ConfigHandler {
     private List<String> ignoredClaims = null;
 
     private Set<String> inactiveWorlds = new HashSet<>();
+    private String blockEventJoinMessage = "";
+    private int blockEventJoinMessageDelay = 0;
     private boolean rewardedBreakingEnabled = false;
-    private String rewardedBreakingJoinMessage = "";
-    private int rewardedBreakingJoinMessageDelay = 0;
     private double rewardedBreakingChance = 0.0;
     private Set<String> rewardedBreaking = new HashSet<>();
+    private boolean rewardedPlacingEnabled = false;
+    private double rewardedPlacingChance = 0.0;
+    private Set<String> rewardedPlacing = new HashSet<>();
+    private boolean preventedBreakingEnabled = false;
+    private String preventedBreakingMessage = "";
+    private Set<String> preventedBreaking = new HashSet<>();
     private boolean preventedPlacingEnabled = false;
     private String preventedPlacingMessage = "";
     private Set<String> preventedPlacing = new HashSet<>();
@@ -54,10 +60,10 @@ public class ConfigHandler {
                 loadHooks(hookSection);
             }
 
-            // Load BreakEvent
-            ConfigurationSection eventSection = item64.getConfig().getConfigurationSection("breakEvent");
+            // Load BlockEvent
+            ConfigurationSection eventSection = item64.getConfig().getConfigurationSection("blockEvent");
             if (eventSection != null) {
-                loadBreakEvent(eventSection);
+                loadBlockEvent(eventSection);
             }
             
             // Load ItemEntries
@@ -88,7 +94,10 @@ public class ConfigHandler {
         }
     }
 
-    private void loadBreakEvent(ConfigurationSection eventSection) {
+    private void loadBlockEvent(ConfigurationSection eventSection) {
+        blockEventJoinMessage = eventSection.getString("joinMessage");
+        blockEventJoinMessageDelay = eventSection.getInt("joinMessageDelay");
+
         // active worlds
         List<String> worldsHolder = eventSection.getStringList("inactiveWorlds");
         inactiveWorlds.addAll(worldsHolder);
@@ -96,14 +105,23 @@ public class ConfigHandler {
         // reward block breaking listener
         rewardedBreakingEnabled = eventSection.getBoolean("rewardBlockBreaking.enabled");
         if (rewardedBreakingEnabled) {
-            rewardedBreakingJoinMessage = eventSection.getString("rewardBlockBreaking.joinMessage");
-            rewardedBreakingJoinMessageDelay = eventSection.getInt("rewardBlockBreaking.joinMessageDelay");
             rewardedBreakingChance = eventSection.getDouble("rewardBlockBreaking.chance");
             List<String> rewardBlockHolder = eventSection.getStringList("rewardBlockBreaking.blocks");
             rewardedBreaking.addAll(rewardBlockHolder);
             item64.logGreen("rewardBlockBreaking is enabled. Rewarding breaking of: " + rewardBlockHolder);
         } else {
             item64.logYellow("rewardBlockBreaking is disabled.");
+        }
+
+        // reward block breaking listener
+        rewardedPlacingEnabled = eventSection.getBoolean("rewardBlockPlacing.enabled");
+        if (rewardedPlacingEnabled) {
+            rewardedPlacingChance = eventSection.getDouble("rewardBlockPlacing.chance");
+            List<String> rewardBlockHolder = eventSection.getStringList("rewardBlockPlacing.blocks");
+            rewardedPlacing.addAll(rewardBlockHolder);
+            item64.logGreen("rewardBlockPlacing is enabled. Rewarding placing of: " + rewardBlockHolder);
+        } else {
+            item64.logYellow("rewardBlockPlacing is disabled.");
         }
 
         // prevent block placing listener
@@ -115,6 +133,17 @@ public class ConfigHandler {
             item64.logGreen("preventBlockPlacing is enabled. Preventing placement of: " + preventBlockHolder);
         } else {
             item64.logYellow("preventBlockPlacing is disabled.");
+        }
+
+        // prevent block breaking listener
+        preventedBreakingEnabled = eventSection.getBoolean("preventBlockBreaking.enabled");
+        if (preventedBreakingEnabled) {
+            List<String> preventBlockHolder = eventSection.getStringList("preventBlockBreaking.blocks");
+            preventedBreaking.addAll(preventBlockHolder);
+            preventedBreakingMessage = eventSection.getString("preventBlockBreaking.message");
+            item64.logGreen("preventBlockBreaking is enabled. Preventing placement of: " + preventBlockHolder);
+        } else {
+            item64.logYellow("preventBlockBreaking is disabled.");
         }
 
         // prevent block growth listener
@@ -191,10 +220,10 @@ public class ConfigHandler {
             radius = itemEntrySec.contains("usage.breakage.radius") ? itemEntrySec.getInt("usage.breakage.radius") : 0;
             breakType = itemEntrySec.contains("usage.breakage.type") ? itemEntrySec.getString("usage.breakage.type") : "2D";
         } 
-        double rewardChance = itemEntrySec.contains("breakEvent.rewardChance") ? itemEntrySec.getDouble("breakEvent.rewardChance") : 0.0;
-        String rewardMessage = itemEntrySec.contains("breakEvent.rewardMessage") ? itemEntrySec.getString("breakEvent.rewardMessage") : null;
-        boolean giveItem = itemEntrySec.contains("breakEvent.giveRewardItem") ? itemEntrySec.getBoolean("breakEvent.giveRewardItem") : false;
-        List<String> rewardCommands = itemEntrySec.contains("breakEvent.rewardCommands") ? itemEntrySec.getStringList("breakEvent.rewardCommands") : null;
+        double rewardChance = itemEntrySec.contains("blockEvent.rewardChance") ? itemEntrySec.getDouble("blockEvent.rewardChance") : 0.0;
+        String rewardMessage = itemEntrySec.contains("blockEvent.rewardMessage") ? itemEntrySec.getString("blockEvent.rewardMessage") : null;
+        boolean giveItem = itemEntrySec.contains("blockEvent.giveRewardItem") ? itemEntrySec.getBoolean("blockEvent.giveRewardItem") : false;
+        List<String> rewardCommands = itemEntrySec.contains("blockEvent.rewardCommands") ? itemEntrySec.getStringList("blockEvent.rewardCommands") : null;
 
         //item64.logYellow("entries["+ (id-1) + "] -> " + KEY + " @ " + rewardChance);
         if (type != null && KEY != null) {
@@ -294,16 +323,16 @@ public class ConfigHandler {
         return inactiveWorlds;
     }
 
+    public String getBlockEventJoinMessage() {
+        return blockEventJoinMessage;
+    }
+
+    public int getBlockEventJoinMessageDelay() {
+        return blockEventJoinMessageDelay;
+    }
+
     public boolean isRewardedBreakingEnabled() {
         return rewardedBreakingEnabled;
-    }
-
-    public String getRewardedBreakingJoinMessage() {
-        return rewardedBreakingJoinMessage;
-    }
-
-    public int getRewardedBreakingJoinMessageDelay() {
-        return rewardedBreakingJoinMessageDelay;
     }
 
     public double getRewardedBreakingChance() {
@@ -312,6 +341,30 @@ public class ConfigHandler {
 
     public Set<String> getRewardedBreaking() {
         return rewardedBreaking;
+    }
+
+    public boolean isPreventedBreakingEnabled() {
+        return preventedBreakingEnabled;
+    }
+
+    public String getPreventedBreakingMessage() {
+        return preventedBreakingMessage;
+    }
+
+    public Set<String> getPreventedBreaking() {
+        return preventedBreaking;
+    }
+
+    public boolean isRewardedPlacingEnabled() {
+        return rewardedPlacingEnabled;
+    }
+
+    public double getRewardedPlacingChance() {
+        return rewardedPlacingChance;
+    }
+
+    public Set<String> getRewardedPlacing() {
+        return rewardedPlacing;
     }
 
     public boolean isPreventedPlacingEnabled() {

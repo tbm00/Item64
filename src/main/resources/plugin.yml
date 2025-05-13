@@ -16,5 +16,8 @@ permissions:
     description: Ability to heal a player
     default: op
   item64.allowplace:
-    description: Ability to place blocked items during event
+    description: Ability to place blacklisted blocks during BlockEvent
+    default: op
+  item64.allowbreak:
+    description: Ability to break blacklisted blocks during BlockEvent
     default: op

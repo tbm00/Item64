@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
 import net.md_5.bungee.api.ChatMessageType;
@@ -23,19 +24,21 @@ import dev.tbm00.spigot.item64.Item64;
 import dev.tbm00.spigot.item64.ConfigHandler;
 import dev.tbm00.spigot.item64.model.ItemEntry;
 
-public class RewardBreak implements Listener {
+public class RewardPlaceBreak implements Listener {
     private final Item64 item64;
     private final ConsoleCommandSender console;
     private final ConfigHandler configHandler;
-    private final boolean enabled;
+    private final boolean breakRewardEnabled;
+    private final boolean placeRewardEnabled;
     private final Set<String> inactiveWorlds;
     private final List<ItemEntry> rewards = new ArrayList<>();
     private final Random rand = new Random();
 
-    public RewardBreak(Item64 item64, ConfigHandler configHandler) {
+    public RewardPlaceBreak(Item64 item64, ConfigHandler configHandler) {
         this.item64 = item64;
         this.configHandler = configHandler;
-        enabled = configHandler.isRewardedBreakingEnabled();
+        breakRewardEnabled = configHandler.isRewardedBreakingEnabled();
+        placeRewardEnabled = configHandler.isRewardedPlacingEnabled();
         console = Bukkit.getServer().getConsoleSender();
         inactiveWorlds = configHandler.getInactiveWorlds();
         if (configHandler.isRewardedBreakingEnabled()) {
@@ -47,7 +50,7 @@ public class RewardBreak implements Listener {
     
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!enabled) return;
+        if (!breakRewardEnabled) return;
 
         // check if block should get rewarded, if so, reward the player
         Block block = event.getBlock();
@@ -71,6 +74,38 @@ public class RewardBreak implements Listener {
                     if (rand.nextDouble() * 100 < selectedEntry.getRewardChance()) {
                         giveRewardToPlayer(selectedEntry, event.getPlayer(), block);
                         block.setType(Material.AIR);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if (!placeRewardEnabled) return;
+
+        // check if block should get rewarded, if so, reward the player
+        Block block = event.getBlock();
+
+        if (!inactiveWorlds.contains(block.getWorld().getName()) 
+        && configHandler.getRewardedPlacing().contains(block.getType().name())) {
+            double random = rand.nextDouble(100.0);
+
+            if (random < configHandler.getRewardedPlacingChance()) {
+                // algorithm to *fairly* pick the reward based on chance.
+                int entryCount = rewards.size();
+                int randomIndex = 0;
+                ItemEntry selectedEntry = null;
+                /*int attemptsLeft = 100;
+                while (attemptsLeft>0) {*/
+                while (true) {
+                    //attemptsLeft--;
+                    randomIndex = rand.nextInt(entryCount);
+                    selectedEntry = rewards.get(randomIndex);
+
+                    if (rand.nextDouble() * 100 < selectedEntry.getRewardChance()) {
+                        giveRewardToPlayer(selectedEntry, event.getPlayer(), block);
                         return;
                     }
                 }
