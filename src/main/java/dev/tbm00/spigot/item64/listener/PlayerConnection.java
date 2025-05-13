@@ -24,7 +24,7 @@ public class PlayerConnection implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (usageHandler.getConfigHandler().getRewardedBreakingJoinMessage()==null || usageHandler.getConfigHandler().getRewardedBreakingJoinMessage().isBlank()) return;
+        if (usageHandler.getConfigHandler().getBlockEventJoinMessage()==null || usageHandler.getConfigHandler().getBlockEventJoinMessage().isBlank()) return;
         UUID uuid = event.getPlayer().getUniqueId();
         new BukkitRunnable() {
             @Override
@@ -32,12 +32,12 @@ public class PlayerConnection implements Listener {
                 if (Bukkit.getPlayer(uuid)!=null) {
                     Bukkit.getPlayer(uuid).spigot().sendMessage(
                         new TextComponent(ChatColor.translateAlternateColorCodes('&', 
-                            usageHandler.getConfigHandler().getRewardedBreakingJoinMessage())
+                            usageHandler.getConfigHandler().getBlockEventJoinMessage())
                         )
                     );
                 }
             }
-        }.runTaskLater(usageHandler.getItem64(), 20*usageHandler.getConfigHandler().getRewardedBreakingJoinMessageDelay());
+        }.runTaskLater(usageHandler.getItem64(), 20*usageHandler.getConfigHandler().getBlockEventJoinMessageDelay());
     }
 
     @EventHandler

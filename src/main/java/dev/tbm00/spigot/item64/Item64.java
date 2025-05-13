@@ -42,11 +42,11 @@ public class Item64 extends JavaPlugin {
                 usageHandler = new UsageHandler(this, configHandler, ecoHook, gdHook, dcHook, wgHook);
 
                 getCommand("itm").setExecutor(new ItmCommand(this, configHandler));
-                getServer().getPluginManager().registerEvents(new ItemUsage(this, usageHandler), this);
                 getServer().getPluginManager().registerEvents(new PlayerConnection(this, usageHandler), this);
-                getServer().getPluginManager().registerEvents(new PreventUsage(this, usageHandler, dcHook), this);
+                getServer().getPluginManager().registerEvents(new ItemUsage(this, usageHandler), this);
+                getServer().getPluginManager().registerEvents(new RewardPlaceBreak(this, configHandler), this);
                 getServer().getPluginManager().registerEvents(new PreventGrowth(this, configHandler, gdHook), this);
-                getServer().getPluginManager().registerEvents(new RewardBreak(this, configHandler), this);
+                getServer().getPluginManager().registerEvents(new PreventPlaceBreak(this, usageHandler), this);
             } else {
                 getLogger().severe("Either itemEntries is disabled or there was an error in config... disabling plugin!");
                 disablePlugin();

@@ -3,6 +3,7 @@
 
 enabled: true
 
+# Optional hooks for server integration.
 hooks:
   Vault:
     enabled: false
@@ -14,15 +15,21 @@ hooks:
   WorldGuard:
     enabled: false
 
-breakEvent:
+# Create your own block breaking/placing event.
+# Rewards are selected from the itemEntries with a defined `blockEvent.rewardChance` > 0.
+blockEvent:
+  joinMessage: "&eWelcome! &6We're currently having our Halloween event -- break pumpkins to find candy!"
+  joinMessageDelay: 5
   inactiveWorlds:
     - "world"
     - "world_nether"
     - "world_the_end"
+  rewardBlockPlacing:
+    enabled: false
+    chance: 33.3
+    blocks: []
   rewardBlockBreaking:
     enabled: false
-    joinMessage: "&eWelcome! &6We're currently having our Halloween event -- break pumpkins to find candy!"
-    joinMessageDelay: 5
     chance: 33.3
     blocks:
       - "PUMPKIN"
@@ -35,12 +42,18 @@ breakEvent:
       - "PUMPKIN"
       - "CARVED_PUMPKIN"
       - "JACK_O_LANTERN"
+  preventBlockBreaking:
+    enabled: false
+    message: "&cSorry, you cannot break that block during our event!"
+    blocks: []
   preventBlockGrowth:
     enabled: false
     logInConsole: false
     blocks:
       - "PUMPKIN"
 
+# Disable/modify my pre-defined items and create your own entries as needed!
+# Use https://github.com/tbm00/Item64?tab=readme-ov-file#itementry-specification for help.
 itemEntries:
   "1":
     key: "FLAMETHROWER"
@@ -259,7 +272,7 @@ itemEntries:
           - "itm heal <player> -fx"
         effects: []
         actionBarMessage: "&aYou gobbled the honey!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some healing honey!"
       giveRewardItem: true
@@ -301,7 +314,7 @@ itemEntries:
           - "JUMP:1:1800"
           - "SPEED:0:1800"
         actionBarMessage: "&aAn apple a day, yk what they say!"
-    breakEvent:
+    blockEvent:
       rewardChance: 1.0
       rewardMessage: "&6You found a superapple!"
       giveRewardItem: true
@@ -330,7 +343,7 @@ itemEntries:
           - "FAST_DIGGING:2:360"
           - "SPEED:2:360"
         actionBarMessage: "&0oOOOoOoOOoOooo &6You feel a sugar rush!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some kit-kit!"
       giveRewardItem: true
@@ -363,7 +376,7 @@ itemEntries:
           - "SLOW:3:420"
           - "SLOW_DIGGING:4:420"
         actionBarMessage: "&0oOoOoooOOoOOo &6You feel tough but sluggish!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a jolly rancher!"
       giveRewardItem: true
@@ -392,7 +405,7 @@ itemEntries:
           - "NIGHT_VISION:2:480"
           - "DAMAGE_RESISTANCE:1:480"
         actionBarMessage: "&0OoOooOOOOOoO &6Your eyes adjust to the darkness!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a candy carrot!"
       giveRewardItem: true
@@ -423,7 +436,7 @@ itemEntries:
           - "REGENERATION:1:480"
           - "GLOWING:1:480"
         actionBarMessage: "&0oOOOooOoOooo &6You glow under the moonlight!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a moonlight munch!"
       giveRewardItem: true
@@ -456,7 +469,7 @@ itemEntries:
           - "CONFUSION:0:240"
           - "SLOW_FALLING:5:240"
         actionBarMessage: "&0oOOOooOoOooo &6You fade in and out of sight..."
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a phantom fruit!"
       giveRewardItem: true
@@ -487,7 +500,7 @@ itemEntries:
           - "INCREASE_DAMAGE:4:240"
           - "CONFUSION:0:240"
         actionBarMessage: "&0oOOOooOoOooo &6Sticky and strong!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some spider web taffy!"
       giveRewardItem: true
@@ -520,7 +533,7 @@ itemEntries:
           - "SLOW_FALLING:3:180"
           - "JUMP:6:180"
         actionBarMessage: "&0oOOOooOoOooo &6You feel as light as a feather!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a broomstick!"
       giveRewardItem: true
@@ -551,7 +564,7 @@ itemEntries:
           - "INVISIBILITY:0:360"
           - "GLOWING:0:360"
         actionBarMessage: "&0oOOOooOoOaahh &6You get me so highhh!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a ghostly gummy!"
       giveRewardItem: true
@@ -582,7 +595,7 @@ itemEntries:
           - "SLOW:0:360"
           - "SLOW_FALLING:0:360"
         actionBarMessage: "&0oOooOOooOoop &2The grass whispers as you move..."
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some zombie kush!"
       giveRewardItem: true
@@ -619,7 +632,7 @@ itemEntries:
           - "SLOW_DIGGING:2:480"
           - "CONFUSION:0:480"
         actionBarMessage: "&0oOOOOoooaaughhh &6You feel a bit tipsy!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a bottle of beer!"
       giveRewardItem: true
@@ -648,7 +661,7 @@ itemEntries:
           - "SPEED:4:360"
           - "JUMP:2:360"
         actionBarMessage: "&0OOOOOOOOOOOOOO &6You're bursting with energy!!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some sugar!"
       giveRewardItem: true
@@ -657,7 +670,7 @@ itemEntries:
     key: "CRATE_KEY_REWARD"
     type: "NO_ITEM"
     enabled: false
-    breakEvent:
+    blockEvent:
       rewardChance: 0.0
       rewardMessage: "&6You found a crate key!"
       rewardCommands:
