@@ -141,7 +141,7 @@ public class ConfigHandler {
             List<String> preventBlockHolder = eventSection.getStringList("preventBlockBreaking.blocks");
             preventedBreaking.addAll(preventBlockHolder);
             preventedBreakingMessage = eventSection.getString("preventBlockBreaking.message");
-            item64.logGreen("preventBlockBreaking is enabled. Preventing placement of: " + preventBlockHolder);
+            item64.logGreen("preventBlockBreaking is enabled. Preventing breaking of: " + preventBlockHolder);
         } else {
             item64.logYellow("preventBlockBreaking is disabled.");
         }
