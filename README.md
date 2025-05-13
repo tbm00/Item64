@@ -3,7 +3,7 @@
 </p>
 
 # Item64
-A spigot plugin that adds unlimited custom items and a block breaking event.
+A spigot plugin that adds unlimited custom items and a block breaking/placing event.
 
 Created by tbm00 for play.mc64.wtf.
 
@@ -23,10 +23,10 @@ Pre-Defined Items:
   - **Smelting Pickaxe** Breaks ore and smelts it.
   - **Various Candies** Applies enhanced effects to players when they consume/use the item.
 
-### **Block Breaking Event**
-*Give items and/or run commands when players break specific blocks.*
+### **Block Breaking/Placing Event**
+*Give items and/or run commands when players break or place specific blocks.*
 
-The default config uses this feature for a Halloween event that gives custom candy items when players break pumpkins. If you choose to use this feature, you can retheme it to be entirely different!
+The default config uses this feature for a Halloween event that gives custom candy items when players break pumpkins. If you choose to use this feature, you can re-theme it to be entirely different!
 
 ### **Survival-Friendly**
 *The default config is safe to use on SMP servers.*
@@ -42,7 +42,7 @@ Simply use the default config, which is survival-friendly, or customize it to yo
   - Delete/modify pre-defined item entries.
   - Create unlimited item entries that shoot custom projectiles, run commands, and apply effects.
   - Configure damage, ammo, hunger costs, money costs, cooldown timers, projectile randomness, lore, enchantments, effects, & more.
-  - Redesign the Halloween block breaking event to fit your server or a different theme.
+  - Redesign the Halloween BlockEvent to fit your server or a different theme.
 
 
 ## Dependencies
@@ -50,8 +50,9 @@ Simply use the default config, which is survival-friendly, or customize it to yo
 - **Java 17+**: REQUIRED
 - **Spigot 1.18.1+**: UNTESTED ON OLDER VERSIONS
 - **Vault**: OPTIONAL
-- **DeluxeCombat**: OPTIONAL
+- **WorldGuard**: OPTIONAL
 - **GriefDefender**: OPTIONAL
+- **DeluxeCombat**: OPTIONAL
 
 
 ## Commands & Permissions
@@ -66,7 +67,8 @@ Simply use the default config, which is survival-friendly, or customize it to yo
 Each item has configurable permissions (in `config.yml`) that must be fulfilled for a player to use or spawn the item. The only hardcoded permissions are:
 - `item64.help` Ability to display the command list *(Default: OP)*
 - `item64.heal` Ability to heal a player *(Default: OP)*
-- `item64.allowplace` Ability to place blocked items during event *(Default: OP)*
+- `item64.allowplace` Ability to place blacklisted blocks during BlockEvent *(Default: OP)*
+- `item64.allowbreak` Ability to break blacklisted blocks during BlockEvent *(Default: OP)*
 
   *If you're using the default config and haven't changed any usePerms or givePerms, then the following nodes will work for you:*
   - `item64.give.<key>` Ability to spawn a particular item *(Default: OP)*
@@ -142,7 +144,7 @@ Required for *all ItemEntries*. Since listeners only apply to items with enabled
 </details>
 <details><summary>-- type: (STRING)</summary>
 
-Required for *all ItemEntries*. Must be `EXPLOSIVE_ARROW`, `LIGHTNING_PEARL`, `RANDOM_POTION`, `FLAME_PARTICLE`, `AREA_BREAK`, `CONSUMABLE`, `USABLE`, or `NO_ITEM`.
+Required for *all ItemEntries*. Must be `AREA_BREAK`, `SMELT_BREAK`, `EXPLOSIVE_ARROW`, `LIGHTNING_PEARL`, `RANDOM_POTION`, `FLAME_PARTICLE`, `CONSUMABLE`, `USABLE`, or `NO_ITEM`.
 </details>
 <details><summary>-- enabled: (BOOLEAN)</summary>
 
@@ -185,7 +187,7 @@ Applicable on *all types except `NO_ITEM`*. Requires Vault dependency to use thi
 </details>
 <details><summary>-- -- hungerChance: (DOUBLE)</summary>
 
-Applicable on *all types except `NO_ITEM`*. In range [0.0,100.0]. Defaults to 100.0, but never used is hungerCost==0.
+Applicable on *all types except `NO_ITEM`*. In range [0.0,100.0]. Defaults to 100.0, but never used if hungerCost==0.
 </details>
 <details><summary>-- -- hungerCost: (INTEGER)</summary>
 
@@ -284,11 +286,12 @@ Applicable on *all types* but only applicable if breakEvent.rewardBlockPlacing.e
 ## Default Config
 
 ```
-# Item64 v0.2.25-beta by @tbm00
+# Item64 v0.2.26-beta by @tbm00
 # https://github.com/tbm00/Item64
 
 enabled: true
 
+# Optional hooks for server integration.
 hooks:
   Vault:
     enabled: false
@@ -300,15 +303,21 @@ hooks:
   WorldGuard:
     enabled: false
 
-breakEvent:
+# Create your own block breaking/placing event.
+# Rewards are selected from the itemEntries with a defined `blockEvent.rewardChance` > 0.
+blockEvent:
+  joinMessage: "&eWelcome! &6We're currently having our Halloween event -- break pumpkins to find candy!"
+  joinMessageDelay: 5
   inactiveWorlds:
     - "world"
     - "world_nether"
     - "world_the_end"
+  rewardBlockPlacing:
+    enabled: false
+    chance: 33.3
+    blocks: []
   rewardBlockBreaking:
     enabled: false
-    joinMessage: "&eWelcome! &6We're currently having our Halloween event -- break pumpkins to find candy!"
-    joinMessageDelay: 5
     chance: 33.3
     blocks:
       - "PUMPKIN"
@@ -321,12 +330,18 @@ breakEvent:
       - "PUMPKIN"
       - "CARVED_PUMPKIN"
       - "JACK_O_LANTERN"
+  preventBlockBreaking:
+    enabled: false
+    message: "&cSorry, you cannot break that block during our event!"
+    blocks: []
   preventBlockGrowth:
     enabled: false
     logInConsole: false
     blocks:
       - "PUMPKIN"
 
+# Disable/modify my pre-defined items and create your own entries as needed!
+# Use https://github.com/tbm00/Item64?tab=readme-ov-file#itementry-specification for help.
 itemEntries:
   "1":
     key: "FLAMETHROWER"
@@ -545,7 +560,7 @@ itemEntries:
           - "itm heal <player> -fx"
         effects: []
         actionBarMessage: "&aYou gobbled the honey!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some healing honey!"
       giveRewardItem: true
@@ -587,7 +602,7 @@ itemEntries:
           - "JUMP:1:1800"
           - "SPEED:0:1800"
         actionBarMessage: "&aAn apple a day, yk what they say!"
-    breakEvent:
+    blockEvent:
       rewardChance: 1.0
       rewardMessage: "&6You found a superapple!"
       giveRewardItem: true
@@ -616,7 +631,7 @@ itemEntries:
           - "FAST_DIGGING:2:360"
           - "SPEED:2:360"
         actionBarMessage: "&0oOOOoOoOOoOooo &6You feel a sugar rush!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some kit-kit!"
       giveRewardItem: true
@@ -649,7 +664,7 @@ itemEntries:
           - "SLOW:3:420"
           - "SLOW_DIGGING:4:420"
         actionBarMessage: "&0oOoOoooOOoOOo &6You feel tough but sluggish!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a jolly rancher!"
       giveRewardItem: true
@@ -678,7 +693,7 @@ itemEntries:
           - "NIGHT_VISION:2:480"
           - "DAMAGE_RESISTANCE:1:480"
         actionBarMessage: "&0OoOooOOOOOoO &6Your eyes adjust to the darkness!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a candy carrot!"
       giveRewardItem: true
@@ -709,7 +724,7 @@ itemEntries:
           - "REGENERATION:1:480"
           - "GLOWING:1:480"
         actionBarMessage: "&0oOOOooOoOooo &6You glow under the moonlight!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a moonlight munch!"
       giveRewardItem: true
@@ -742,7 +757,7 @@ itemEntries:
           - "CONFUSION:0:240"
           - "SLOW_FALLING:5:240"
         actionBarMessage: "&0oOOOooOoOooo &6You fade in and out of sight..."
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a phantom fruit!"
       giveRewardItem: true
@@ -773,7 +788,7 @@ itemEntries:
           - "INCREASE_DAMAGE:4:240"
           - "CONFUSION:0:240"
         actionBarMessage: "&0oOOOooOoOooo &6Sticky and strong!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some spider web taffy!"
       giveRewardItem: true
@@ -806,7 +821,7 @@ itemEntries:
           - "SLOW_FALLING:3:180"
           - "JUMP:6:180"
         actionBarMessage: "&0oOOOooOoOooo &6You feel as light as a feather!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a broomstick!"
       giveRewardItem: true
@@ -837,7 +852,7 @@ itemEntries:
           - "INVISIBILITY:0:360"
           - "GLOWING:0:360"
         actionBarMessage: "&0oOOOooOoOaahh &6You get me so highhh!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a ghostly gummy!"
       giveRewardItem: true
@@ -868,7 +883,7 @@ itemEntries:
           - "SLOW:0:360"
           - "SLOW_FALLING:0:360"
         actionBarMessage: "&0oOooOOooOoop &2The grass whispers as you move..."
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some zombie kush!"
       giveRewardItem: true
@@ -905,7 +920,7 @@ itemEntries:
           - "SLOW_DIGGING:2:480"
           - "CONFUSION:0:480"
         actionBarMessage: "&0oOOOOoooaaughhh &6You feel a bit tipsy!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found a bottle of beer!"
       giveRewardItem: true
@@ -934,7 +949,7 @@ itemEntries:
           - "SPEED:4:360"
           - "JUMP:2:360"
         actionBarMessage: "&0OOOOOOOOOOOOOO &6You're bursting with energy!!"
-    breakEvent:
+    blockEvent:
       rewardChance: 8.25
       rewardMessage: "&6You found some sugar!"
       giveRewardItem: true
@@ -943,7 +958,7 @@ itemEntries:
     key: "CRATE_KEY_REWARD"
     type: "NO_ITEM"
     enabled: false
-    breakEvent:
+    blockEvent:
       rewardChance: 0.0
       rewardMessage: "&6You found a crate key!"
       rewardCommands:
